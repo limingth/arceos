@@ -210,3 +210,17 @@ clean_c::
 	rm -rf $(app-objs)
 
 .PHONY: all build disasm run justrun debug clippy fmt fmt_c test test_no_fail_fast clean clean_c doc disk_image
+
+h hello:
+	make A=apps/helloworld ARCH=x86_64 LOG=info SMP=1
+	ls -l apps/helloworld/helloworld_x86_64-qemu-q35.*
+
+qemu:
+	qemu-system-x86_64 -m 128M -smp 1 -machine q35 -kernel apps/helloworld/helloworld_x86_64-qemu-q35.elf -nographic
+
+dump:
+	objdump -D apps/helloworld/helloworld_x86_64-qemu-q35.elf | more
+
+dd:
+	sudo dd if=./apps/helloworld/helloworld_x86_64-qemu-q35.bin of=/dev/disk3s1
+	diskutil eject /dev/disk3
