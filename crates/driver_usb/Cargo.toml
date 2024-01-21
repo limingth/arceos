@@ -1,0 +1,32 @@
+[package]
+name = "driver_usb"
+version = "0.1.0"
+edition = "2021"
+description = "Common traits and types for usb device drivers"
+license = "GPL-3.0-or-later OR Apache-2.0"
+homepage = "https://github.com/rcore-os/arceos"
+repository = "https://github.com/rcore-os/arceos/tree/main/crates/driver_usb"
+documentation = "https://rcore-os.github.io/arceos/driver_usb/index.html"
+
+
+[features]
+default = []
+vl805 = []
+
+
+[dependencies]
+driver_common = { path = "../driver_common" }
+driver_pci = { path = "../driver_pci" }
+xhci = "0.9"
+log="0.4"
+axhal = {path = "../../modules/axhal"}
+axalloc = {path = "../../modules/axalloc"}
+axconfig = {path = "../../modules/axconfig"}
+page_table = {path = "../page_table"}
+page_table_entry = {path = "../page_table_entry"}
+spinlock = { path = "../../crates/spinlock" }
+tock-registers = "0.9.0"
+pci_types = "0.6.1"
+
+[target.'cfg(target_arch = "aarch64")'.dependencies]
+aarch64-cpu = "9.3"
