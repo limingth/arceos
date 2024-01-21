@@ -1,6 +1,8 @@
 const NET_DEV_FEATURES: &[&str] = &["ixgbe", "virtio-net"];
 const BLOCK_DEV_FEATURES: &[&str] = &["ramdisk", "bcm2835-sdhci", "virtio-blk"];
 const DISPLAY_DEV_FEATURES: &[&str] = &["virtio-gpu"];
+const USB_HOST_DEV_FEATURES: &[&str] = &["vl805"];
+
 
 fn has_feature(feature: &str) -> bool {
     std::env::var(format!(
@@ -27,7 +29,8 @@ fn main() {
     for (dev_kind, feat_list) in [
         ("net", NET_DEV_FEATURES),
         ("block", BLOCK_DEV_FEATURES),
-        ("display", DISPLAY_DEV_FEATURES),
+        ("display", DISPLAY_DEV_FEATURES),        
+        ("usb_host", USB_HOST_DEV_FEATURES),
     ] {
         if !has_feature(dev_kind) {
             continue;

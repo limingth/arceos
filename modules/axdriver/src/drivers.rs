@@ -81,6 +81,43 @@ cfg_if::cfg_if! {
     }
 }
 
+//vl805
+cfg_if::cfg_if! {
+    if #[cfg(usb_host_dev = "vl805")] {
+        pub struct VL805Driver;
+        register_usb_host_driver!(VL805Driver, driver_usb::host::xhci::vl805::VL805);
+        use driver_usb::host::xhci::vl805::VL805;
+
+        impl DriverProbe for VL805Driver {
+            fn probe_pci(
+                    root: &mut PciRoot,
+                    bdf: DeviceFunction,
+                    dev_info: &DeviceFunctionInfo,
+                ) -> Option<AxDeviceEnum> {
+
+                    if let Ok(bar_info) = root.bar_info(bdf, 0)  {  
+                        match bar_info{
+                            driver_pci::BarInfo::Memory { address_type, prefetchable, address, size } => {
+                        
+                                if let Some(d) = VL805::probe_pci(
+                                    dev_info.vendor_id, dev_info.device_id, 
+                                    bdf,
+                                    address as usize){
+                                    return Some(AxDeviceEnum::from_usb_host(d));
+                                }
+                     
+                            },
+                            driver_pci::BarInfo::IO { address, size } => {},
+                        }
+                    }
+
+                None
+            }
+        }
+    }
+}
+
+
 cfg_if::cfg_if! {
     if #[cfg(net_dev = "ixgbe")] {
         use crate::ixgbe::IxgbeHalImpl;

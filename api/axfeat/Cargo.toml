@@ -46,7 +46,7 @@ net = ["alloc", "paging", "axdriver/virtio-net", "dep:axnet", "axruntime/net"]
 display = ["alloc", "paging", "axdriver/virtio-gpu", "dep:axdisplay", "axruntime/display"]
 
 # USB Host
-usb-host = ["alloc", "paging", "axruntime/usb"]
+usb-host = ["alloc", "paging", "axdriver/usb_host", "axruntime/usb"]
 
 # Board support package
 bsp-raspi4 = ["axdriver?/bcm2711", "axdriver?/vl805"]
