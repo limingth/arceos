@@ -23,7 +23,8 @@ ifeq ($(BSP),rpi4)
     OBJDUMP_BINARY    = aarch64-none-elf-objdump
     NM_BINARY         = aarch64-none-elf-nm
     READELF_BINARY    = aarch64-none-elf-readelf
-    OPENOCD_ARG       = -f /openocd/tcl/interface/ftdi/olimex-arm-usb-tiny-h.cfg -f /openocd/rpi4.cfg
+    # OPENOCD_ARG       = -f /openocd/tcl/interface/ftdi/olimex-arm-usb-tiny-h.cfg -f /openocd/rpi4.cfg
+    OPENOCD_ARG       = -f /openocd/tcl/interface/jlink.cfg -f /openocd/rpi4.cfg
     JTAG_BOOT_IMAGE   = tools/raspi4/X1_JTAG_boot/jtag_boot_rpi4.img
     RUSTC_MISC_ARGS   = -C target-cpu=cortex-a72
 endif
@@ -88,7 +89,8 @@ openocd:
 ##------------------------------------------------------------------------------
 ## Start GDB session
 ##------------------------------------------------------------------------------
+KERNEL_ELF := $(patsubst %.bin,%.elf,$(KERNEL_BIN))
 gdb: RUSTC_MISC_ARGS += -C debuginfo=2
 gdb: $(KERNEL_ELF)
-	$(call color_header, "Launching GDB")
+	$(call color_header, "Launching GDB kernel: $(KERNEL_ELF)")
 	@$(DOCKER_GDB) gdb-multiarch -q $(KERNEL_ELF)
