@@ -8,10 +8,58 @@
 
 #![no_std]
 
+#[cfg(feature = "bcm2711")]
+mod bcm2711;
+
+pub mod types;
+pub mod err;
+pub mod root_complex;
+pub use root_complex::*;
 pub use virtio_drivers::transport::pci::bus::{BarInfo, Cam, HeaderType, MemoryBarType, PciError};
 pub use virtio_drivers::transport::pci::bus::{
     CapabilityInfo, Command, DeviceFunction, DeviceFunctionInfo, PciRoot, Status,
 };
+use pci_types::PciAddress;
+
+
+
+#[derive(Clone, Copy)]
+pub struct Address {
+    bus: u8,
+    device: u8,
+    function: u8,
+}
+impl core::fmt::Display for Address {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{:02x}:{:02x}.{}", self.bus, self.device, self.function)
+    }
+}
+impl Into<PciAddress> for Address {
+    fn into(self) -> PciAddress {
+        PciAddress::new(0, self.bus, self.device, self.function)
+    }
+}
+impl From<PciAddress> for Address {
+    fn from(value: PciAddress) -> Self {
+        Self { bus: value.bus(), device: value.device(), function: value.function() }
+    }
+}
+
+
+#[cfg(feature="bcm2711")]
+pub type RootComplex = PciRootComplex<bcm2711::BCM2711>;
+
+
+pub fn new_root_complex(mmio_base: usize) ->RootComplex {
+    PciRootComplex::new(mmio_base)
+}
+
+
+pub trait Access {
+    fn setup(mmio_base: usize);
+    fn probe_root_complex(mmio_base: usize);
+    fn map_conf(mmio_base: usize, addr: Address)->usize;
+}
 
 /// Used to allocate MMIO regions for PCI BARs.
 pub struct PciRangeAllocator {
