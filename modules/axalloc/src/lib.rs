@@ -45,16 +45,20 @@ cfg_if::cfg_if! {
 ///
 /// [`TlsfByteAllocator`]: allocator::TlsfByteAllocator
 pub struct GlobalAllocator {
-    balloc: SpinNoIrq<DefaultByteAllocator>,
-    palloc: SpinNoIrq<BitmapPageAllocator<PAGE_SIZE>>,
+    balloc_free: SpinNoIrq<DefaultByteAllocator>,
+    balloc_nocache: SpinNoIrq<DefaultByteAllocator>,
+    palloc_free: SpinNoIrq<BitmapPageAllocator<PAGE_SIZE>>,
+    palloc_nocache: SpinNoIrq<BitmapPageAllocator<PAGE_SIZE>>,
 }
 
 impl GlobalAllocator {
     /// Creates an empty [`GlobalAllocator`].
     pub const fn new() -> Self {
         Self {
-            balloc: SpinNoIrq::new(DefaultByteAllocator::new()),
-            palloc: SpinNoIrq::new(BitmapPageAllocator::new()),
+            balloc_free: SpinNoIrq::new(DefaultByteAllocator::new()),
+            balloc_nocache: SpinNoIrq::new(DefaultByteAllocator::new()),
+            palloc_free: SpinNoIrq::new(BitmapPageAllocator::new()),
+            palloc_nocache: SpinNoIrq::new(BitmapPageAllocator::new()),
         }
     }
 
@@ -76,22 +80,45 @@ impl GlobalAllocator {
     /// It firstly adds the whole region to the page allocator, then allocates
     /// a small region (32 KB) to initialize the byte allocator. Therefore,
     /// the given region must be larger than 32 KB.
-    pub fn init(&self, start_vaddr: usize, size: usize) {
-        assert!(size > MIN_HEAP_SIZE);
-        let init_heap_size = MIN_HEAP_SIZE;
-        self.palloc.lock().init(start_vaddr, size);
-        let heap_ptr = self
-            .alloc_pages(init_heap_size / PAGE_SIZE, PAGE_SIZE)
-            .unwrap();
-        self.balloc.lock().init(heap_ptr, init_heap_size);
+    /// added nocache allocator-2024.1.23
+    pub fn init(
+        &self,
+        (free_base, free_size): (usize, usize),
+        (nocache_base, nocache_size): (usize, usize),
+    ) {
+        {
+            assert!(free_size > MIN_HEAP_SIZE);
+            let init_heap_size = MIN_HEAP_SIZE;
+            self.palloc_free.lock().init(free_base, free_size);
+            let heap_ptr = self
+                .alloc_pages(init_heap_size / PAGE_SIZE, PAGE_SIZE)
+                .unwrap();
+            self.balloc_free.lock().init(heap_ptr, init_heap_size);
+        }
+        {
+            assert!(nocache_size > MIN_HEAP_SIZE);
+            let init_heap_size = MIN_HEAP_SIZE;
+            self.palloc_nocache.lock().init(nocache_base, nocache_size);
+            let heap_ptr = self
+                .alloc_pages(init_heap_size / PAGE_SIZE, PAGE_SIZE)
+                .unwrap();
+            self.balloc_nocache.lock().init(heap_ptr, init_heap_size);
+        }
     }
 
     /// Add the given region to the allocator.
     ///
     /// It will add the whole region to the byte allocator.
-    pub fn add_memory(&self, start_vaddr: usize, size: usize) -> AllocResult {
-        self.balloc.lock().add_memory(start_vaddr, size)
+    pub fn add_free_memory(&self, start_vaddr: usize, size: usize) -> AllocResult {
+        self.balloc_free.lock().add_memory(start_vaddr, size)
     }
+
+    /// Add the given region to the allocator.
+    ///
+    /// It will add the whole region to the byte allocator.
+    pub fn add_nocache_memory(&self, start_vaddr: usize, size: usize) -> AllocResult {
+        self.balloc_nocache.lock().add_memory(start_vaddr, size)
+    } //TODO 大脑爆炸
 
     /// Allocate arbitrary number of bytes. Returns the left bound of the
     /// allocated region.
@@ -104,7 +131,7 @@ impl GlobalAllocator {
     ///  aligned to it.
     pub fn alloc(&self, layout: Layout) -> AllocResult<NonNull<u8>> {
         // simple two-level allocator: if no heap memory, allocate from the page allocator.
-        let mut balloc = self.balloc.lock();
+        let mut balloc = self.balloc_free.lock();
         loop {
             if let Ok(ptr) = balloc.alloc(layout) {
                 return Ok(ptr);
@@ -133,7 +160,7 @@ impl GlobalAllocator {
     ///
     /// [`alloc`]: GlobalAllocator::alloc
     pub fn dealloc(&self, pos: NonNull<u8>, layout: Layout) {
-        self.balloc.lock().dealloc(pos, layout)
+        self.balloc_free.lock().dealloc(pos, layout)
     }
 
     /// Allocates contiguous pages.
@@ -143,7 +170,7 @@ impl GlobalAllocator {
     /// `align_pow2` must be a power of 2, and the returned region bound will be
     /// aligned to it.
     pub fn alloc_pages(&self, num_pages: usize, align_pow2: usize) -> AllocResult<usize> {
-        self.palloc.lock().alloc_pages(num_pages, align_pow2)
+        self.palloc_free.lock().alloc_pages(num_pages, align_pow2)
     }
 
     /// Gives back the allocated pages starts from `pos` to the page allocator.
@@ -154,27 +181,27 @@ impl GlobalAllocator {
     ///
     /// [`alloc_pages`]: GlobalAllocator::alloc_pages
     pub fn dealloc_pages(&self, pos: usize, num_pages: usize) {
-        self.palloc.lock().dealloc_pages(pos, num_pages)
+        self.palloc_free.lock().dealloc_pages(pos, num_pages)
     }
 
     /// Returns the number of allocated bytes in the byte allocator.
     pub fn used_bytes(&self) -> usize {
-        self.balloc.lock().used_bytes()
+        self.balloc_free.lock().used_bytes()
     }
 
     /// Returns the number of available bytes in the byte allocator.
     pub fn available_bytes(&self) -> usize {
-        self.balloc.lock().available_bytes()
+        self.balloc_free.lock().available_bytes()
     }
 
     /// Returns the number of allocated pages in the page allocator.
     pub fn used_pages(&self) -> usize {
-        self.palloc.lock().used_pages()
+        self.palloc_free.lock().used_pages()
     }
 
     /// Returns the number of available pages in the page allocator.
     pub fn available_pages(&self) -> usize {
-        self.palloc.lock().available_pages()
+        self.palloc_free.lock().available_pages()
     }
 }
 
@@ -208,13 +235,15 @@ pub fn global_allocator() -> &'static GlobalAllocator {
 /// valid.
 ///
 /// This function should be called only once, and before any allocation.
-pub fn global_init(start_vaddr: usize, size: usize) {
+pub fn global_init(free: (usize, usize), nocache: (usize, usize)) {
     debug!(
-        "initialize global allocator at: [{:#x}, {:#x})",
-        start_vaddr,
-        start_vaddr + size
+        "initialize global allocator at: free-[{:#x}, {:#x}),nocache-[{:#x},{:#x}]",
+        free.0,
+        free.0 + free.1,
+        nocache.0,
+        nocache.0 + nocache.1
     );
-    GLOBAL_ALLOCATOR.init(start_vaddr, size);
+    GLOBAL_ALLOCATOR.init(free, nocache);
 }
 
 /// Add the given memory region to the global allocator.
@@ -223,11 +252,11 @@ pub fn global_init(start_vaddr: usize, size: usize) {
 /// so that the allocated memory is also valid.
 ///
 /// It's similar to [`global_init`], but can be called multiple times.
-pub fn global_add_memory(start_vaddr: usize, size: usize) -> AllocResult {
+pub fn global_add_free_memory(start_vaddr: usize, size: usize) -> AllocResult {
     debug!(
         "add a memory region to global allocator: [{:#x}, {:#x})",
         start_vaddr,
         start_vaddr + size
     );
-    GLOBAL_ALLOCATOR.add_memory(start_vaddr, size)
+    GLOBAL_ALLOCATOR.add_free_memory(start_vaddr, size)
 }

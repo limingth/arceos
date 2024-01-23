@@ -152,7 +152,7 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
     #[cfg(feature = "multitask")]
     axtask::init_scheduler();
 
-    #[cfg(any(feature = "fs", feature = "net", feature = "display", feature="usb"))]
+    #[cfg(any(feature = "fs", feature = "net", feature = "display", feature = "usb"))]
     {
         #[allow(unused_variables)]
         let all_devices = axdriver::init_drivers();
@@ -215,15 +215,35 @@ fn init_allocator() {
             max_region_paddr = r.paddr;
         }
     }
-    for r in memory_regions() {
-        if r.flags.contains(MemRegionFlags::FREE) && r.paddr == max_region_paddr {
-            axalloc::global_init(phys_to_virt(r.paddr).as_usize(), r.size);
-            break;
+
+    {
+        let mut free_init: (usize, usize) = (0, 0);
+        let mut nocache_init: (usize, usize) = (0, 0);
+        for r in memory_regions() {
+            if r.flags.contains(MemRegionFlags::FREE)
+                && !r.flags.contains(MemRegionFlags::DEVICE)
+                && r.paddr == max_region_paddr
+            {
+                // axalloc::global_init(phys_to_virt(r.paddr).as_usize(), r.size);
+                free_init = (phys_to_virt(r.paddr).as_usize(), r.size);
+                break;
+            }
         }
+        for r in memory_regions() {
+            if r.flags.contains(MemRegionFlags::FREE)
+                && r.flags.contains(MemRegionFlags::DEVICE)
+                && r.paddr == max_region_paddr
+            {
+                nocache_init = (phys_to_virt(r.paddr).as_usize(), r.size);
+                break;
+            }
+        }
+        axalloc::global_init(free_init, nocache_init);
     }
+
     for r in memory_regions() {
         if r.flags.contains(MemRegionFlags::FREE) && r.paddr != max_region_paddr {
-            axalloc::global_add_memory(phys_to_virt(r.paddr).as_usize(), r.size)
+            axalloc::global_add_free_memory(phys_to_virt(r.paddr).as_usize(), r.size)
                 .expect("add heap memory region failed");
         }
     }
