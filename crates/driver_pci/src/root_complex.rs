@@ -1,21 +1,20 @@
 use crate::err::*;
+use crate::types::*;
 use crate::Access;
 use crate::Address;
-use crate::types::ConifgPciPciBridge;
-use crate::types::PciHeader;
+use alloc::vec::Vec;
 use core::fmt;
 use core::fmt::{Display, Formatter};
 use core::marker::PhantomData;
 use log::*;
 pub use pci_types::PciAddress;
-use crate::types::HeaderType;
 use tock_registers::interfaces::ReadWriteable;
 use tock_registers::interfaces::Readable;
 use tock_registers::registers::ReadOnly;
 use tock_registers::{register_bitfields, register_structs, registers::ReadWrite};
-
-const MAX_DEVICES: usize = 256;
-const MAX_FUNCTIONS: u8 = 8;
+const MAX_BUS: usize = 256;
+const MAX_DEVICES: usize = 32;
+const MAX_FUNCTIONS: usize = 8;
 
 /// The root complex of a PCI bus.
 #[derive(Debug, Clone)]
@@ -49,111 +48,75 @@ impl<A: Access> PciRootComplex<A> {
                 device: 0,
                 function: 0,
             },
-            pri: 0,
-            pri_dev: 0,
-            sec: 0,
-            sub: 0,
-            multiple_functions: false,
+            stack: Vec::new(),
+            one_dev: false,
         }
     }
 }
-impl<A: Access> pci_types::ConfigRegionAccess for PciRootComplex<A> {
-    fn function_exists(&self, address: pci_types::PciAddress) -> bool {
-        true
-    }
-
-    unsafe fn read(&self, address: PciAddress, offset: u16) -> u32 {
-        unsafe {
-            let ptr = A::map_conf(self.mmio_base, address.into()) as *const u32;
-            ptr.offset(offset as isize).read_volatile()
-        }
-    }
-
-    unsafe fn write(&self, address: PciAddress, offset: u16, value: u32) {
-        unsafe {
-            let ptr = A::map_conf(self.mmio_base, address.into()) as *mut u32;
-            ptr.offset(offset as isize).write_volatile(value);
-        }
-    }
-}
-
-/// A PCI Configuration Access Mechanism.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum Cam {
-    /// The PCI memory-mapped Configuration Access Mechanism.
-    ///
-    /// This provides access to 256 bytes of configuration space per device function.
-    MmioCam,
-    /// The PCIe memory-mapped Enhanced Configuration Access Mechanism.
-    ///
-    /// This provides access to 4 KiB of configuration space per device function.
-    Ecam,
-}
-
-impl Cam {
-    /// Returns the total size in bytes of the memory-mapped region.
-    pub const fn size(self) -> u32 {
-        match self {
-            Self::MmioCam => 0x1000000,
-            Self::Ecam => 0x10000000,
-        }
-    }
-}
-
 /// An iterator which enumerates PCI devices and functions on a given bus.
 pub struct BusDeviceIterator<A: Access> {
     /// This must only be used to read read-only fields, and must not be exposed outside this
     /// module, because it uses the same CAM as the main `PciRoot` instance.
     root: PciRootComplex<A>,
     next: Address,
-    pri: u8,
-    pri_dev: u8,
-    sec: u8,
-    sub: u8,
-    multiple_functions: bool,
+    stack: Vec<Address>,
+    one_dev: bool,
 }
 
-impl<A: Access> BusDeviceIterator<A> {
-    fn step(&mut self, current: &Address) {
-        if (current.function == 0) {
-            if self.multiple_functions {
-                self.next.function += 1;
-                if self.next.function >= MAX_FUNCTIONS {
-                    self.next.function = 0;
-                    self.next.device += 1;
-                }
-            } else {
-                self.next.device += 1;
-            }
-
-            if (self.next.device as usize) >= MAX_DEVICES {
-                self.next.device = 0;
-                self.next.bus += 1;
-            }
-        }
-    }
-}
+impl<A: Access> BusDeviceIterator<A> {}
 
 impl<A: Access> Iterator for BusDeviceIterator<A> {
     type Item = (PciAddress, DeviceFunctionInfo);
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            let current = self.next;
-            let cfg_addr = A::map_conf(self.root.mmio_base, current);
+            if self.next.function >= MAX_FUNCTIONS {
+                self.next.function = 0;
+                self.next.device += 1;
+            }
+
+            if self.next.device >= MAX_DEVICES {
+                if let Some(parent) = self.stack.pop() {
+                    let sub = self.next.bus;
+                    self.next.bus = parent.bus;
+                    self.next.device = parent.device + 1;
+                    self.next.function = 0;
+                    if let Some(cfg_addr) = A::map_conf(self.root.mmio_base, parent.clone()) {
+                        let bridge = ConifgPciPciBridge::new(cfg_addr);
+                        debug!("Bridge {} set subordinate: {:X}", parent, sub);
+                        bridge.set_subordinate_bus_number(sub as _);
+                    }
+                } else {
+                    return None;
+                }
+            }
+
+            let current = self.next.clone();
+
+            let cfg_addr = match A::map_conf(self.root.mmio_base, current.clone()) {
+                Some(c) => c,
+                None => {
+                    return None;
+                }
+            };
+
             debug!("begin: {} @ 0x{:X}", current, cfg_addr);
 
             let header = PciHeader::new(cfg_addr);
             let (vid, did) = header.vendor_id_and_device_id();
-
             debug!("vid {:x}, did {:x}", vid, did);
-            self.multiple_functions = header.has_multiple_functions();
-            debug!("has multiple functions: {}", self.multiple_functions);
 
-            if vid == 0xffff || vid == 0 {
-                self.step(&current);
+            if vid == 0xffff {
+                // self.next.bus+=1;
+                if current.function == 0 {
+                    self.next.device += 1;
+                } else {
+                    self.next.function += 1;
+                }
                 continue;
             }
+            let multi = header.has_multiple_functions();
+            debug!("has multiple functions: {}", multi);
 
             let header_type = header.header_type();
             // let (dv, bc, sc, interface) = header.revision_and_class(access);
@@ -165,36 +128,37 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
             // info.subclass = sc;
             info.header_type = header_type;
             // info.prog_if = interface;
-            let out_addr: PciAddress = current.into();
+            let out_addr: PciAddress = current.clone().into();
             let out = (out_addr, info);
             match header_type {
-                HeaderType::PciPciBridge=>{
+                HeaderType::PciPciBridge => {
                     let bridge = ConifgPciPciBridge::new(cfg_addr);
-                    debug!("bridge ");
-                    self.next.bus+=1;
+                    debug!("bridge mult: {}", multi);
+                    self.stack.push(current.clone());
+                    self.one_dev = !multi;
+                    self.next.bus += 1;
                     self.next.device = 0;
                     self.next.function = 0;
-                    bridge.set_secondary_bus_number(self.next.bus);
-                    if !self.multiple_functions{
-                        bridge.set_subordinate_bus_number(self.next.bus);
-                    }
+                    bridge.set_secondary_bus_number(self.next.bus as _);
+                    bridge.set_subordinate_bus_number(0xff);
+
+                    bridge.set_memory_base((0xF8000000u32 >> 16) as u16);
+                    bridge.set_memory_limit((0xF8000000u32 >> 16) as u16);
+
+                    header.set_command(&[
+                        ConfigCommand::MemorySpaceEnable,
+                        ConfigCommand::BusMasterEnable,
+                        ConfigCommand::ParityErrorResponse,
+                        ConfigCommand::SERREnable,
+                    ])
                 }
                 _ => {
-                    if (current.function == 0) {
-                        if self.multiple_functions {
-                            self.next.function += 1;
-                            if self.next.function >= MAX_FUNCTIONS {
-                                self.next.function = 0;
-                                self.next.device += 1;
-                            }
-                        } else {
-                            self.next.device += 1;
-                        }
-
-                        if (self.next.device as usize) >= MAX_DEVICES {
-                            self.next.device = 0;
-                            self.next.bus += 1;
-                        }
+                    if self.one_dev {
+                        self.next.device = MAX_DEVICES;
+                    } else if current.function == 0 && !multi {
+                        self.next.device += 1;
+                    } else {
+                        self.next.function += 1;
                     }
                 }
             }
@@ -253,4 +217,3 @@ impl Display for DeviceFunctionInfo {
         )
     }
 }
-

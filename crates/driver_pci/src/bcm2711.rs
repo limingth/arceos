@@ -290,6 +290,8 @@ use log::debug;
 const RGR1_SW_INIT_1: usize = 0x9210;
 const EXT_CFG_INDEX: usize = 0x9000;
 const EXT_CFG_DATA: usize = 0x8000;
+// const EXT_CFG_DATA: usize = 0x9004;
+
 
 #[derive(Clone)]
 pub struct BCM2711 {}
@@ -299,16 +301,18 @@ fn cfg_index(addr: Address) -> usize {
 }
 
 impl Access for BCM2711 {
-    fn map_conf(mmio_base: usize, addr: Address) -> usize {
+    fn map_conf(mmio_base: usize, addr: Address) -> Option<usize> {
         if addr.bus == 0 {
-            return ((addr.device as u32) << 15 | (addr.function as u32) << 12) as usize
-                + mmio_base;
+            if addr.device >0 || addr.function >0{
+                return None;
+            }
+            return Some(mmio_base);
         }
         let idx = cfg_index(addr);
         unsafe {
             ((mmio_base + EXT_CFG_INDEX) as *mut u32).write_volatile(idx as u32);
         }
-        return mmio_base + EXT_CFG_DATA;
+        return Some( mmio_base + EXT_CFG_DATA);
     }
 
     fn probe_root_complex(mmio_base: usize) {

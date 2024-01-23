@@ -10,7 +10,7 @@
 
 #[cfg(feature = "bcm2711")]
 mod bcm2711;
-
+extern crate alloc;
 pub mod types;
 pub mod err;
 pub mod root_complex;
@@ -23,11 +23,11 @@ use pci_types::PciAddress;
 
 
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Address {
-    bus: u8,
-    device: u8,
-    function: u8,
+    bus: usize,
+    device: usize,
+    function: usize,
 }
 impl core::fmt::Display for Address {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -36,12 +36,12 @@ impl core::fmt::Display for Address {
 }
 impl Into<PciAddress> for Address {
     fn into(self) -> PciAddress {
-        PciAddress::new(0, self.bus, self.device, self.function)
+        PciAddress::new(0, self.bus as _, self.device as _, self.function as _)
     }
 }
 impl From<PciAddress> for Address {
     fn from(value: PciAddress) -> Self {
-        Self { bus: value.bus(), device: value.device(), function: value.function() }
+        Self { bus: value.bus() as _ , device: value.device() as _, function: value.function() as _ }
     }
 }
 
@@ -58,7 +58,7 @@ pub fn new_root_complex(mmio_base: usize) ->RootComplex {
 pub trait Access {
     fn setup(mmio_base: usize);
     fn probe_root_complex(mmio_base: usize);
-    fn map_conf(mmio_base: usize, addr: Address)->usize;
+    fn map_conf(mmio_base: usize, addr: Address)->Option<usize>;
 }
 
 /// Used to allocate MMIO regions for PCI BARs.
