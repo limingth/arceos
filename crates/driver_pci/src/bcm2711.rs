@@ -1,4 +1,4 @@
-use crate::{err::*, Access, Address};
+use crate::{err::*, Access, PciAddress};
 use aarch64_cpu::registers::*;
 use core::{marker::PhantomData, ops::Add, ptr::NonNull};
 use ratio::Ratio;
@@ -7,6 +7,7 @@ use tock_registers::{
     register_bitfields, register_structs,
     registers::{ReadOnly, ReadWrite},
 };
+use crate::types::{ConfigCommand, ConifgPciPciBridge};
 
 register_bitfields![
     u32,
@@ -292,44 +293,48 @@ const EXT_CFG_INDEX: usize = 0x9000;
 const EXT_CFG_DATA: usize = 0x8000;
 // const EXT_CFG_DATA: usize = 0x9004;
 
-
 #[derive(Clone)]
 pub struct BCM2711 {}
 
-fn cfg_index(addr: Address) -> usize {
+fn cfg_index(addr: PciAddress) -> usize {
     ((addr.device as u32) << 15 | (addr.function as u32) << 12 | (addr.bus as u32) << 20) as usize
 }
 
 impl Access for BCM2711 {
-    fn map_conf(mmio_base: usize, addr: Address) -> Option<usize> {
+    fn map_conf(mmio_base: usize, addr: PciAddress) -> Option<usize> {
+        if addr.bus <= 2 && addr.device > 0 {
+            return None;
+        }
+
         if addr.bus == 0 {
-            if addr.device >0 || addr.function >0{
-                return None;
-            }
             return Some(mmio_base);
         }
+
         let idx = cfg_index(addr);
         unsafe {
             ((mmio_base + EXT_CFG_INDEX) as *mut u32).write_volatile(idx as u32);
         }
-        return Some( mmio_base + EXT_CFG_DATA);
+        return Some(mmio_base + EXT_CFG_DATA);
     }
 
-    fn probe_root_complex(mmio_base: usize) {
-        debug!("probing root complex");
+    fn probe_bridge(mmio_base: usize, bridge: &ConifgPciPciBridge) {
+        debug!("bridge bcm2711");
 
-        unsafe {
-            let secondary_bus_ptr = (mmio_base + 0x19) as *mut u8;
-            let subordiate_bus_ptr = (mmio_base + 0x1a) as *mut u8;
-            secondary_bus_ptr.write_volatile(1);
-            subordiate_bus_ptr.write_volatile(1);
-        }
+        bridge.set_memory_base((0xF8000000u32 >> 16) as u16);
+        bridge.set_memory_limit((0xF8000000u32 >> 16) as u16);
+
+        bridge.to_header().set_command(&[
+            ConfigCommand::MemorySpaceEnable,
+            ConfigCommand::BusMasterEnable,
+            ConfigCommand::ParityErrorResponse,
+            ConfigCommand::SERREnable,
+        ])
     }
 
     fn setup(mmio_base: usize) {
         init_early();
-        unsafe{
-          let regs = &mut *(mmio_base as *mut BCM2711PCIeHostBridgeRegs);
+        unsafe {
+            let regs = &mut *(mmio_base as *mut BCM2711PCIeHostBridgeRegs);
             regs.bridge_sw_init_set(1);
 
             // assert fundamental reset
@@ -451,10 +456,8 @@ impl Access for BCM2711 {
             //     writeField(pcieBase + HARD_PCIE_HARD_DEBUG, HARD_PCIE_HARD_DEBUG_CLKREQ_DEBUG_ENABLE_MASK,
             // HARD_PCIE_HARD_DEBUG_CLKREQ_DEBUG_ENABLE_SHIFT, 1);
         }
-
     }
 }
-
 
 /// Number of nanoseconds in a second.
 pub const NANOS_PER_SEC: u64 = 1_000_000_000;

@@ -4,6 +4,7 @@
 
 use crate::AxDeviceEnum;
 use driver_common::DeviceType;
+use driver_pci::PciAddress;
 
 #[cfg(feature = "virtio")]
 use crate::virtio::{self, VirtIoDevMeta};
@@ -98,14 +99,12 @@ cfg_if::cfg_if! {
                     if let Ok(bar_info) = root.bar_info(bdf, 0)  {  
                         match bar_info{
                             driver_pci::BarInfo::Memory { address_type, prefetchable, address, size } => {
-                        
                                 if let Some(d) = VL805::probe_pci(
                                     dev_info.vendor_id, dev_info.device_id, 
-                                    bdf,
+                                    PciAddress{bus: bdf.bus as _, device: bdf.device as _, function: bdf.function as _},
                                     address as usize){
                                     return Some(AxDeviceEnum::from_usb_host(d));
                                 }
-                     
                             },
                             driver_pci::BarInfo::IO { address, size } => {},
                         }

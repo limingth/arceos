@@ -1,17 +1,17 @@
 use crate::err::*;
 use crate::types::*;
 use crate::Access;
-use crate::Address;
+use crate::PciAddress;
 use alloc::vec::Vec;
 use core::fmt;
 use core::fmt::{Display, Formatter};
 use core::marker::PhantomData;
 use log::*;
-pub use pci_types::PciAddress;
-use tock_registers::interfaces::ReadWriteable;
-use tock_registers::interfaces::Readable;
-use tock_registers::registers::ReadOnly;
-use tock_registers::{register_bitfields, register_structs, registers::ReadWrite};
+use tock_registers::interfaces::{ReadWriteable, Readable};
+use tock_registers::{
+    register_bitfields, register_structs,
+    registers::{ReadOnly, ReadWrite},
+};
 const MAX_BUS: usize = 256;
 const MAX_DEVICES: usize = 32;
 const MAX_FUNCTIONS: usize = 8;
@@ -43,13 +43,12 @@ impl<A: Access> PciRootComplex<A> {
         };
         BusDeviceIterator {
             root,
-            next: Address {
+            next: PciAddress {
                 bus: 0,
                 device: 0,
                 function: 0,
             },
             stack: Vec::new(),
-            one_dev: false,
         }
     }
 }
@@ -58,9 +57,8 @@ pub struct BusDeviceIterator<A: Access> {
     /// This must only be used to read read-only fields, and must not be exposed outside this
     /// module, because it uses the same CAM as the main `PciRoot` instance.
     root: PciRootComplex<A>,
-    next: Address,
-    stack: Vec<Address>,
-    one_dev: bool,
+    next: PciAddress,
+    stack: Vec<PciAddress>,
 }
 
 impl<A: Access> BusDeviceIterator<A> {}
@@ -81,11 +79,10 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
                     self.next.bus = parent.bus;
                     self.next.device = parent.device + 1;
                     self.next.function = 0;
-                    if let Some(cfg_addr) = A::map_conf(self.root.mmio_base, parent.clone()) {
-                        let bridge = ConifgPciPciBridge::new(cfg_addr);
-                        debug!("Bridge {} set subordinate: {:X}", parent, sub);
-                        bridge.set_subordinate_bus_number(sub as _);
-                    }
+                    let cfg_addr = A::map_conf(self.root.mmio_base, parent.clone()).unwrap();
+                    let bridge = ConifgPciPciBridge::new(cfg_addr);
+                    debug!("Bridge {} set subordinate: {:X}", parent, sub);
+                    bridge.set_subordinate_bus_number(sub as _);
                 } else {
                     return None;
                 }
@@ -96,18 +93,21 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
             let cfg_addr = match A::map_conf(self.root.mmio_base, current.clone()) {
                 Some(c) => c,
                 None => {
-                    return None;
+                    if current.function == 0 {
+                        self.next.device += 1;
+                    } else {
+                        self.next.function += 1;
+                    }
+                    continue;
                 }
             };
 
-            debug!("begin: {} @ 0x{:X}", current, cfg_addr);
-
+            // debug!("begin: {} @ 0x{:X}", current, cfg_addr);
             let header = PciHeader::new(cfg_addr);
             let (vid, did) = header.vendor_id_and_device_id();
-            debug!("vid {:x}, did {:x}", vid, did);
+            // debug!("vid {:X}, did {:X}", vid, did);
 
             if vid == 0xffff {
-                // self.next.bus+=1;
                 if current.function == 0 {
                     self.next.device += 1;
                 } else {
@@ -116,51 +116,44 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
                 continue;
             }
             let multi = header.has_multiple_functions();
-            debug!("has multiple functions: {}", multi);
 
             let header_type = header.header_type();
-            // let (dv, bc, sc, interface) = header.revision_and_class(access);
+            let (dv, bc, sc, interface) = header.revision_and_class();
             let mut info = DeviceFunctionInfo::default();
             info.vendor_id = vid;
             info.device_id = did;
-            // info.revision = dv;
-            // info.class = bc;
-            // info.subclass = sc;
+            info.revision = dv;
+            info.class = bc;
+            info.subclass = sc;
             info.header_type = header_type;
-            // info.prog_if = interface;
-            let out_addr: PciAddress = current.clone().into();
-            let out = (out_addr, info);
+            info.prog_if = interface;
+            let out = (current.clone(), info);
             match header_type {
                 HeaderType::PciPciBridge => {
                     let bridge = ConifgPciPciBridge::new(cfg_addr);
-                    debug!("bridge mult: {}", multi);
                     self.stack.push(current.clone());
-                    self.one_dev = !multi;
                     self.next.bus += 1;
                     self.next.device = 0;
                     self.next.function = 0;
                     bridge.set_secondary_bus_number(self.next.bus as _);
                     bridge.set_subordinate_bus_number(0xff);
-
-                    bridge.set_memory_base((0xF8000000u32 >> 16) as u16);
-                    bridge.set_memory_limit((0xF8000000u32 >> 16) as u16);
-
-                    header.set_command(&[
-                        ConfigCommand::MemorySpaceEnable,
-                        ConfigCommand::BusMasterEnable,
-                        ConfigCommand::ParityErrorResponse,
-                        ConfigCommand::SERREnable,
-                    ])
+                    A::probe_bridge(self.root.mmio_base, &bridge);
                 }
-                _ => {
-                    if self.one_dev {
-                        self.next.device = MAX_DEVICES;
-                    } else if current.function == 0 && !multi {
+                HeaderType::Endpoint => {
+                    if current.function == 0 && !multi {
                         self.next.device += 1;
                     } else {
                         self.next.function += 1;
                     }
                 }
+                _ => {
+                    if current.function == 0 && !multi {
+                        self.next.device += 1;
+                    } else {
+                        self.next.function += 1;
+                    }
+                }
+
             }
 
             return Some(out);
@@ -168,6 +161,9 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
 
         None
     }
+
+    
+    
 }
 
 /// Information about a PCI device function.

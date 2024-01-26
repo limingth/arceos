@@ -3,7 +3,7 @@ use tock_registers::interfaces::Readable;
 use tock_registers::interfaces::Writeable;
 use tock_registers::registers::ReadOnly;
 use tock_registers::{register_bitfields, register_structs, registers::ReadWrite};
-use crate::Address;
+use crate::PciAddress;
 
 register_bitfields![
     u32,
@@ -14,12 +14,10 @@ register_bitfields![
     ],
 
     RC_CFG_REGS3 [
-        REVISION OFFSET(0) NUMBITS(8)[
-
-        ],
-        CLASS_CODE OFFSET(8) NUMBITS(24)[
-
-        ]
+        REVISION OFFSET(0) NUMBITS(8)[],
+        INTERFACE OFFSET(8) NUMBITS(8)[],
+        SUB_CLASS OFFSET(16) NUMBITS(8)[],
+        BASE_CLASS OFFSET(24) NUMBITS(8)[],
     ],
     RC_CFG_REGS4 [
         HEADER_TYPE OFFSET(16) NUMBITS(7)[
@@ -142,12 +140,28 @@ impl PciHeader {
             None => HeaderType::Unknown(0),
         }
     }
-
+    pub fn revision_and_class(&self)-> (Revision, BaseClass, SubClass, Interface){
+        let reg3 = &self.regs().reg3;
+        return (
+            reg3.read(RC_CFG_REGS3::REVISION) as u8,
+            reg3.read(RC_CFG_REGS3::BASE_CLASS) as u8,
+            reg3.read(RC_CFG_REGS3::SUB_CLASS) as u8,
+            reg3.read(RC_CFG_REGS3::INTERFACE) as u8,
+        );
+    }
     pub fn set_command(&self, command: &[ConfigCommand]) {
         let cmd = command.iter().fold(0u16, |acc, a|{ acc + a.clone() as u16});
         self.regs().command.set(cmd)
     }
 }
+
+
+pub type Revision = u8;
+pub type BaseClass = u8;
+pub type SubClass = u8;
+pub type Interface = u8;
+
+
 
 #[derive(Clone, Copy, Debug)]
 #[repr(u16)]
@@ -179,7 +193,9 @@ impl ConifgPciPciBridge {
     fn regs(&self) -> &'static PCIBridgeRegs {
         unsafe { &*(self.cfg_addr as *const PCIBridgeRegs) }
     }
-
+    pub fn to_header(&self) -> PciHeader {
+        PciHeader::new(self.cfg_addr)
+    }
 
     pub fn set_primary_bus_number(&self, bus: u8) {
         self.regs().primary_bus_number.set(bus);
