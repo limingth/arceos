@@ -1,9 +1,10 @@
+use crate::PciAddress;
+use bit_field::BitField;
 use tock_registers::interfaces::ReadWriteable;
 use tock_registers::interfaces::Readable;
 use tock_registers::interfaces::Writeable;
 use tock_registers::registers::ReadOnly;
 use tock_registers::{register_bitfields, register_structs, registers::ReadWrite};
-use crate::PciAddress;
 
 register_bitfields![
     u32,
@@ -53,7 +54,7 @@ register_bitfields! {
         FAST_BACK_TO_BACK_ENABLE OFFSET(9) NUMBITS(1) [],
         INTERRUPT_DISABLE OFFSET(10) NUMBITS(1) [],
     ],
- 
+
     RC_CFG_STATUS[
         IMMEDIATE_READINESS OFFSET(0) NUMBITS(3) [],
         INTERRUPT_STATUS OFFSET(3) NUMBITS(1) [],
@@ -87,6 +88,19 @@ register_structs! {
         (0x3C => _interrupt_line),
         (0x3D => interrupt_pin),
         (0x3E => control),
+        (0x40 => @END),
+    }
+}
+register_structs! {
+    EndpointRegs {
+        (0x00 => _rsvd1),
+        (0x10 => bar0: ReadWrite<u32>),
+        (0x14 => bar1: ReadWrite<u32>),
+        (0x18 => bar2: ReadWrite<u32>),
+        (0x1C => bar3: ReadWrite<u32>),
+        (0x20 => bar4: ReadWrite<u32>),
+        (0x24 => bar5: ReadWrite<u32>),
+        (0x28 => _card_bus_cis),
         (0x40 => @END),
     }
 }
@@ -140,7 +154,7 @@ impl PciHeader {
             None => HeaderType::Unknown(0),
         }
     }
-    pub fn revision_and_class(&self)-> (Revision, BaseClass, SubClass, Interface){
+    pub fn revision_and_class(&self) -> (Revision, BaseClass, SubClass, Interface) {
         let reg3 = &self.regs().reg3;
         return (
             reg3.read(RC_CFG_REGS3::REVISION) as u8,
@@ -150,18 +164,15 @@ impl PciHeader {
         );
     }
     pub fn set_command(&self, command: &[ConfigCommand]) {
-        let cmd = command.iter().fold(0u16, |acc, a|{ acc + a.clone() as u16});
+        let cmd = command.iter().fold(0u16, |acc, a| acc + a.clone() as u16);
         self.regs().command.set(cmd)
     }
 }
-
 
 pub type Revision = u8;
 pub type BaseClass = u8;
 pub type SubClass = u8;
 pub type Interface = u8;
-
-
 
 #[derive(Clone, Copy, Debug)]
 #[repr(u16)]
@@ -178,8 +189,6 @@ pub enum ConfigCommand {
     FastBackToBackEnable = 1 << 9,
     InterruptDisable = 1 << 10,
 }
-
-
 
 pub struct ConifgPciPciBridge {
     cfg_addr: usize,
@@ -213,7 +222,169 @@ impl ConifgPciPciBridge {
         self.regs().memory_base.set(base);
     }
 
-    pub fn set_memory_limit(&self, limit: u16){
+    pub fn set_memory_limit(&self, limit: u16) {
         self.regs().memory_limit.set(limit);
     }
+}
+
+pub struct ConifgEndpoint {
+    cfg_addr: usize,
+}
+impl ConifgEndpoint {
+    pub const MAX_BARS: u8 = 6;
+
+    pub fn new(cfg_addr: usize) -> Self {
+        Self { cfg_addr }
+    }
+
+    fn regs(&self) -> &'static EndpointRegs {
+        unsafe { &*(self.cfg_addr as *const EndpointRegs) }
+    }
+    pub fn to_header(&self) -> PciHeader {
+        PciHeader::new(self.cfg_addr)
+    }
+
+    fn read(offset: usize) -> u32 {
+        unsafe { (offset as *const u32).read_volatile() }
+    }
+    fn write(offset: usize, value: u32) {
+        unsafe { (offset as *mut u32).write_volatile(value) }
+    }
+
+    /// Get the contents of a BAR in a given slot. Empty bars will return `None`.
+    ///
+    /// ### Note
+    /// 64-bit memory BARs use two slots, so if one is decoded in e.g. slot #0, this method should not be called
+    /// for slot #1
+    pub fn bar(&self, slot: u8) -> Option<Bar> {
+        if slot >= Self::MAX_BARS {
+            return None;
+        }
+
+        let offset = self.cfg_addr + 0x10 + (slot as usize) * 4;
+        let bar = Self::read(offset);
+
+        /*
+         * If bit 0 is `0`, the BAR is in memory. If it's `1`, it's in I/O.
+         */
+        if bar.get_bit(0) == false {
+            let prefetchable = bar.get_bit(3);
+            let address = bar.get_bits(4..32) << 4;
+
+            match bar.get_bits(1..3) {
+                0b00 => {
+                    let size = unsafe {
+                        Self::write(offset, 0xfffffff0);
+                        let mut readback = unsafe { (offset as *const u32).read_volatile() };
+                        Self::write(offset, address);
+
+                        /*
+                         * If the entire readback value is zero, the BAR is not implemented, so we return `None`.
+                         */
+                        if readback == 0x0 {
+                            return None;
+                        }
+
+                        readback.set_bits(0..4, 0);
+                        1 << readback.trailing_zeros()
+                    };
+                    Some(Bar::Memory32 {
+                        address,
+                        size,
+                        prefetchable,
+                    })
+                }
+
+                0b10 => {
+                    /*
+                     * If the BAR is 64 bit-wide and this slot is the last, there is no second slot to read.
+                     */
+                    if slot >= 5 {
+                        return None;
+                    }
+
+                    let address_upper = Self::read(offset + 4);
+
+                    let size = unsafe {
+                        Self::write(offset, 0xfffffff0);
+                        Self::write(offset + 4, 0xffffffff);
+                        let mut readback_low = Self::read(offset);
+                        let readback_high = Self::read(offset + 4);
+                        Self::write(offset, address);
+                        Self::write(offset + 4, address_upper);
+
+                        /*
+                         * If the readback from the first slot is not 0, the size of the BAR is less than 4GiB.
+                         */
+                        readback_low.set_bits(0..4, 0);
+                        if readback_low != 0 {
+                            (1 << readback_low.trailing_zeros()) as u64
+                        } else {
+                            1u64 << ((readback_high.trailing_zeros() + 32) as u64)
+                        }
+                    };
+
+                    let address = {
+                        let mut address = address as u64;
+                        // TODO: do we need to mask off the lower bits on this?
+                        address.set_bits(32..64, address_upper as u64);
+                        address
+                    };
+
+                    Some(Bar::Memory64 {
+                        address,
+                        size,
+                        prefetchable,
+                    })
+                }
+                // TODO: should we bother to return an error here?
+                _ => panic!("BAR Memory type is reserved!"),
+            }
+        } else {
+            Some(Bar::Io {
+                port: bar.get_bits(2..32) << 2,
+            })
+        }
+    }
+
+
+    pub fn write_bar64(&mut self, slot: u8, value: u64) {
+        unsafe {
+            let offset = 0x10 + (slot as usize) * 4;
+            Self::write(offset, value.get_bits(0..32) as u32);
+            Self::write(offset + 4, value.get_bits(32..64) as u32);
+        }
+    }
+
+    pub fn write_bar32(&mut self, slot: u8, value: u32) {
+        let offset = 0x10 + (slot as usize) * 4;
+        unsafe {
+            Self::write(offset, value as u32);
+        }
+    }
+}
+
+pub const MAX_BARS: usize = 6;
+
+#[derive(Clone, Copy, Debug)]
+pub enum Bar {
+    Memory32 {
+        address: u32,
+        size: u32,
+        prefetchable: bool,
+    },
+    Memory64 {
+        address: u64,
+        size: u64,
+        prefetchable: bool,
+    },
+    Io {
+        port: u32,
+    },
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum BarWriteError {
+    NoSuchBar,
+    InvalidValue,
 }

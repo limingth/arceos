@@ -6,6 +6,7 @@ use alloc::vec::Vec;
 use core::fmt;
 use core::fmt::{Display, Formatter};
 use core::marker::PhantomData;
+use core::ops::Range;
 use log::*;
 use tock_registers::interfaces::{ReadWriteable, Readable};
 use tock_registers::{
@@ -17,17 +18,19 @@ const MAX_DEVICES: usize = 32;
 const MAX_FUNCTIONS: usize = 8;
 
 /// The root complex of a PCI bus.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct PciRootComplex<A: Access> {
     mmio_base: usize,
+    allocator: PciRangeAllocator,
     _marker: PhantomData<A>,
 }
 
 impl<A: Access> PciRootComplex<A> {
-    pub fn new(mmio_base: usize) -> Self {
+    pub fn new(mmio_base: usize, bar_range: Range<u64>) -> Self {
         A::setup(mmio_base);
         Self {
             mmio_base,
+            allocator: PciRangeAllocator::new(bar_range),
             _marker: PhantomData::default(),
         }
     }
@@ -39,6 +42,7 @@ impl<A: Access> PciRootComplex<A> {
         // Safe because the BusDeviceIterator only reads read-only fields.
         let root = Self {
             mmio_base: self.mmio_base,
+            allocator: self.allocator.clone(),
             _marker: PhantomData::default(),
         };
         BusDeviceIterator {
@@ -145,6 +149,7 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
                     } else {
                         self.next.function += 1;
                     }
+                    config_ep(cfg_addr, &mut self.root.allocator);
                 }
                 _ => {
                     if current.function == 0 && !multi {
@@ -153,7 +158,6 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
                         self.next.function += 1;
                     }
                 }
-
             }
 
             return Some(out);
@@ -161,9 +165,65 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
 
         None
     }
+}
 
-    
-    
+fn config_ep(cfg_addr: usize, allocator: &mut PciRangeAllocator) {
+    let mut ep = ConifgEndpoint::new(cfg_addr);
+    let bar0 = ep.bar(0);
+    let bar1 = ep.bar(1);
+    debug!("bar0: {:?}, bar1: {:?}", bar0, bar1);
+    let mut slot = 0;
+    while slot < ConifgEndpoint::MAX_BARS {
+        let bar = ep.bar(slot);
+        match bar {
+            Some(bar) => match bar {
+                Bar::Io { port } => {
+                    debug!("  BAR {}: IO  port: {:X}", slot, port);
+                }
+                Bar::Memory64 {
+                    address,
+                    size,
+                    prefetchable,
+                } => {
+                    let addr = allocator.alloc(size).unwrap();
+                    unsafe {
+                        ep.write_bar64(slot, addr);
+                    }
+                    debug!(
+                        "  BAR {}: MEM [{:#x}, {:#x}){}{}",
+                        slot,
+                        addr,
+                        addr + size,
+                        " 64bit",
+                        if prefetchable { " pref" } else { "" },
+                    );
+
+                    slot+=1;
+                }
+                Bar::Memory32 {
+                    address,
+                    size,
+                    prefetchable,
+                } => {
+                    let addr = allocator.alloc(size as u64).unwrap() as u32;
+                    unsafe {
+                        ep.write_bar32(slot, addr);
+                    }
+                    debug!(
+                        "  BAR {}: MEM [{:#x}, {:#x}){}{}",
+                        slot,
+                        addr,
+                        addr + size,
+                        " 32bit",
+                        if prefetchable { " pref" } else { "" },
+                    );
+                }
+            },
+            None =>{},
+        }
+
+        slot+=1;
+    }
 }
 
 /// Information about a PCI device function.
@@ -203,7 +263,7 @@ impl Display for DeviceFunctionInfo {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(
             f,
-            "{:04x}:{:04x} (class {:02x}.{:02x}, rev {:02x}) {:?}",
+            "{:04X}:{:04X} (class {:02x}.{:02x}, rev {:02x}) {:?}",
             self.vendor_id,
             self.device_id,
             self.class,
@@ -212,4 +272,42 @@ impl Display for DeviceFunctionInfo {
             self.header_type,
         )
     }
+}
+
+/// Used to allocate MMIO regions for PCI BARs.
+#[derive(Clone)]
+struct PciRangeAllocator {
+    range: Range<u64>,
+    current: u64,
+}
+
+impl PciRangeAllocator {
+    /// Creates a new allocator from a memory range.
+    pub fn new(range: Range<u64>) -> Self {
+        Self {
+            range: range.clone(),
+            current: range.start,
+        }
+    }
+
+    /// Allocates a memory region with the given size.
+    ///
+    /// The `size` should be a power of 2, and the returned value is also a
+    /// multiple of `size`.
+    pub fn alloc(&mut self, size: u64) -> Option<u64> {
+        if !size.is_power_of_two() {
+            return None;
+        }
+        let ret = align_up(self.current, size);
+        if ret + size > self.range.end {
+            return None;
+        }
+
+        self.current = ret + size;
+        Some(ret)
+    }
+}
+
+const fn align_up(addr: u64, align: u64) -> u64 {
+    (addr + align - 1) & !(align - 1)
 }

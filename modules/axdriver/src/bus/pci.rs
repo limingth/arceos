@@ -83,7 +83,9 @@ const PCI_BAR_NUM: u8 = 6;
 impl AllDevices {
     pub(crate) fn probe_bus_devices(&mut self) {
         let base_vaddr = phys_to_virt(axconfig::PCI_ECAM_BASE.into());
-        let mut root = driver_pci::new_root_complex(base_vaddr.as_usize());
+        let pci_range = axconfig::PCI_RANGES.get(1).unwrap();
+        let mut root = driver_pci::new_root_complex(
+            base_vaddr.as_usize(), pci_range.0 as u64..pci_range.1 as u64);
 
         for (bdf, dev_info) in root.enumerate_bus() {
             debug!("PCI {}: {}", bdf, dev_info);

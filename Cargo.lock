@@ -931,6 +931,7 @@ name = "driver_pci"
 version = "0.1.0"
 dependencies = [
  "aarch64-cpu",
+ "bit_field",
  "log",
  "pci_types",
  "ratio",
