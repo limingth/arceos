@@ -55,6 +55,12 @@ impl<A: Access> PciRootComplex<A> {
             stack: Vec::new(),
         }
     }
+
+    pub fn bar_info(&self, bdf: PciAddress, slot: u8)->Option<Bar>{
+            let cfg_addr = A::map_conf(self.mmio_base, bdf).unwrap();
+        let mut ep = ConifgEndpoint::new(cfg_addr);
+        ep.bar(slot)
+    }
 }
 /// An iterator which enumerates PCI devices and functions on a given bus.
 pub struct BusDeviceIterator<A: Access> {
@@ -85,7 +91,7 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
                     self.next.function = 0;
                     let cfg_addr = A::map_conf(self.root.mmio_base, parent.clone()).unwrap();
                     let bridge = ConifgPciPciBridge::new(cfg_addr);
-                    debug!("Bridge {} set subordinate: {:X}", parent, sub);
+                    trace!("Bridge {} set subordinate: {:X}", parent, sub);
                     bridge.set_subordinate_bus_number(sub as _);
                 } else {
                     return None;
@@ -169,9 +175,6 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
 
 fn config_ep(cfg_addr: usize, allocator: &mut PciRangeAllocator) {
     let mut ep = ConifgEndpoint::new(cfg_addr);
-    let bar0 = ep.bar(0);
-    let bar1 = ep.bar(1);
-    debug!("bar0: {:?}, bar1: {:?}", bar0, bar1);
     let mut slot = 0;
     while slot < ConifgEndpoint::MAX_BARS {
         let bar = ep.bar(slot);

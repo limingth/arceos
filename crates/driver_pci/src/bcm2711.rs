@@ -302,6 +302,7 @@ fn cfg_index(addr: PciAddress) -> usize {
 
 impl Access for BCM2711 {
     fn map_conf(mmio_base: usize, addr: PciAddress) -> Option<usize> {
+        // bus 0 bus 1 只有一个Device
         if addr.bus <= 2 && addr.device > 0 {
             return None;
         }

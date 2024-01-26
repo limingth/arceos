@@ -18,9 +18,10 @@ use core::ops::Range;
 
 pub use root_complex::*;
 use types::ConifgPciPciBridge;
-pub use virtio_drivers::transport::pci::bus::{BarInfo, PciRoot, DeviceFunction};
+// pub use virtio_drivers::transport::pci::bus::{BarInfo};
 
-#[derive(Clone)]
+
+#[derive(Clone, Copy)]
 pub struct PciAddress {
     pub bus: usize,
     pub device: usize,
@@ -37,6 +38,9 @@ impl core::fmt::Display for PciAddress {
 #[cfg(feature="bcm2711")]
 pub type RootComplex = PciRootComplex<bcm2711::BCM2711>;
 
+pub type  PciRoot = RootComplex;
+pub type DeviceFunction = PciAddress;
+pub type BarInfo = types::Bar;
 
 pub fn new_root_complex(mmio_base: usize, bar_range: Range<u64>) ->RootComplex {
     PciRootComplex::new(mmio_base, bar_range)
