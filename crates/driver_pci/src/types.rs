@@ -163,8 +163,8 @@ impl PciHeader {
             reg3.read(RC_CFG_REGS3::INTERFACE) as u8,
         );
     }
-    pub fn set_command(&self, command: &[ConfigCommand]) {
-        let cmd = command.iter().fold(0u16, |acc, a| acc + a.clone() as u16);
+    pub fn set_command(&self, command: impl IntoIterator<Item =ConfigCommand>) {
+        let cmd = command.into_iter().fold(0u16, |acc, a| acc + a.clone() as u16);
         self.regs().command.set(cmd)
     }
 }

@@ -324,7 +324,7 @@ impl Access for BCM2711 {
         bridge.set_memory_base((0xF8000000u32 >> 16) as u16);
         bridge.set_memory_limit((0xF8000000u32 >> 16) as u16);
 
-        bridge.to_header().set_command(&[
+        bridge.to_header().set_command([
             ConfigCommand::MemorySpaceEnable,
             ConfigCommand::BusMasterEnable,
             ConfigCommand::ParityErrorResponse,
