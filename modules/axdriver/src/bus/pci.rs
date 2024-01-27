@@ -12,10 +12,10 @@ impl AllDevices {
         let mut root = driver_pci::new_root_complex(
             base_vaddr.as_usize(), pci_range.0 as u64..pci_range.1 as u64);
 
-        for (bdf, dev_info) in root.enumerate_bus() {
+        for (bdf, dev_info, cfg) in root.enumerate_bus() {
             debug!("PCI {}: {}", bdf, dev_info);
             for_each_drivers!(type Driver,{
-                            if let Some(dev) = Driver::probe_pci(&mut root, bdf.clone(), &dev_info) {
+                            if let Some(dev) = Driver::probe_pci(&mut root, bdf.clone(), &dev_info, &cfg) {
                                 info!(
                                     "registered a new {:?} device at {}: {:?}",
                                     dev.device_type(),

@@ -74,7 +74,7 @@ pub struct BusDeviceIterator<A: Access> {
 impl<A: Access> BusDeviceIterator<A> {}
 
 impl<A: Access> Iterator for BusDeviceIterator<A> {
-    type Item = (PciAddress, DeviceFunctionInfo);
+    type Item = (PciAddress, DeviceFunctionInfo, ConfigSpace);
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -137,7 +137,7 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
             info.subclass = sc;
             info.header_type = header_type;
             info.prog_if = interface;
-            let out = (current.clone(), info);
+            let config_space;
             match header_type {
                 HeaderType::PciPciBridge => {
                     let bridge = ConifgPciPciBridge::new(cfg_addr);
@@ -148,6 +148,12 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
                     bridge.set_secondary_bus_number(self.next.bus as _);
                     bridge.set_subordinate_bus_number(0xff);
                     A::probe_bridge(self.root.mmio_base, &bridge);
+                    config_space = ConfigSpace{
+                        address: current.clone(),
+                        cfg_addr,
+                        header,
+                        kind: ConfigKind::PciPciBridge{inner: bridge}
+                    }
                 }
                 HeaderType::Endpoint => {
                     if current.function == 0 && !multi {
@@ -155,7 +161,13 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
                     } else {
                         self.next.function += 1;
                     }
-                    config_ep(cfg_addr, &mut self.root.allocator);
+                    let ep = config_ep(cfg_addr, &mut self.root.allocator);
+                    config_space = ConfigSpace{
+                        address: current.clone(),
+                        cfg_addr,
+                        header,
+                        kind: ConfigKind::Endpoint { inner: ep }
+                    }
                 }
                 _ => {
                     if current.function == 0 && !multi {
@@ -163,9 +175,11 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
                     } else {
                         self.next.function += 1;
                     }
+                    continue;
                 }
             }
 
+            let out = (current.clone(), info, config_space);
             return Some(out);
         }
 
@@ -173,10 +187,11 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
     }
 }
 
-fn config_ep(cfg_addr: usize, allocator: &mut PciRangeAllocator) {
+fn config_ep(cfg_addr: usize, allocator: &mut PciRangeAllocator)->ConifgEndpoint {
     let mut ep = ConifgEndpoint::new(cfg_addr);
     let mut slot = 0;
     while slot < ConifgEndpoint::MAX_BARS {
+    
         let bar = ep.bar(slot);
         match bar {
             Some(bar) => match bar {
@@ -227,6 +242,8 @@ fn config_ep(cfg_addr: usize, allocator: &mut PciRangeAllocator) {
 
         slot+=1;
     }
+
+    ep
 }
 
 /// Information about a PCI device function.
