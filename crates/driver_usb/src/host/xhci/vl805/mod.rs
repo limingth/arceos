@@ -1,4 +1,4 @@
-use core::alloc::Layout;
+use core::alloc::{GlobalAlloc, Layout};
 
 use super::MemoryMapper;
 pub use crate::host::USBHostDriverOps;
@@ -45,9 +45,11 @@ impl VL805 {
         if !(vendor_id == VL805_VENDOR_ID && device_id == VL805_DEVICE_ID) {
             return None;
         }
+        
         let vl805 = VL805::new(bdf);
         let allocator = global_allocator();
         let dma_addr = global_allocator().alloc_nocache(Layout::from_size_align(0x100, 0x1000).unwrap()).unwrap();
+        
         let used = allocator.used_bytes_nocache();
         debug!("dma: {:p} ", dma_addr);
 
