@@ -3,8 +3,9 @@
 #![allow(unused_imports)]
 
 use crate::AxDeviceEnum;
+use axalloc::{global_allocator, global_no_cache_allocator};
 use driver_common::DeviceType;
-use driver_pci::PciAddress;
+use driver_pci::{types::ConfigSpace, PciAddress};
 
 #[cfg(feature = "virtio")]
 use crate::virtio::{self, VirtIoDevMeta};
@@ -29,7 +30,10 @@ pub trait DriverProbe {
         _root: &mut PciRoot,
         _bdf: DeviceFunction,
         _dev_info: &DeviceFunctionInfo,
+        _config: &ConfigSpace,
     ) -> Option<AxDeviceEnum> {
+        use driver_pci::types::ConfigSpace;
+
         None
     }
 }
@@ -94,15 +98,15 @@ cfg_if::cfg_if! {
                     root: &mut PciRoot,
                     bdf: DeviceFunction,
                     dev_info: &DeviceFunctionInfo,
+                    cfg: &ConfigSpace,
                 ) -> Option<AxDeviceEnum> {
+                    
 
                     if let Some(bar_info) = root.bar_info(bdf, 0)  {
                         match bar_info{
                             driver_pci::BarInfo::Memory64 { prefetchable, address, size } => {
                                 if let Some(d) = VL805::probe_pci(
-                                    dev_info.vendor_id, dev_info.device_id,
-                                    bdf,
-                                    address as usize){
+                                    cfg, global_no_cache_allocator()){
                                     return Some(AxDeviceEnum::from_usb_host(d));
                                 }
                             },
@@ -127,6 +131,7 @@ cfg_if::cfg_if! {
                     root: &mut driver_pci::PciRoot,
                     bdf: driver_pci::DeviceFunction,
                     dev_info: &driver_pci::DeviceFunctionInfo,
+                    _cfg: &ConfigSpace
                 ) -> Option<crate::AxDeviceEnum> {
                     use crate::ixgbe::IxgbeHalImpl;
                     use driver_net::ixgbe::{INTEL_82599, INTEL_VEND, IxgbeNic};

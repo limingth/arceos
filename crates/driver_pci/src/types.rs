@@ -388,3 +388,17 @@ pub enum BarWriteError {
     NoSuchBar,
     InvalidValue,
 }
+
+
+pub struct  ConfigSpace{
+    pub address: PciAddress,
+    pub cfg_addr: usize,
+    pub header: PciHeader,
+    pub kind: ConfigKind,
+}
+
+pub enum ConfigKind {
+    Endpoint{inner: ConifgEndpoint},
+    PciPciBridge{inner: ConifgPciPciBridge},
+}
+

@@ -7,7 +7,7 @@ use axhal::{
     cpu,
     mem::{phys_to_virt, PhysAddr, VirtAddr},
 };
-use driver_pci::PciAddress;
+use driver_pci::{types::ConfigSpace, PciAddress};
 use driver_common::*;
 use log::debug;
 
@@ -37,18 +37,16 @@ impl VL805 {
 
 impl VL805 {
     pub fn probe_pci(
-        vendor_id: u16,
-        device_id: u16,
-        bdf: PciAddress,
-        bar: usize,
+        config: &ConfigSpace,
+        dma_alloc: &impl alloc::alloc::Allocator
     ) -> Option<Self> {
+        let (vendor_id, device_id) = config.header.vendor_id_and_device_id();
         if !(vendor_id == VL805_VENDOR_ID && device_id == VL805_DEVICE_ID) {
             return None;
         }
-        let vl805 = VL805::new(bdf);
+        let vl805 = VL805::new(config.address);
         let allocator = global_allocator();
-        let dma_addr = global_allocator().alloc_nocache(Layout::from_size_align(0x100, 0x1000).unwrap()).unwrap();
-        let used = allocator.used_bytes_nocache();
+        let dma_addr = dma_alloc.allocate(Layout::from_size_align(0x100, 0x1000).unwrap()).unwrap();
         debug!("dma: {:p} ", dma_addr);
 
 
