@@ -221,7 +221,6 @@ fn init_allocator() {
         let mut nocache_init: (usize, usize) = (0, 0);
         for r in memory_regions() {
             if r.flags.contains(MemRegionFlags::FREE)
-                && !r.flags.contains(MemRegionFlags::DEVICE)
                 && r.paddr == max_region_paddr
             {
                 // axalloc::global_init(phys_to_virt(r.paddr).as_usize(), r.size);
@@ -230,8 +229,7 @@ fn init_allocator() {
             }
         }
         for r in memory_regions() {
-            if r.flags.contains(MemRegionFlags::FREE)
-                && r.flags.contains(MemRegionFlags::DEVICE)
+            if r.name == "nocache memory"
             {
                 nocache_init = (phys_to_virt(r.paddr).as_usize(), r.size);
                 break;

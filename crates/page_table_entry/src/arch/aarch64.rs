@@ -80,6 +80,9 @@ impl DescriptorAttr {
         let mut bits = (idx as u64) << 2;
         if matches!(idx, MemAttr::Normal | MemAttr::NormalNonCacheable) {
             bits |= Self::INNER.bits() | Self::SHAREABLE.bits();
+        }        
+        if matches!(idx, MemAttr::Device){
+            bits |= Self::SHAREABLE.bits();
         }
         Self::from_bits_retain(bits)
     }
@@ -101,7 +104,7 @@ impl MemAttr {
     /// attributes in the descriptors.
     pub const MAIR_VALUE: u64 = {
         // Device-nGnRE memory
-        let attr0 = MAIR_EL1::Attr0_Device::nonGathering_nonReordering_EarlyWriteAck.value;
+        let attr0 = MAIR_EL1::Attr0_Device::nonGathering_nonReordering_noEarlyWriteAck.value;
         // Normal memory
         let attr1 = MAIR_EL1::Attr1_Normal_Inner::WriteBack_NonTransient_ReadWriteAlloc.value
             | MAIR_EL1::Attr1_Normal_Outer::WriteBack_NonTransient_ReadWriteAlloc.value;

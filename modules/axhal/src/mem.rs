@@ -152,7 +152,6 @@ pub(crate) fn default_nocache_regions() -> impl Iterator<Item = MemRegion> {
         paddr: start,
         size: axconfig::NOCACHE_MEMORY_SIZE,
         flags: MemRegionFlags::DEVICE
-            | MemRegionFlags::FREE
             | MemRegionFlags::READ
             | MemRegionFlags::WRITE,
         name: "nocache memory",

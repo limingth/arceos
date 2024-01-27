@@ -5,6 +5,7 @@
 #![feature(strict_provenance)]
 
 extern crate alloc;
+pub(crate) mod dma;
 pub mod host;
 #[doc(no_inline)]
 pub use driver_common::{BaseDriverOps, DevError, DevResult, DeviceType};

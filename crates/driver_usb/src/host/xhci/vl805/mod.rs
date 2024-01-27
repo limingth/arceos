@@ -1,8 +1,11 @@
 use core::alloc::{GlobalAlloc, Layout};
+mod mailbox;
+use self::mailbox::*;
 
 use super::MemoryMapper;
+use crate::dma::DMAVec;
 pub use crate::host::USBHostDriverOps;
-use axalloc::{global_add_free_memory, global_allocator};
+use axalloc::{global_add_free_memory, global_allocator, global_no_cache_allocator};
 use axhal::{
     cpu,
     mem::{phys_to_virt, PhysAddr, VirtAddr},
@@ -44,13 +47,13 @@ impl VL805 {
         if !(vendor_id == VL805_VENDOR_ID && device_id == VL805_DEVICE_ID) {
             return None;
         }
+        let mut dma: DMAVec<'_, axalloc::GlobalNoCacheAllocator, u8> = DMAVec::new(0x100, 0x1000, global_no_cache_allocator());
+        let mbox = Mailbox::new();
+        // let msg = MsgNotifyXhciReset{};
+        let msg = MsgGetFirmwareRevision{};
+        mbox.send(&msg,  &mut dma);
+
         let vl805 = VL805::new(config.address);
-        let allocator = global_allocator();
-        let dma_addr = dma_alloc.allocate(Layout::from_size_align(0x100, 0x1000).unwrap()).unwrap();
-        debug!("dma: {:p} ", dma_addr);
-
-
-
         Some(vl805)
     }
 }
