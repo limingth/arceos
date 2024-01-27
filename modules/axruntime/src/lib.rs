@@ -232,7 +232,6 @@ fn init_allocator() {
         for r in memory_regions() {
             if r.flags.contains(MemRegionFlags::FREE)
                 && r.flags.contains(MemRegionFlags::DEVICE)
-                && r.paddr == max_region_paddr
             {
                 nocache_init = (phys_to_virt(r.paddr).as_usize(), r.size);
                 break;

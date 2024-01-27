@@ -52,3 +52,6 @@ pci-ranges = [
     # ["0xFD50_0000", "0xFD50_9310"],      # pcie
     # ["0x04","0x7c000000"],
 ] #TODO: findout ranges
+
+# Size of the nocache memory region
+nocache-memory-size = "0x1_0000"

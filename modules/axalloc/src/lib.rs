@@ -48,7 +48,6 @@ pub struct GlobalAllocator {
     balloc_free: SpinNoIrq<DefaultByteAllocator>,
     balloc_nocache: SpinNoIrq<DefaultByteAllocator>,
     palloc_free: SpinNoIrq<BitmapPageAllocator<PAGE_SIZE>>,
-    palloc_nocache: SpinNoIrq<BitmapPageAllocator<PAGE_SIZE>>,
 }
 
 impl GlobalAllocator {
@@ -58,7 +57,6 @@ impl GlobalAllocator {
             balloc_free: SpinNoIrq::new(DefaultByteAllocator::new()),
             balloc_nocache: SpinNoIrq::new(DefaultByteAllocator::new()),
             palloc_free: SpinNoIrq::new(BitmapPageAllocator::new()),
-            palloc_nocache: SpinNoIrq::new(BitmapPageAllocator::new()),
         }
     }
 
@@ -95,14 +93,9 @@ impl GlobalAllocator {
                 .unwrap();
             self.balloc_free.lock().init(heap_ptr, init_heap_size);
         }
-        {
-            assert!(nocache_size > MIN_HEAP_SIZE);
-            let init_heap_size = MIN_HEAP_SIZE;
-            self.palloc_nocache.lock().init(nocache_base, nocache_size);
-            let heap_ptr = self
-                .alloc_pages(init_heap_size / PAGE_SIZE, PAGE_SIZE)
-                .unwrap();
-            self.balloc_nocache.lock().init(heap_ptr, init_heap_size);
+
+        if nocache_size > 0 {
+            self.balloc_nocache.lock().init(nocache_base, nocache_size);
         }
     }
 
@@ -117,7 +110,11 @@ impl GlobalAllocator {
     ///
     /// It will add the whole region to the byte allocator.
     pub fn add_nocache_memory(&self, start_vaddr: usize, size: usize) -> AllocResult {
-        self.balloc_nocache.lock().add_memory(start_vaddr, size)
+        let mut g = self.balloc_nocache.lock();
+        if g.total_bytes()==0 {
+            return  Err(allocator::AllocError::NoMemory);
+        }
+        g.add_memory(start_vaddr, size)
     } //TODO 大脑爆炸
 
     /// Allocate arbitrary number of bytes. Returns the left bound of the
@@ -175,24 +172,7 @@ impl GlobalAllocator {
     pub fn alloc_nocache(&self, layout: Layout) -> AllocResult<NonNull<u8>> {
         // simple two-level allocator: if no heap memory, allocate from the page allocator.
         let mut balloc = self.balloc_nocache.lock();
-        loop {
-            if let Ok(ptr) = balloc.alloc(layout) {
-                return Ok(ptr);
-            } else {
-                let old_size = balloc.total_bytes();
-                let expand_size = old_size
-                    .max(layout.size())
-                    .next_power_of_two()
-                    .max(PAGE_SIZE);
-                let heap_ptr = self.alloc_pages_nocache(expand_size / PAGE_SIZE, PAGE_SIZE)?;
-                debug!(
-                    "expand heap memory: [{:#x}, {:#x})",
-                    heap_ptr,
-                    heap_ptr + expand_size
-                );
-                balloc.add_memory(heap_ptr, expand_size)?;
-            }
-        }
+        balloc.alloc(layout)
     }
 
     /// Gives back the allocated region to the byte allocator.
@@ -227,28 +207,7 @@ impl GlobalAllocator {
         self.palloc_free.lock().dealloc_pages(pos, num_pages)
     }
 
-    /// Allocates contiguous pages.
-    ///
-    /// It allocates `num_pages` pages from the page allocator.
-    ///
-    /// `align_pow2` must be a power of 2, and the returned region bound will be
-    /// aligned to it.
-    pub fn alloc_pages_nocache(&self, num_pages: usize, align_pow2: usize) -> AllocResult<usize> {
-        self.palloc_nocache
-            .lock()
-            .alloc_pages(num_pages, align_pow2)
-    }
 
-    /// Gives back the allocated pages starts from `pos` to the page allocator.
-    ///
-    /// The pages should be allocated by [`alloc_pages`], and `align_pow2`
-    /// should be the same as the one used in [`alloc_pages`]. Otherwise, the
-    /// behavior is undefined.
-    ///
-    /// [`alloc_pages`]: GlobalAllocator::alloc_pages
-    pub fn dealloc_pages_nocache(&self, pos: usize, num_pages: usize) {
-        self.palloc_nocache.lock().dealloc_pages(pos, num_pages)
-    }
 
     /// Returns the number of allocated bytes in the byte allocator.
     pub fn used_bytes(&self) -> usize {
@@ -280,15 +239,7 @@ impl GlobalAllocator {
         self.balloc_nocache.lock().available_bytes()
     }
 
-    /// Returns the number of allocated pages in the page allocator.
-    pub fn used_pages_nocache(&self) -> usize {
-        self.palloc_nocache.lock().used_pages()
-    }
 
-    /// Returns the number of available pages in the page allocator.
-    pub fn available_pages_nocache(&self) -> usize {
-        self.palloc_nocache.lock().available_pages()
-    }
 }
 
 unsafe impl GlobalAlloc for GlobalAllocator {

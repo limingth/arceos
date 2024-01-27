@@ -1,11 +1,15 @@
+use core::alloc::Layout;
+
 use super::MemoryMapper;
 pub use crate::host::USBHostDriverOps;
+use axalloc::{global_add_free_memory, global_allocator};
 use axhal::{
     cpu,
     mem::{phys_to_virt, PhysAddr, VirtAddr},
 };
 use driver_pci::PciAddress;
 use driver_common::*;
+use log::debug;
 
 
 const VL805_VENDOR_ID: u16 = 0x1106;
@@ -42,6 +46,11 @@ impl VL805 {
             return None;
         }
         let vl805 = VL805::new(bdf);
+        let allocator = global_allocator();
+        let dma_addr = global_allocator().alloc_nocache(Layout::from_size_align(0x100, 0x1000).unwrap()).unwrap();
+        let used = allocator.used_bytes_nocache();
+        debug!("dma: {:p} ", dma_addr);
+
 
 
         Some(vl805)
