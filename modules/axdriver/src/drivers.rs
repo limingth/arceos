@@ -4,6 +4,7 @@
 
 use crate::AxDeviceEnum;
 use driver_common::DeviceType;
+use driver_pci::PciAddress;
 
 #[cfg(feature = "virtio")]
 use crate::virtio::{self, VirtIoDevMeta};
@@ -95,19 +96,17 @@ cfg_if::cfg_if! {
                     dev_info: &DeviceFunctionInfo,
                 ) -> Option<AxDeviceEnum> {
 
-                    if let Ok(bar_info) = root.bar_info(bdf, 0)  {  
+                    if let Some(bar_info) = root.bar_info(bdf, 0)  {
                         match bar_info{
-                            driver_pci::BarInfo::Memory { address_type, prefetchable, address, size } => {
-                        
+                            driver_pci::BarInfo::Memory64 { prefetchable, address, size } => {
                                 if let Some(d) = VL805::probe_pci(
-                                    dev_info.vendor_id, dev_info.device_id, 
+                                    dev_info.vendor_id, dev_info.device_id,
                                     bdf,
                                     address as usize){
                                     return Some(AxDeviceEnum::from_usb_host(d));
                                 }
-                     
                             },
-                            driver_pci::BarInfo::IO { address, size } => {},
+                            _ => {},
                         }
                     }
 
@@ -116,7 +115,6 @@ cfg_if::cfg_if! {
         }
     }
 }
-
 
 cfg_if::cfg_if! {
     if #[cfg(net_dev = "ixgbe")] {
@@ -142,7 +140,7 @@ cfg_if::cfg_if! {
                         const QS: usize = 1024;
                         let bar_info = root.bar_info(bdf, 0).unwrap();
                         match bar_info {
-                            driver_pci::BarInfo::Memory {
+                            driver_pci::BarInfo::Memory64 {
                                 address,
                                 size,
                                 ..
@@ -154,7 +152,19 @@ cfg_if::cfg_if! {
                                 .expect("failed to initialize ixgbe device");
                                 return Some(AxDeviceEnum::from_net(ixgbe_nic));
                             }
-                            driver_pci::BarInfo::IO { .. } => {
+                            driver_pci::BarInfo::Memory32 {
+                                address,
+                                size,
+                                ..
+                            } => {
+                                let ixgbe_nic = IxgbeNic::<IxgbeHalImpl, QS, QN>::init(
+                                    phys_to_virt((address as usize).into()).into(),
+                                    size as usize
+                                )
+                                .expect("failed to initialize ixgbe device");
+                                return Some(AxDeviceEnum::from_net(ixgbe_nic));
+                            }
+                            driver_pci::BarInfo::Io { .. } => {
                                 error!("ixgbe: BAR0 is of I/O type");
                                 return None;
                             }
