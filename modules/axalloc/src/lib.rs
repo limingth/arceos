@@ -280,18 +280,30 @@ unsafe impl Allocator for GlobalNoCacheAllocator {
 /// valid.
 ///
 /// This function should be called only once, and before any allocation.
-pub fn global_init(free: (usize, usize), nocache: (usize, usize)) {
+pub fn global_init(free: (usize, usize)) {
     debug!(
-        "initialize global allocator at: free-[{:#x}, {:#x}),nocache-[{:#x},{:#x}]",
+        "initialize global allocator at: free-[{:#x}, {:#x})",
         free.0,
         free.0 + free.1,
+    );
+    GLOBAL_ALLOCATOR.init(free);
+}
+/// Initializes the global allocator with the given memory region.
+///
+/// Note that the memory region bounds are just numbers, and the allocator
+/// does not actually access the region. Users should ensure that the region
+/// is valid and not being used by others, so that the allocated memory is also
+/// valid.
+///
+/// This function should be called only once, and before any allocation.
+pub fn global_nocache_init(nocache: (usize, usize)) {
+    debug!(
+        "initialize global allocator at: nocache-[{:#x},{:#x})",
         nocache.0,
         nocache.0 + nocache.1
     );
-    GLOBAL_ALLOCATOR.init(free);
     GLOBAL_NO_CACHE_ALLOCATOR.init(nocache)
 }
-
 /// Add the given memory region to the global allocator.
 ///
 /// Users should ensure that the region is valid and not being used by others,

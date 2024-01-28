@@ -146,6 +146,10 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
         remap_kernel_memory().expect("remap kernel memoy failed");
     }
 
+    #[cfg(feature = "alloc")]
+    init_allocator_no_cache();
+
+
     info!("Initialize platform devices...");
     axhal::platform_init();
 
@@ -218,24 +222,14 @@ fn init_allocator() {
 
     {
         let mut free_init: (usize, usize) = (0, 0);
-        let mut nocache_init: (usize, usize) = (0, 0);
         for r in memory_regions() {
-            if r.flags.contains(MemRegionFlags::FREE)
-                && r.paddr == max_region_paddr
-            {
+            if r.flags.contains(MemRegionFlags::FREE) && r.paddr == max_region_paddr {
                 // axalloc::global_init(phys_to_virt(r.paddr).as_usize(), r.size);
                 free_init = (phys_to_virt(r.paddr).as_usize(), r.size);
                 break;
             }
         }
-        for r in memory_regions() {
-            if r.name == "nocache memory"
-            {
-                nocache_init = (phys_to_virt(r.paddr).as_usize(), r.size);
-                break;
-            }
-        }
-        axalloc::global_init(free_init, nocache_init);
+        axalloc::global_init(free_init);
     }
 
     for r in memory_regions() {
@@ -245,10 +239,27 @@ fn init_allocator() {
         }
     }
 }
+#[cfg(feature = "alloc")]
+fn init_allocator_no_cache() {
+    use axhal::mem::memory_regions;
 
+    info!("Initialize global no cache memory allocator...");
+
+    {
+        let mut nocache_init: (usize, usize) = (0, 0);
+
+        for r in memory_regions() {
+            if r.name == "nocache memory" {
+                nocache_init = (r.paddr.as_usize(), r.size);
+                break;
+            }
+        }
+        axalloc::global_nocache_init(nocache_init);
+    }
+}
 #[cfg(feature = "paging")]
 fn remap_kernel_memory() -> Result<(), axhal::paging::PagingError> {
-    use axhal::mem::{memory_regions, phys_to_virt};
+    use axhal::mem::{memory_regions, phys_to_virt, VirtAddr};
     use axhal::paging::PageTable;
     use lazy_init::LazyInit;
 
@@ -257,13 +268,13 @@ fn remap_kernel_memory() -> Result<(), axhal::paging::PagingError> {
     if axhal::cpu::this_cpu_is_bsp() {
         let mut kernel_page_table = PageTable::try_new()?;
         for r in memory_regions() {
-            kernel_page_table.map_region(
-                phys_to_virt(r.paddr),
-                r.paddr,
-                r.size,
-                r.flags.into(),
-                true,
-            )?;
+            // mailbox 需要物理地址和虚拟地址一致
+            let vaddr = if r.name == "nocache memory" {
+                VirtAddr::from(r.paddr.as_usize())
+            } else {
+                phys_to_virt(r.paddr)
+            };
+            kernel_page_table.map_region(vaddr, r.paddr, r.size, r.flags.into(), true)?;
         }
         KERNEL_PAGE_TABLE.init_by(kernel_page_table);
     }

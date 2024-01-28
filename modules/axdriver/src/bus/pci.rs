@@ -2,7 +2,6 @@ use crate::{prelude::*, AllDevices};
 use axhal::mem::phys_to_virt;
 use driver_pci::*;
 
-const PCI_BAR_NUM: u8 = 6;
 
 
 impl AllDevices {

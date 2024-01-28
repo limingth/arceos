@@ -104,7 +104,7 @@ cfg_if::cfg_if! {
 
                     if let Some(bar_info) = root.bar_info(bdf, 0)  {
                         match bar_info{
-                            driver_pci::BarInfo::Memory64 { prefetchable, address, size } => {
+                            driver_pci::BarInfo::Memory64 { prefetchable: _, address, size } => {
                                 if let Some(d) = VL805::probe_pci(
                                     cfg, global_no_cache_allocator()){
                                     return Some(AxDeviceEnum::from_usb_host(d));

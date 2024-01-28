@@ -1,4 +1,4 @@
-use core::alloc::{GlobalAlloc, Layout};
+use core::{alloc::{GlobalAlloc, Layout}, ptr::slice_from_raw_parts_mut};
 mod mailbox;
 use self::mailbox::*;
 
@@ -49,10 +49,9 @@ impl VL805 {
         }
         let mut dma: DMAVec<'_, axalloc::GlobalNoCacheAllocator, u8> = DMAVec::new(0x100, 0x1000, global_no_cache_allocator());
         let mbox = Mailbox::new();
-        // let msg = MsgNotifyXhciReset{};
-        let msg = MsgGetFirmwareRevision{};
+        let msg = MsgNotifyXhciReset{};
+        // let msg = MsgGetFirmwareRevision{};
         mbox.send(&msg,  &mut dma);
-
         let vl805 = VL805::new(config.address);
         Some(vl805)
     }

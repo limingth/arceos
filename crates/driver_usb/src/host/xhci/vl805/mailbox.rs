@@ -5,7 +5,7 @@ use core::{
 use axhal::time;
 use alloc::vec::{self, Vec};
 use axhal::mem::phys_to_virt;
-use log::debug;
+use log::{debug, info};
  use core::time::Duration;
 
 
@@ -19,6 +19,9 @@ const MAILBOX0_READ: usize = MAIL_BOX_BASE + 0x00;
 const MAILBOX0_STATUS: usize = MAIL_BOX_BASE + 0x18;
 const MAILBOX1_WRITE: usize = MAIL_BOX_BASE + 0x20;
 const MAILBOX1_STATUS: usize = MAIL_BOX_BASE + 0x38;
+
+
+
 
 pub struct Mailbox {
     n_channel: u32,
@@ -46,11 +49,15 @@ impl Mailbox {
             debug!("waiting for response...");
             unsafe{
                 let buff =  &*slice_from_raw_parts(dma.as_ptr() as *const u32, dma.len() / 4);
-                while buff[1] == PropertyCode::Request as u32{}
+                let res = dma.as_ptr().offset(4) as *const PropertyCode;
 
-                let re = buff[1] ;
-
-                debug!("response: {:?}", re);
+                while res.read_volatile() == PropertyCode::Request {}
+                let res = res.read_volatile();
+                debug!("response: {:?}", res);
+                
+                if res != PropertyCode::ResponseSuccess{
+                    panic!("mailbox fail");
+                }
             }
         }
     }
@@ -114,14 +121,16 @@ pub trait RaspiMsg {
         let mut data: Vec<u32> = alloc::vec![];
         data.push(0); // size
         data.push(0); // request
-        data.push(Self::ID as _);
+        data.push(Self::ID as _); // id
 
         let tag = self.__tag_bytes();
         let tag32_len = tag.len().div_ceil(size_of::<u32>());
         let tag_len = tag32_len * size_of::<u32>();
-        data.push(tag_len as _);
-        data.push(0); // request
+        data.push(tag_len as _); // tag value len
+        data.push(0); // tag request
         let last = data.len() - 1;
+
+        // tag value
         unsafe {
             for _ in 0..tag32_len {
                 data.push(0);
@@ -133,8 +142,9 @@ pub trait RaspiMsg {
 
             tag_value.copy_from_slice(tag.as_slice());
         }
-        data.push(0);
-        data[0] = data.len() as _;
+    
+        data.push(0); // end tag
+        data[0] = (data.len() * 4) as _;
 
         unsafe {
             let ptr = data.as_ptr() as *const u8;
@@ -153,6 +163,7 @@ impl RaspiMsg for MsgNotifyXhciReset {
         let mut data: Vec<u8> = alloc::vec![0; 4];
         unsafe {
             let ptr = data.as_ptr() as *mut u32;
+            // 树莓派写死了固定地址 bus 1, device 0, func 0
             *ptr = 0x100000;
         }
         data
