@@ -944,7 +944,6 @@ name = "driver_usb"
 version = "0.1.0"
 dependencies = [
  "aarch64-cpu",
- "axalloc",
  "axconfig",
  "axhal",
  "bit_field",

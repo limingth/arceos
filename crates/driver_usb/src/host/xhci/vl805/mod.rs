@@ -1,11 +1,10 @@
-use core::{alloc::{GlobalAlloc, Layout}, ptr::slice_from_raw_parts_mut};
+use core::{alloc::{Allocator, Layout}, ptr::slice_from_raw_parts_mut};
 mod mailbox;
 use self::mailbox::*;
 
 use super::MemoryMapper;
 use crate::dma::DMAVec;
 pub use crate::host::USBHostDriverOps;
-use axalloc::{global_add_free_memory, global_allocator, global_no_cache_allocator};
 use axhal::{
     cpu,
     mem::{phys_to_virt, PhysAddr, VirtAddr},
@@ -39,15 +38,15 @@ impl VL805 {
 }
 
 impl VL805 {
-    pub fn probe_pci(
+    pub fn probe_pci<A: Allocator>(
         config: &ConfigSpace,
-        dma_alloc: &impl alloc::alloc::Allocator
+        dma_alloc: &A
     ) -> Option<Self> {
         let (vendor_id, device_id) = config.header.vendor_id_and_device_id();
         if !(vendor_id == VL805_VENDOR_ID && device_id == VL805_DEVICE_ID) {
             return None;
         }
-        let mut dma: DMAVec<'_, axalloc::GlobalNoCacheAllocator, u8> = DMAVec::new(0x100, 0x1000, global_no_cache_allocator());
+        let mut dma: DMAVec<'_, A, u8> = DMAVec::new(0x100, 0x1000, dma_alloc);
         let mbox = Mailbox::new();
         let msg = MsgNotifyXhciReset{};
         // let msg = MsgGetFirmwareRevision{};
