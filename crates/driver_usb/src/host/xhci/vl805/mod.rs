@@ -1,14 +1,9 @@
 use core::{alloc::{Allocator, Layout}, ptr::slice_from_raw_parts_mut};
 mod mailbox;
 use self::mailbox::*;
-
 use super::MemoryMapper;
 use crate::dma::DMAVec;
 pub use crate::host::USBHostDriverOps;
-use axhal::{
-    cpu,
-    mem::{phys_to_virt, PhysAddr, VirtAddr},
-};
 use driver_pci::{types::ConfigSpace, PciAddress};
 use driver_common::*;
 use log::debug;
