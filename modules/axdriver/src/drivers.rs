@@ -100,21 +100,8 @@ cfg_if::cfg_if! {
                     dev_info: &DeviceFunctionInfo,
                     cfg: &ConfigSpace,
                 ) -> Option<AxDeviceEnum> {
-                    
-
-                    if let Some(bar_info) = root.bar_info(bdf, 0)  {
-                        match bar_info{
-                            driver_pci::BarInfo::Memory64 { prefetchable: _, address, size } => {
-                                if let Some(d) = VL805::probe_pci(
-                                    cfg, global_no_cache_allocator()){
-                                    return Some(AxDeviceEnum::from_usb_host(d));
-                                }
-                            },
-                            _ => {},
-                        }
-                    }
-
-                None
+                
+                VL805::probe_pci(cfg, global_no_cache_allocator()).map(|d| AxDeviceEnum::from_usb_host(d))
             }
         }
     }

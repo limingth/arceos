@@ -56,10 +56,26 @@ impl<A: Access> PciRootComplex<A> {
         }
     }
 
-    pub fn bar_info(&self, bdf: PciAddress, slot: u8)->Option<Bar>{
-            let cfg_addr = A::map_conf(self.mmio_base, bdf).unwrap();
+    pub fn bar_info(&self, bdf: PciAddress, slot: u8) -> Option<Bar> {
+        let cfg_addr = A::map_conf(self.mmio_base, bdf).unwrap();
         let mut ep = ConifgEndpoint::new(cfg_addr);
         ep.bar(slot)
+    }
+
+    fn read<T>(&self, bdf: PciAddress, offset: usize)->T{
+        let cfg_addr = A::map_conf(self.mmio_base, bdf).unwrap();
+        unsafe{
+            let addr = cfg_addr + offset;
+            (addr as *const T).read_volatile()
+        }
+    }
+
+    fn write<T>(&self, bdf: PciAddress, offset: usize, value: T){
+        let cfg_addr = A::map_conf(self.mmio_base, bdf).unwrap();
+        unsafe{
+            let addr = cfg_addr + offset;
+            (addr as *mut T).write_volatile(value)
+        }
     }
 }
 /// An iterator which enumerates PCI devices and functions on a given bus.
@@ -148,11 +164,11 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
                     bridge.set_secondary_bus_number(self.next.bus as _);
                     bridge.set_subordinate_bus_number(0xff);
                     A::probe_bridge(self.root.mmio_base, &bridge);
-                    config_space = ConfigSpace{
+                    config_space = ConfigSpace {
                         address: current.clone(),
                         cfg_addr,
                         header,
-                        kind: ConfigKind::PciPciBridge{inner: bridge}
+                        kind: ConfigKind::PciPciBridge { inner: bridge },
                     }
                 }
                 HeaderType::Endpoint => {
@@ -162,11 +178,11 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
                         self.next.function += 1;
                     }
                     let ep = config_ep(cfg_addr, &mut self.root.allocator);
-                    config_space = ConfigSpace{
+                    config_space = ConfigSpace {
                         address: current.clone(),
                         cfg_addr,
                         header,
-                        kind: ConfigKind::Endpoint { inner: ep }
+                        kind: ConfigKind::Endpoint { inner: ep },
                     }
                 }
                 _ => {
@@ -187,11 +203,10 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
     }
 }
 
-fn config_ep(cfg_addr: usize, allocator: &mut PciRangeAllocator)->ConifgEndpoint {
+fn config_ep(cfg_addr: usize, allocator: &mut PciRangeAllocator) -> ConifgEndpoint {
     let mut ep = ConifgEndpoint::new(cfg_addr);
     let mut slot = 0;
     while slot < ConifgEndpoint::MAX_BARS {
-    
         let bar = ep.bar(slot);
         match bar {
             Some(bar) => match bar {
@@ -216,7 +231,7 @@ fn config_ep(cfg_addr: usize, allocator: &mut PciRangeAllocator)->ConifgEndpoint
                         if prefetchable { " pref" } else { "" },
                     );
 
-                    slot+=1;
+                    slot += 1;
                 }
                 Bar::Memory32 {
                     address,
@@ -237,10 +252,10 @@ fn config_ep(cfg_addr: usize, allocator: &mut PciRangeAllocator)->ConifgEndpoint
                     );
                 }
             },
-            None =>{},
+            None => {}
         }
 
-        slot+=1;
+        slot += 1;
     }
 
     ep

@@ -163,8 +163,10 @@ impl PciHeader {
             reg3.read(RC_CFG_REGS3::INTERFACE) as u8,
         );
     }
-    pub fn set_command(&self, command: impl IntoIterator<Item =ConfigCommand>) {
-        let cmd = command.into_iter().fold(0u16, |acc, a| acc + a.clone() as u16);
+    pub fn set_command(&self, command: impl IntoIterator<Item = ConfigCommand>) {
+        let cmd = command
+            .into_iter()
+            .fold(0u16, |acc, a| acc + a.clone() as u16);
         self.regs().command.set(cmd)
     }
 }
@@ -304,35 +306,38 @@ impl ConifgEndpoint {
                     }
 
                     let address_upper = Self::read(offset + 4);
-
-                    let size = unsafe {
-                        Self::write(offset, 0xfffffff0);
-                        Self::write(offset + 4, 0xffffffff);
-                        let mut readback_low = Self::read(offset);
-                        let readback_high = Self::read(offset + 4);
-                        Self::write(offset, address);
-                        Self::write(offset + 4, address_upper);
-
-                        /*
-                         * If the readback from the first slot is not 0, the size of the BAR is less than 4GiB.
-                         */
-                        readback_low.set_bits(0..4, 0);
-                        if readback_low != 0 {
-                            (1 << readback_low.trailing_zeros()) as u64
-                        } else {
-                            1u64 << ((readback_high.trailing_zeros() + 32) as u64)
-                        }
-                    };
-
-                    let address = {
+                    let address64 = {
                         let mut address = address as u64;
                         // TODO: do we need to mask off the lower bits on this?
                         address.set_bits(32..64, address_upper as u64);
                         address
                     };
+                    let mut size = 0;
+
+
+                    if address64 == 0 {
+                        size = unsafe {
+                            Self::write(offset, 0xfffffff0);
+                            Self::write(offset + 4, 0xffffffff);
+                            let mut readback_low = Self::read(offset);
+                            let readback_high = Self::read(offset + 4);
+                            Self::write(offset, address);
+                            Self::write(offset + 4, address_upper);
+
+                            /*
+                             * If the readback from the first slot is not 0, the size of the BAR is less than 4GiB.
+                             */
+                            readback_low.set_bits(0..4, 0);
+                            if readback_low != 0 {
+                                (1 << readback_low.trailing_zeros()) as u64
+                            } else {
+                                1u64 << ((readback_high.trailing_zeros() + 32) as u64)
+                            }
+                        };
+                    }
 
                     Some(Bar::Memory64 {
-                        address,
+                        address: address64,
                         size,
                         prefetchable,
                     })
@@ -347,17 +352,16 @@ impl ConifgEndpoint {
         }
     }
 
-
     pub fn write_bar64(&mut self, slot: u8, value: u64) {
         unsafe {
-            let offset = 0x10 + (slot as usize) * 4;
+            let offset = self.cfg_addr + 0x10 + (slot as usize) * 4;
             Self::write(offset, value.get_bits(0..32) as u32);
             Self::write(offset + 4, value.get_bits(32..64) as u32);
         }
     }
 
     pub fn write_bar32(&mut self, slot: u8, value: u32) {
-        let offset = 0x10 + (slot as usize) * 4;
+        let offset = self.cfg_addr + 0x10 + (slot as usize) * 4;
         unsafe {
             Self::write(offset, value as u32);
         }
@@ -389,8 +393,7 @@ pub enum BarWriteError {
     InvalidValue,
 }
 
-
-pub struct  ConfigSpace{
+pub struct ConfigSpace {
     pub address: PciAddress,
     pub cfg_addr: usize,
     pub header: PciHeader,
@@ -398,7 +401,6 @@ pub struct  ConfigSpace{
 }
 
 pub enum ConfigKind {
-    Endpoint{inner: ConifgEndpoint},
-    PciPciBridge{inner: ConifgPciPciBridge},
+    Endpoint { inner: ConifgEndpoint },
+    PciPciBridge { inner: ConifgPciPciBridge },
 }
-
