@@ -77,6 +77,8 @@ register_structs! {
 register_structs! {
     PCIBridgeRegs {
         (0x00 => _rsvd1),
+        (0x0C => cache_line_size: ReadWrite<u8>),
+        (0x0D => _rsvd2),
         (0x18 => primary_bus_number: ReadWrite<u8>),
         (0x19 => secondary_bus_number: ReadWrite<u8>),
         (0x1a => subordinate_bus_number: ReadWrite<u8>),
@@ -84,10 +86,11 @@ register_structs! {
         (0x1c => _io),
         (0x20 => memory_base: ReadWrite<u16>),
         (0x22 => memory_limit: ReadWrite<u16>),
-        (0x24 => _rsvd2),
+        (0x24 => _rsvd3),
         (0x3C => _interrupt_line),
         (0x3D => interrupt_pin),
-        (0x3E => control),
+        (0x3E => control: ReadWrite<u8>),
+        (0x3F => _rsvd4),
         (0x40 => @END),
     }
 }
@@ -193,7 +196,7 @@ pub enum ConfigCommand {
 }
 
 pub struct ConifgPciPciBridge {
-    cfg_addr: usize,
+    pub(crate) cfg_addr: usize,
 }
 
 impl ConifgPciPciBridge {
@@ -227,6 +230,15 @@ impl ConifgPciPciBridge {
     pub fn set_memory_limit(&self, limit: u16) {
         self.regs().memory_limit.set(limit);
     }
+
+    pub fn set_cache_line_size(&self, size: u8) {
+        self.regs().cache_line_size.set(size);
+    }
+
+    pub fn set_control(&self, ctl: u8){
+        self.regs().control.set(ctl);
+    }
+
 }
 
 pub struct ConifgEndpoint {
@@ -306,36 +318,32 @@ impl ConifgEndpoint {
                     }
 
                     let address_upper = Self::read(offset + 4);
+
+                    let mut size = unsafe {
+                        Self::write(offset, 0xfffffff0);
+                        Self::write(offset + 4, 0xffffffff);
+                        let mut readback_low = Self::read(offset);
+                        let readback_high = Self::read(offset + 4);
+                        Self::write(offset, address);
+                        Self::write(offset + 4, address_upper);
+
+                        /*
+                         * If the readback from the first slot is not 0, the size of the BAR is less than 4GiB.
+                         */
+                        readback_low.set_bits(0..4, 0);
+                        if readback_low != 0 {
+                            (1 << readback_low.trailing_zeros()) as u64
+                        } else {
+                            1u64 << ((readback_high.trailing_zeros() + 32) as u64)
+                        }
+                    };
+
                     let address64 = {
                         let mut address = address as u64;
                         // TODO: do we need to mask off the lower bits on this?
                         address.set_bits(32..64, address_upper as u64);
                         address
                     };
-                    let mut size = 0;
-
-
-                    if address64 == 0 {
-                        size = unsafe {
-                            Self::write(offset, 0xfffffff0);
-                            Self::write(offset + 4, 0xffffffff);
-                            let mut readback_low = Self::read(offset);
-                            let readback_high = Self::read(offset + 4);
-                            Self::write(offset, address);
-                            Self::write(offset + 4, address_upper);
-
-                            /*
-                             * If the readback from the first slot is not 0, the size of the BAR is less than 4GiB.
-                             */
-                            readback_low.set_bits(0..4, 0);
-                            if readback_low != 0 {
-                                (1 << readback_low.trailing_zeros()) as u64
-                            } else {
-                                1u64 << ((readback_high.trailing_zeros() + 32) as u64)
-                            }
-                        };
-                    }
-
                     Some(Bar::Memory64 {
                         address: address64,
                         size,
@@ -404,3 +412,4 @@ pub enum ConfigKind {
     Endpoint { inner: ConifgEndpoint },
     PciPciBridge { inner: ConifgPciPciBridge },
 }
+

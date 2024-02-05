@@ -9,16 +9,15 @@ use crate::dma::DMAVec;
 pub use crate::host::USBHostDriverOps;
 use driver_common::*;
 use driver_pci::{
-    types::{Bar, ConfigKind, ConfigSpace},
+    types::{Bar, ConfigKind, ConfigCommand,ConfigSpace},
     PciAddress,
 };
-use log::debug;
+use log::{debug, info};
 
 const VL805_VENDOR_ID: u16 = 0x1106;
 const VL805_DEVICE_ID: u16 = 0x3483;
 
 pub struct VL805 {
-    bdf: PciAddress,
 }
 
 impl BaseDriverOps for VL805 {
@@ -32,8 +31,27 @@ impl BaseDriverOps for VL805 {
 }
 
 impl VL805 {
-    fn new(bdf: PciAddress) -> Self {
-        VL805 { bdf }
+    fn new(mmio_base: usize) -> Self {
+        let mapper = MemoryMapper;
+        let regs = unsafe { xhci::Registers::new(mmio_base, mapper) };
+        let version = regs.capability.hciversion.read_volatile();
+        debug!("xhci version: {:x}", version.get());
+        let mut o = regs.operational;
+        debug!("xhci stat: {:?}", o.usbsts.read_volatile());
+
+        debug!("xhci wait for ready...");
+        while o.usbsts.read_volatile().controller_not_ready() {}
+        info!("xhci ok");
+
+        o.usbcmd.update_volatile(|f|{
+            f.set_host_controller_reset();
+        });
+
+        while o.usbcmd.read_volatile().host_controller_reset() {}
+
+        info!("XHCI reset HC");
+
+        VL805 { }
     }
 }
 
@@ -58,8 +76,13 @@ impl VL805 {
                 mbox.send(&msg, &mut dma);
 
                 debug!("VL805 @0x{:X}", address);
-
-                let vl805 = VL805::new(config.address);
+                config.header.set_command([
+                    ConfigCommand::MemorySpaceEnable,
+                    ConfigCommand::BusMasterEnable,
+                    ConfigCommand::ParityErrorResponse,
+                    ConfigCommand::SERREnable,
+                ]);
+                let vl805 = VL805::new(address as _);
                 return Some(vl805);
             }
         }

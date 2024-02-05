@@ -1,13 +1,13 @@
+use alloc::vec::{self, Vec};
+use axhal::mem::phys_to_virt;
+use axhal::time;
+use bit_field::BitField;
+use core::time::Duration;
 use core::{
     mem::size_of,
     ptr::{slice_from_raw_parts, slice_from_raw_parts_mut},
 };
-use axhal::time;
-use alloc::vec::{self, Vec};
-use axhal::mem::phys_to_virt;
 use log::{debug, info};
- use core::time::Duration;
-
 
 pub const BCM_MAILBOX_PROP_OUT: u32 = 8;
 const GPU_MEM_BASE: usize = 0xC0000000;
@@ -20,9 +20,6 @@ const MAILBOX0_STATUS: usize = MAIL_BOX_BASE + 0x18;
 const MAILBOX1_WRITE: usize = MAIL_BOX_BASE + 0x20;
 const MAILBOX1_STATUS: usize = MAIL_BOX_BASE + 0x38;
 
-
-
-
 pub struct Mailbox {
     n_channel: u32,
 }
@@ -34,7 +31,7 @@ impl Mailbox {
         };
     }
 
-    pub fn send(self, msg: &impl RaspiMsg, dma: &mut [u8])  {
+    pub fn send(self, msg: &impl RaspiMsg, dma: &mut [u8]) {
         msg.write_to(dma);
         unsafe {
             let mut send_addr = dma.as_ptr() as usize;
@@ -47,16 +44,29 @@ impl Mailbox {
 
             debug!("read: 0x{:X}", result);
             debug!("waiting for response...");
-            unsafe{
-                let buff =  &*slice_from_raw_parts(dma.as_ptr() as *const u32, dma.len() / 4);
+            unsafe {
+                let buff = &*slice_from_raw_parts(dma.as_ptr() as *const u32, dma.len() / 4);
                 let res = dma.as_ptr().offset(4) as *const PropertyCode;
 
                 while res.read_volatile() == PropertyCode::Request {}
                 let res = res.read_volatile();
                 debug!("response: {:?}", res);
-                
-                if res != PropertyCode::ResponseSuccess{
+
+                if res != PropertyCode::ResponseSuccess {
                     panic!("mailbox fail");
+                }
+
+                let respones_code = buff[4];
+
+                if respones_code.get_bit(31) {
+                    debug!("has response");
+
+                    let len = respones_code.get_bits(0..31);
+                    debug!("response len {}", len);
+
+                    let value = buff.as_ptr().offset(5) as *const u32;
+
+                    debug!("value {:x}", *value);
                 }
             }
         }
@@ -128,21 +138,23 @@ pub trait RaspiMsg {
         let tag_len = tag32_len * size_of::<u32>();
         data.push(tag_len as _); // tag value len
         data.push(0); // tag request
-        let last = data.len() - 1;
+        let last = data.len() ;
 
         // tag value
+        for _ in 0..tag32_len {
+            data.push(0);
+        }
+
         unsafe {
-            for _ in 0..tag32_len {
-                data.push(0);
-            }
+
             let tag_value = &mut *slice_from_raw_parts_mut(
-                data.as_mut_ptr().offset(last as _) as *mut u8,
+                (&mut data[last]) as *mut u32 as *mut u8,
                 tag.len(),
             );
 
             tag_value.copy_from_slice(tag.as_slice());
         }
-    
+
         data.push(0); // end tag
         data[0] = (data.len() * 4) as _;
 
@@ -161,15 +173,15 @@ impl RaspiMsg for MsgNotifyXhciReset {
 
     fn __tag_bytes(&self) -> Vec<u8> {
         let mut data: Vec<u8> = alloc::vec![0; 4];
+        // 树莓派写死了固定地址 bus 1, device 0, func 0
+        const VALUE: u32 = 1 << 20 | 0 << 15 | 0 << 12;
         unsafe {
             let ptr = data.as_ptr() as *mut u32;
-            // 树莓派写死了固定地址 bus 1, device 0, func 0
-            *ptr = 0x100000;
+            *ptr = VALUE;
         }
         data
     }
 }
-
 
 pub struct MsgGetFirmwareRevision {}
 impl RaspiMsg for MsgGetFirmwareRevision {
@@ -179,8 +191,6 @@ impl RaspiMsg for MsgGetFirmwareRevision {
         alloc::vec![]
     }
 }
-
-
 
 #[repr(u32)]
 #[derive(Debug)]
@@ -200,8 +210,6 @@ pub enum PropertyCode {
 fn read32(addr: usize) -> u32 {
     let vaddr = phys_to_virt(addr.into());
     unsafe {
-        // *(vaddr.as_ptr() as *const u32)
-        // u32::from_le((vaddr.as_mut_ptr() as *const u32).read_volatile())
         (vaddr.as_mut_ptr() as *const u32).read_volatile()
     }
 }
@@ -209,3 +217,4 @@ fn write32(addr: usize, data: u32) -> () {
     let vaddr = phys_to_virt(addr.into());
     unsafe { (vaddr.as_mut_ptr() as *mut u32).write_volatile(data) }
 }
+

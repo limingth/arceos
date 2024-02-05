@@ -1,3 +1,4 @@
+use crate::types::{ConfigCommand, ConifgPciPciBridge};
 use crate::{err::*, Access, PciAddress};
 use aarch64_cpu::registers::*;
 use core::{marker::PhantomData, ops::Add, ptr::NonNull};
@@ -7,7 +8,7 @@ use tock_registers::{
     register_bitfields, register_structs,
     registers::{ReadOnly, ReadWrite},
 };
-use crate::types::{ConfigCommand, ConifgPciPciBridge};
+use virtio_drivers::transport::mmio;
 
 register_bitfields![
     u32,
@@ -49,7 +50,7 @@ register_bitfields![
             init_val = 0x17,
         ],
         SCB1_SIZE OFFSET(22) NUMBITS(5) [],
-        SCB2_SIZE OFFSET(0) NUMBITS(5) [],
+        SCB2_SIZE OFFSET(0) NUMBITS(1) [],
     ],
     // 0x400c
     MISC_CPU_2_PCIE_MEM_WIN0_LO [
@@ -193,9 +194,21 @@ register_bitfields![
 
     // 0x9210
     RGR1_SW_INIT_1 [
-        PCIE_RGR1_SW_INTI_1_PERST OFFSET(0) NUMBITS(1) [],
-        RGR1_SW_INTI_1_GENERIC OFFSET(1) NUMBITS(1) [],
+        RGR1_SW_INTI_1_PERST OFFSET(0) NUMBITS(1) [],
+        RGR1_SW_INTI_1_INIT OFFSET(1) NUMBITS(1) [],
     ],
+
+    RC_CFG_VENDOR_SPECIFIC_REG1 [
+        ENDIAN_MODE OFFSET(2) NUMBITS(2) [
+            LITTLE_ENDIAN = 0
+        ],
+    ],
+
+    RC_CFG_PRIV1_LINK_CAPABILITY [
+        ASPM_SUPPORT OFFSET(10) NUMBITS(2)[
+
+        ]
+    ]
 
 ];
 
@@ -203,9 +216,12 @@ register_structs! {
     /// Pl011 registers.
     BCM2711PCIeHostBridgeRegs {
         (0x00 => _rsvd1),
-        (0x0188 => rc_cfg_vendor_vendor_specific_reg1),
+        (0x0188 => rc_cfg_vendor_vendor_specific_reg1: ReadWrite<u32,RC_CFG_VENDOR_SPECIFIC_REG1::Register>),
+        (0x018C => _rsvd222),
         (0x043c => rc_cfg_priv1_id_val3: ReadWrite<u32,RC_CFG_PRIV1_ID_VAL3::Register>),
         (0x0440 => _rsvdd2),
+        (0x04dc => rc_cfg_priv1_link_capability: ReadWrite<u32,RC_CFG_PRIV1_LINK_CAPABILITY::Register>),
+        (0x04e0 => _rsvdd3),
         (0x1100 => rc_dl_mdio_addr),
         (0x1104 => rc_dl_mdio_wr_data),
         (0x1108 => rc_dl_mdio_rd_data),
@@ -258,35 +274,32 @@ register_structs! {
 }
 
 impl BCM2711PCIeHostBridgeRegs {
-    fn bridge_sw_init_set(&self, bit: u32) {
-        if bit == 1 {
-            self.rgr1_sw_init
-                .modify(RGR1_SW_INIT_1::RGR1_SW_INTI_1_GENERIC::SET)
-        }
-        if bit == 0 {
-            self.rgr1_sw_init
-                .modify(RGR1_SW_INIT_1::RGR1_SW_INTI_1_GENERIC::CLEAR)
-        }
-    }
-
-    fn perst_set(&self, bit: u32) {
-        if bit == 1 {
-            self.rgr1_sw_init
-                .modify(RGR1_SW_INIT_1::PCIE_RGR1_SW_INTI_1_PERST::SET)
-        }
-        if bit == 0 {
-            self.rgr1_sw_init
-                .modify(RGR1_SW_INIT_1::PCIE_RGR1_SW_INTI_1_PERST::CLEAR)
-        }
-    }
-
     fn pcie_link_up(&self) -> bool {
         self.misc_pcie_status.read(MISC_PCIE_STATUS::CHECK_BITS) == 0x3
+    }
+
+    fn set_gen(&self, gen: u32) {
+        const PCI_EXP_LNKCTL2: usize = 48;
+        const PCI_EXP_LNKCAP: usize = 12;
+        const PCI_EXP_LNKCAP_SLS: u32 = 0x0000000f;
+
+        unsafe {
+            let cap_base = self as *const BCM2711PCIeHostBridgeRegs as *const u8 as usize + 0x00ac;
+            let mut lnkctl2 = ((cap_base + PCI_EXP_LNKCTL2) as *const u16).read_volatile();
+            let mut lnkcap = ((cap_base + PCI_EXP_LNKCAP) as *const u32).read_volatile();
+            lnkcap = (lnkcap & !PCI_EXP_LNKCAP_SLS) | gen;
+
+            ((cap_base + PCI_EXP_LNKCAP) as *mut u32).write_volatile(lnkcap);
+
+            lnkctl2 = (lnkctl2 & !0xf) | gen as u16;
+
+            ((cap_base + PCI_EXP_LNKCTL2) as *mut u16).write_volatile(lnkctl2);
+        }
     }
 }
 
 use core::time::Duration;
-use log::debug;
+use log::{debug, info};
 
 const RGR1_SW_INIT_1: usize = 0x9210;
 const EXT_CFG_INDEX: usize = 0x9000;
@@ -298,6 +311,160 @@ pub struct BCM2711 {}
 
 fn cfg_index(addr: PciAddress) -> usize {
     ((addr.device as u32) << 15 | (addr.function as u32) << 12 | (addr.bus as u32) << 20) as usize
+}
+
+impl BCM2711 {
+    unsafe fn do_setup(mmio_base: usize) {
+        let regs = &mut *(mmio_base as *mut BCM2711PCIeHostBridgeRegs);
+
+        debug!("PCIe link start @0x{:X}...", mmio_base);
+        /*
+         * Reset the bridge, assert the fundamental reset. Note for some SoCs,
+         * e.g. BCM7278, the fundamental reset should not be asserted here.
+         * This will need to be changed when support for other SoCs is added.
+         */
+        regs.rgr1_sw_init.modify(
+            RGR1_SW_INIT_1::RGR1_SW_INTI_1_INIT::SET + RGR1_SW_INIT_1::RGR1_SW_INTI_1_PERST::SET,
+        );
+        debug!("assert fundamental reset");
+        /*
+         * The delay is a safety precaution to preclude the reset signal
+         * from looking like a glitch.
+         */
+        busy_wait(Duration::from_micros(100));
+
+        /* Take the bridge out of reset */
+        regs.rgr1_sw_init
+            .modify(RGR1_SW_INIT_1::RGR1_SW_INTI_1_INIT::CLEAR);
+        debug!("deassert bridge reset");
+
+        // enable serdes
+        regs.misc_hard_pcie_hard_debug
+            .modify(MISC_HARD_PCIE_HARD_DEBUG::SERDES_IDDQ::CLEAR);
+        debug!("enable serdes");
+        /* Wait for SerDes to be stable */
+        busy_wait(core::time::Duration::from_micros(100));
+
+        /* Set SCB_MAX_BURST_SIZE, CFG_READ_UR_MODE, SCB_ACCESS_EN */
+        regs.misc_misc_ctrl.write(
+            MISC_MISC_CTRL::MAX_BURST_SIZE::SET
+                + MISC_MISC_CTRL::SCB_ACCESS_EN::SET
+                + MISC_MISC_CTRL::CFG_READ_UR_MODE::SET
+                + MISC_MISC_CTRL::SCB2_SIZE::SET,
+        );
+
+
+        regs.misc_rc_bar2_config_lo
+            .write(MISC_RC_BAR2_CONFIG_LO::VALUE_LO::init_val);
+        regs.misc_rc_bar2_config_hi
+            .write(MISC_RC_BAR2_CONFIG_HI::VALUE_HI::init_val);
+
+        regs.misc_misc_ctrl.set(0x88003000);
+
+        /* Disable the PCIe->GISB memory window (RC_BAR1) */
+        regs.misc_rc_bar1_config_lo
+            .modify(MISC_RC_BAR1_CONFIG_LO::MEM_WIN::CLEAR);
+        /* Disable the PCIe->SCB memory window (RC_BAR3) */
+        regs.misc_rc_bar3_config_lo
+            .modify(MISC_RC_BAR3_CONFIG_LO::MEM_WIN::CLEAR);
+
+        /* Mask all interrupts since we are not handling any yet */
+        regs.msi_intr2_mask_set
+            .write(MSI_INTR2_MASK_SET::INTR_MASK_SET::SET);
+
+        /* Clear any interrupts we find on boot */
+        regs.msi_intr2_clr.write(MSI_INTR2_CLR::INTR_CLR::SET);
+
+        /* Unassert the fundamental reset */
+        regs.rgr1_sw_init
+            .modify(RGR1_SW_INIT_1::RGR1_SW_INTI_1_PERST::CLEAR);
+
+        /*
+         * Wait for 100ms after PERST# deassertion; see PCIe CEM specification
+         * sections 2.2, PCIe r5.0, 6.6.1.
+         */
+        busy_wait(core::time::Duration::from_millis(100));
+
+        debug!("PCIe wait for link up...");
+
+        /* Give the RC/EP time to wake up, before trying to configure RC.
+         * Intermittently check status for link-up, up to a total of 100ms.
+         */
+        for _ in 0..100 {
+            if regs.pcie_link_up() {
+                break;
+            }
+            busy_wait(core::time::Duration::from_millis(1));
+        }
+
+        if !regs.pcie_link_up() {
+            panic!("pcie link down!");
+        }
+
+        // check if controller is running in root complex mode. if bit 7 is not set, and error
+        {
+            let val = regs.misc_pcie_status.read(MISC_PCIE_STATUS::RC_MODE);
+            if val != 0x1 {
+                panic!("PCIe controller is not running in root complex mode");
+            }
+        }
+
+        // outbound memory
+        // regs.misc_cpu_2_pcie_mem_win0_lo.set(0xC0000000);
+        // regs.misc_cpu_2_pcie_mem_win0_hi.set(0x0);        
+        regs.misc_cpu_2_pcie_mem_win0_lo.set(0x0);
+        regs.misc_cpu_2_pcie_mem_win0_hi.set(0x6);
+        regs.misc_cpu_2_pcie_mem_win0_base_limit.set(0x3FF00000);
+        regs.misc_cpu_2_pcie_mem_win0_base_hi
+            .write(MISC_CPU_2_PCIE_MEM_WIN0_BASE_HI::MEM_WIN0_BASE_HI::init_val);
+        regs.misc_cpu_2_pcie_mem_win0_limit_hi
+            .write(MISC_CPU_2_PCIE_MEM_WIN0_LIMIT_HI::MEM_WIN0_LIMIT_HI::init_val);
+        /*
+         * For config space accesses on the RC, show the right class for
+         * a PCIe-PCIe bridge (the default setting is to be EP mode).
+         */
+        regs.rc_cfg_priv1_id_val3
+            .modify(RC_CFG_PRIV1_ID_VAL3::CLASS_ID::pcie_pcie_bridge);
+
+        // ssc
+        //todo
+
+        let lnksta = ((mmio_base + 0xac + 18) as *const u16).read_volatile();
+
+        let cls = lnksta & 0xf;
+
+        let nlw = (lnksta & 0x03f0) >> 4;
+
+        info!(
+            "PCIe BRCM: link up, {} Gbps x{:?}",
+            link_speed_to_str(cls),
+            nlw
+        );
+
+        regs.rc_cfg_vendor_vendor_specific_reg1
+            .write(RC_CFG_VENDOR_SPECIFIC_REG1::ENDIAN_MODE::LITTLE_ENDIAN);
+
+        /*
+         * We used to enable the CLKREQ# input here, but a few PCIe cards don't
+         * attach anything to the CLKREQ# line, so we shouldn't assume that
+         * it's connected and working. The controller does allow detecting
+         * whether the port on the other side of our link is/was driving this
+         * signal, so we could check before we assume. But because this signal
+         * is for power management, which doesn't make sense in a bootloader,
+         * let's instead just unadvertise ASPM support.
+         */
+        regs.rc_cfg_priv1_link_capability
+            .modify(RC_CFG_PRIV1_LINK_CAPABILITY::ASPM_SUPPORT::CLEAR);
+    }
+}
+
+fn link_speed_to_str(cls: u16) -> &'static str {
+    match cls {
+        0x1 => "2.5",
+        0x2 => "5.0",
+        0x3 => "8.0",
+        _ => "??",
+    }
 }
 
 impl Access for BCM2711 {
@@ -321,8 +488,15 @@ impl Access for BCM2711 {
     fn probe_bridge(mmio_base: usize, bridge: &ConifgPciPciBridge) {
         debug!("bridge bcm2711");
 
+        bridge.set_cache_line_size(64 / 4);
         bridge.set_memory_base((0xF8000000u32 >> 16) as u16);
         bridge.set_memory_limit((0xF8000000u32 >> 16) as u16);
+        bridge.set_control(0x01);
+        unsafe {
+            (bridge.cfg_addr as *mut u8)
+                .offset(0xac + 0x1c)
+                .write_volatile(0x10);
+        }
 
         bridge.to_header().set_command([
             ConfigCommand::MemorySpaceEnable,
@@ -335,127 +509,7 @@ impl Access for BCM2711 {
     fn setup(mmio_base: usize) {
         init_early();
         unsafe {
-            let regs = &mut *(mmio_base as *mut BCM2711PCIeHostBridgeRegs);
-            regs.bridge_sw_init_set(1);
-
-            // assert fundamental reset
-            regs.perst_set(1);
-            debug!("assert fundamental reset");
-
-            busy_wait(Duration::from_micros(2));
-
-            // deassert bridge reset
-            regs.bridge_sw_init_set(0);
-            debug!("deassert bridge reset");
-
-            busy_wait(Duration::from_micros(2));
-
-            // enable serdes
-            regs.misc_hard_pcie_hard_debug
-                .modify(MISC_HARD_PCIE_HARD_DEBUG::SERDES_IDDQ::CLEAR);
-            debug!("enable serdes");
-
-            busy_wait(core::time::Duration::from_micros(2));
-
-            // get hardware revision
-            let hw_rev = regs.misc_revision.read(MISC_REVISION::MISC_REVISION) & 0xFFFF;
-
-            debug!("hw_rev{}", hw_rev);
-            // disable and clear any pending interrupts
-            regs.msi_intr2_clr.write(MSI_INTR2_CLR::INTR_CLR::SET);
-            regs.msi_intr2_mask_set
-                .write(MSI_INTR2_MASK_SET::INTR_MASK_SET::SET);
-
-            debug!("disable and clear any pending interrupts");
-
-            // Initialize set SCB_MAX_BURST_SIZE 0x0, CFG_READ_UR_MODE, SCB_ACCESS_EN
-            regs.misc_misc_ctrl
-                .modify(MISC_MISC_CTRL::SCB_ACCESS_EN::SET);
-            regs.misc_misc_ctrl
-                .modify(MISC_MISC_CTRL::CFG_READ_UR_MODE::SET);
-            regs.misc_misc_ctrl
-                .modify(MISC_MISC_CTRL::MAX_BURST_SIZE::CLEAR);
-
-            // setup inbound memory view
-            regs.misc_rc_bar2_config_lo
-                .write(MISC_RC_BAR2_CONFIG_LO::VALUE_LO::init_val);
-            regs.misc_rc_bar2_config_hi
-                .write(MISC_RC_BAR2_CONFIG_HI::VALUE_HI::init_val);
-
-            //
-            regs.misc_misc_ctrl
-                .modify(MISC_MISC_CTRL::SCB0_SIZE::init_val);
-
-            // disable PCIe->GISB memory window and PCIe->SCB memory window
-            regs.misc_rc_bar1_config_lo
-                .modify(MISC_RC_BAR1_CONFIG_LO::MEM_WIN::CLEAR);
-            regs.misc_rc_bar3_config_lo
-                .modify(MISC_RC_BAR3_CONFIG_LO::MEM_WIN::CLEAR);
-
-            // setup MSIs
-            // clear interrupts
-            // CPU::MMIOWrite32(pcieBase + MSI_BAR_CONFIG_LO, (MSI_TARGET_ADDR & 0xFFFFFFFFu) | 1);
-            // mask interrupts
-            // CPU::MMIOWrite32(pcieBase + MSI_BAR_CONFIG_HI, MSI_TARGET_ADDR >> 32);
-            // CPU::MMIOWrite32(pcieBase + MSI_DATA_CONFIG, hwRev >= HW_REV_33 ? 0xffe06540 : 0xFFF86540);
-            // TODO: add MSI handler registration here
-
-            // cap controller to Gen2
-
-            // deassert fundamental reset
-            regs.perst_set(0);
-
-            debug!("PCIe wait for link up...");
-
-            // wait for bits 4 and 5 of [0xfd504068] to be set, checking every 5000 us
-            for _ in 0..100 {
-                if regs.pcie_link_up() {
-                    break;
-                }
-                busy_wait(core::time::Duration::from_millis(1));
-            }
-
-            if !regs.pcie_link_up() {
-                panic!("pcie link down!");
-            }
-            // log PCIe link is up
-
-            // check if controller is running in root complex mode. if bit 7 is not set, and error
-            {
-                let val = regs.misc_pcie_status.read(MISC_PCIE_STATUS::RC_MODE);
-                if val != 0x1 {
-                    panic!("PCIe controller is not running in root complex mode");
-                }
-            }
-
-            debug!("PCIe link is ready");
-            // log PCIe link is ready
-
-            // outbound memory
-            regs.misc_cpu_2_pcie_mem_win0_lo
-                .write(MISC_CPU_2_PCIE_MEM_WIN0_LO::MEM_WIN0_LO::init_val);
-            regs.misc_cpu_2_pcie_mem_win0_hi
-                .write(MISC_CPU_2_PCIE_MEM_WIN0_HI::MEM_WIN0_HI::init_val);
-            regs.misc_cpu_2_pcie_mem_win0_base_limit
-                .write(MISC_CPU_2_PCIE_MEM_WIN0_BASE_LIMIT::MEM_WIN0_BASE_LIMIT::init_val);
-            regs.misc_cpu_2_pcie_mem_win0_base_hi
-                .write(MISC_CPU_2_PCIE_MEM_WIN0_BASE_HI::MEM_WIN0_BASE_HI::init_val);
-            regs.misc_cpu_2_pcie_mem_win0_limit_hi
-                .write(MISC_CPU_2_PCIE_MEM_WIN0_LIMIT_HI::MEM_WIN0_LIMIT_HI::init_val);
-
-            // set proper class Id
-            regs.rc_cfg_priv1_id_val3
-                .modify(RC_CFG_PRIV1_ID_VAL3::CLASS_ID::pcie_pcie_bridge);
-
-            // set proper endian
-            // writeField(pcieBase + RC_CFG_VENDOR_VENDOR_SPECIFIC_REG1,
-            //     RC_CFG_VENDOR_VENDOR_SPECIFIC_REG1_ENDIAN_MODE_BAR2_MASK,
-            //     RC_CFG_VENDOR_VENDOR_SPECIFIC_REG1_ENDIAN_MODE_BAR2_SHIFT,
-            //     DATA_ENDIAN);
-
-            // set debug mode
-            //     writeField(pcieBase + HARD_PCIE_HARD_DEBUG, HARD_PCIE_HARD_DEBUG_CLKREQ_DEBUG_ENABLE_MASK,
-            // HARD_PCIE_HARD_DEBUG_CLKREQ_DEBUG_ENABLE_SHIFT, 1);
+            Self::do_setup(mmio_base);
         }
     }
 }
@@ -508,3 +562,4 @@ pub fn busy_wait_until(deadline: Duration) {
         core::hint::spin_loop();
     }
 }
+
