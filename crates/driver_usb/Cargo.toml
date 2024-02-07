@@ -1,3 +1,4 @@
+workspace = { members = ["impl_libusb"] }
 [package]
 name = "driver_usb"
 version = "0.1.0"
