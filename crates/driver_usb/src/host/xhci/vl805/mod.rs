@@ -4,18 +4,19 @@ use core::{
 };
 mod mailbox;
 use self::mailbox::*;
-use super::MemoryMapper;
+use super::{MemoryMapper, XhciBehaviors, XhciController};
 use crate::dma::DMAVec;
 use driver_common::*;
 use driver_pci::types::{Bar, ConfigCommand, ConfigKind, ConfigSpace};
 use log::{debug, info};
-use xhci::{accessor::Mapper, Registers};
+use xhci::{accessor::Mapper, extended_capabilities, Registers};
 
 const VL805_VENDOR_ID: u16 = 0x1106;
 const VL805_DEVICE_ID: u16 = 0x3483;
 
 pub struct VL805 {
     regs: Registers<MemoryMapper>,
+    extended_capabilities: Option<extended_capabilities::List<MemoryMapper>>,
     base_addr: usize,
 }
 
@@ -26,6 +27,20 @@ impl BaseDriverOps for VL805 {
 
     fn device_type(&self) -> DeviceType {
         DeviceType::USBHost
+    }
+}
+
+impl XhciBehaviors for VL805 {
+    fn addr(&self) -> usize {
+        self.base_addr
+    }
+
+    fn regs(&mut self) -> &mut Registers<MemoryMapper> {
+        &mut self.regs
+    }
+
+    fn extra_features(&mut self) -> &mut Option<extended_capabilities::List<MemoryMapper>> {
+        &mut self.extended_capabilities
     }
 }
 
@@ -50,8 +65,14 @@ impl VL805 {
 
         info!("XHCI reset HC");
 
+        let hccparams1 = regs.capability.hccparams1.read_volatile();
+
+        let extended_caps =
+            unsafe { extended_capabilities::List::new(mmio_base, hccparams1, mapper) };
+
         VL805 {
-            regs: regs,
+            regs,
+            extended_capabilities: extended_caps,
             base_addr: mmio_base,
         }
     }
