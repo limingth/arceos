@@ -1,4 +1,5 @@
 pub mod bindings;
+pub mod dcbaa;
 pub mod xhci;
 use driver_common::BaseDriverOps;
 
