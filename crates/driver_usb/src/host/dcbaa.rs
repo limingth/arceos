@@ -1,6 +1,25 @@
-use alloc::vec::{self, Vec};
+use alloc::{
+    sync::Arc,
+    vec::{self, Vec},
+};
 use axhal::mem::PhysAddr;
 use xhci::{accessor::Mapper, registers::doorbell::Register, Registers};
+
+pub static DCBAA: Option<Arc<DeviceContextBaseAddressArray>> = None;
+
+pub(crate) fn init(r: &Registers) {
+    let slot_count = r
+        .capability
+        .hcsparams1
+        .read_volatile()
+        .number_of_device_slots()
+        + 1;
+    unsafe {
+        DCBAA = Some(Arc::new(DeviceContextBaseAddressArray::new(
+            slot_count as usize,
+        )))
+    }
+}
 
 pub(crate) struct DeviceContextBaseAddressArray {
     devices: Vec<PhysAddr>,

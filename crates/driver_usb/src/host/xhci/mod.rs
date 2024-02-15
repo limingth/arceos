@@ -8,10 +8,15 @@ use log::info;
 use std::process::Command;
 use xhci::{accessor::Mapper, extended_capabilities, ring::trb::event, Registers};
 
+use crate::host::{
+    dcbaa::{self, DeviceContextBaseAddressArray, DCBAA},
+    scratchpad,
+};
+
 use self::{command_ring::CommandRing, event_ring::EventRing};
 
-mod command_ring;
-mod event_ring;
+pub mod command_ring;
+pub mod event_ring;
 
 #[derive(Clone, Copy)]
 struct MemoryMapper;
@@ -104,6 +109,11 @@ impl XhciController<'_> {
         info!("init command ring...");
         self.command_ring.init();
 
-        // TODO:DCBAA:ref from ramen
+        dcbaa::init(r);
+        if let Some(dcbaa) = DCBAA {
+            scratchpad::init_once(r, dcbaa.borrow_mut());
+        }
+
+        // TODO:修改为多线程，并兼容异步模型
     }
 }
