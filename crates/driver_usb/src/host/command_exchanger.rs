@@ -1,13 +1,24 @@
 use alloc::sync::Arc;
+use axhal::mem::PhysAddr;
+use spinlock::{BaseSpinLock, SpinNoIrq};
+use xhci::ring::trb::{command, event};
 
-use super::xhci::command_ring::CommandRing;
+use super::xhci::{
+    command_ring::{command_type::CommandType, CommandRing},
+    event_ring::EventRing,
+};
 
-static SENDER: Option<Arc<Sender>> = None;
+static mut SENDER: Option<Arc<SpinNoIrq<Sender>>> = None;
 
-pub(crate) fn init(r: &mut CommandRing) {
-    SENDER
-        .try_init_once(|| Futurelock::new(Sender::new(r), true))
-        .expect("`Sender` is initialized more than once.");
+pub(crate) fn init(r: Arc<SpinNoIrq<CommandRing>>) {
+    // SENDER
+    //     .try_init_once(|| Futurelock::new(Sender::new(r), true))
+    //     .expect("`Sender` is initialized more than once.");
+    unsafe {
+        if !SENDER.is_none() {
+            Sender = Some(Arc::new(SpinNoIrq::new(Sender::new(r))))
+        }
+    }
 }
 
 pub(crate) async fn enable_device_slot() -> u8 {
@@ -27,7 +38,7 @@ pub(crate) async fn evaluate_context(cx: PhysAddr, slot: u8) {
 }
 
 async fn lock() -> FuturelockGuard<'static, Sender> {
-    let s = SENDER.try_get().expect("`SENDER` is not initialized.");
+    let s = unsafe { SENDER.try_get().expect("`SENDER` is not initialized.") };
     s.lock().await
 }
 
@@ -35,7 +46,7 @@ struct Sender {
     channel: Channel,
 }
 impl Sender {
-    fn new(ring: Arc<Spinlock<command::Ring>>) -> Self {
+    fn new(ring: Arc<SpinNoIrq<command::Ring>>) -> Self {
         Self {
             channel: Channel::new(ring),
         }
@@ -82,18 +93,18 @@ impl Sender {
 }
 
 struct Channel {
-    ring: Arc<Spinlock<command::Ring>>,
-    waker: Arc<Spinlock<AtomicWaker>>,
+    ring: Arc<SpinNoIrq<CommandRing>>,
+    waker: Arc<SpinNoIrq<AtomicWaker>>,
 }
 impl Channel {
-    fn new(ring: Arc<Spinlock<command::Ring>>) -> Self {
+    fn new(ring: Arc<SpinNoIrq<command::Ring>>) -> Self {
         Self {
             ring,
-            waker: Arc::new(Spinlock::new(AtomicWaker::new())),
+            waker: Arc::new(SpinNoIrq::new(AtomicWaker::new())),
         }
     }
 
-    async fn send_and_receive(&mut self, t: command_trb::Allowed) -> event::Allowed {
+    async fn send_and_receive(&mut self, t: command::Allowed) -> event::Allowed {
         let a = self.ring.lock().enqueue(t);
         self.register_with_receiver(a);
         self.get_trb(a).await

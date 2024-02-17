@@ -1,10 +1,11 @@
 #[cfg(feature = "vl805")]
 pub mod vl805;
-use alloc::boxed::Box;
+use alloc::{boxed::Box, sync::Arc};
 use axalloc::{global_allocator, GlobalAllocator};
 use axhal::mem::{phys_to_virt, PhysAddr, VirtAddr};
 use core::{borrow::BorrowMut, cell::RefMut, f32::consts::E, num::NonZeroUsize, ptr::NonNull};
 use log::info;
+use spinlock::SpinNoIrq;
 use std::process::Command;
 use xhci::{accessor::Mapper, extended_capabilities, ring::trb::event, Registers};
 
@@ -22,9 +23,9 @@ pub mod event_ring;
 struct MemoryMapper;
 
 struct XhciController<'a> {
-    controller: &'a mut dyn XhciBehaviors,
+    controller: Arc<SpinNoIrq<&'a mut dyn XhciBehaviors>>,
     event_ring: EventRing,
-    command_ring: CommandRing,
+    command_ring: Arc<spinlock::SpinNoIrq<CommandRing>>,
 }
 
 pub(crate) trait XhciBehaviors {
@@ -46,20 +47,22 @@ impl Mapper for MemoryMapper {
 impl XhciController<'_> {
     pub(crate) fn new(xhci_behavior_impl: &mut dyn XhciBehaviors) -> Result<XhciController, ()> {
         let mut event_ring = EventRing::new(xhci_behavior_impl.borrow_mut().regs());
-        let mut command_ring = CommandRing::new(xhci_behavior_impl.borrow_mut().regs());
+        let mut command_ring = Arc::new(spinlock::SpinNoIrq::new(CommandRing::new(
+            xhci_behavior_impl.borrow_mut().regs(),
+        )));
 
         Ok(XhciController {
-            controller: xhci_behavior_impl,
+            controller: Arc::new(SpinNoIrq::new(xhci_behavior_impl)),
             event_ring: event_ring,
             command_ring: command_ring,
         })
     }
 
     pub(crate) fn init(&mut self) {
-        let r = self.controller.regs();
+        let r = self.controller.lock().regs();
 
         // get owner ship from bios(?)
-        if let Some(extended_caps) = self.controller.extra_features() {
+        if let Some(extended_caps) = self.controller.lock().extra_features() {
             let iter = extended_caps.into_iter();
             for c in iter.filter_map(Result::ok) {
                 if let ExtendedCapability::UsbLegacySupport(mut u) = c {
@@ -107,13 +110,12 @@ impl XhciController<'_> {
         self.event_ring.init_segtable(r);
 
         info!("init command ring...");
-        self.command_ring.init();
+        self.command_ring.lock().init();
 
         dcbaa::init(r);
-        if let Some(dcbaa) = DCBAA {
-            scratchpad::init_once(r, dcbaa.borrow_mut());
-        }
-
+        scratchpad::init_once(r);
+        super::command_exchanger::init(self.command_ring)
         // TODO:修改为多线程，并兼容异步模型
+        // MORE TODO: 好吧，修一下error
     }
 }

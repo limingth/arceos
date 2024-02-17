@@ -1,5 +1,5 @@
 use core::{
-    borrow::Borrow,
+    borrow::{Borrow, BorrowMut},
     cell::{Ref, RefCell},
     clone,
 };
@@ -8,14 +8,14 @@ use alloc::vec::{self, Vec};
 use axhal::mem::PhysAddr;
 use xhci::Registers;
 
-use super::dcbaa::DeviceContextBaseAddressArray;
+use super::dcbaa::{DeviceContextBaseAddressArray, DCBAA};
 
 pub static mut SCRATCHPAD: Option<RefCell<Scratchpad>> = None;
 
-pub fn init_once(r: &Ref<Registers>, dcbaa: &mut DeviceContextBaseAddressArray) {
+pub fn init_once(r: &Ref<Registers>) {
     let mut scratchpad = Scratchpad::new(r);
     scratchpad.init();
-    scratchpad.register_with_dcbaa(dcbaa);
+    scratchpad.register_with_dcbaa();
 
     unsafe { SCRATCHPAD = Some(RefCell::new(scratchpad)) }
 }
@@ -60,8 +60,10 @@ impl Scratchpad {
         self.write_buffer_addresses();
     }
 
-    fn register_with_dcbaa(&self, dcbaa: &mut DeviceContextBaseAddressArray) {
-        dcbaa[0] = self.arr.phys_addr();
+    fn register_with_dcbaa(&self) {
+        if let Some(dcbaa) = DCBAA {
+            dcbaa.borrow_mut().lock()[0] = self.arr.phys_addr();
+        }
     }
 
     fn allocate_buffers(&mut self) {
