@@ -56,7 +56,7 @@ impl VL805 {
 }
 
 impl VL805 {
-    pub fn probe_pci<A: Allocator>(config: &ConfigSpace, dma_alloc: &A) -> Option<Self> {
+    pub fn probe_pci<A: Allocator+Clone>(config: &ConfigSpace, dma_alloc: A) -> Option<Self> {
         let (vendor_id, device_id) = config.header.vendor_id_and_device_id();
         if !(vendor_id == VL805_VENDOR_ID && device_id == VL805_DEVICE_ID) {
             return None;
@@ -70,7 +70,7 @@ impl VL805 {
                 prefetchable,
             } = bar
             {
-                let mut dma: DMAVec<'_, A, u8> = DMAVec::new(0x100, 0x1000, dma_alloc);
+                let mut dma: DMAVec<A, u8> = DMAVec::new(0x100, 0x1000, dma_alloc.clone());
                 let mbox = Mailbox::new();
                 let msg = MsgNotifyXhciReset {};
                 mbox.send(&msg, &mut dma);
