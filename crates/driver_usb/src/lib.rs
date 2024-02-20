@@ -7,9 +7,10 @@
 extern crate alloc;
 pub(crate) mod dma;
 pub mod host;
+use core::alloc::Allocator;
+
 #[doc(no_inline)]
 pub use driver_common::{BaseDriverOps, DevError, DevResult, DeviceType};
 use log::info;
-
 
 
