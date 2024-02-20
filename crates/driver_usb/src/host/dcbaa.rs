@@ -4,9 +4,10 @@ use alloc::vec;
 use alloc::{sync::Arc, vec::Vec};
 use axhal::mem::PhysAddr;
 use spinlock::SpinNoIrq;
+use spinning_top::Spinlock;
 use xhci::{accessor::Mapper, registers::doorbell::Register, Registers};
 
-pub static DCBAA: Option<Arc<SpinNoIrq<DeviceContextBaseAddressArray>>> = None;
+pub static mut DCBAA: Option<Arc<Spinlock<DeviceContextBaseAddressArray>>> = None;
 
 pub(crate) fn init(r: &Registers<impl Mapper + Clone>) {
     let slot_count = r
@@ -16,9 +17,9 @@ pub(crate) fn init(r: &Registers<impl Mapper + Clone>) {
         .number_of_device_slots()
         + 1;
     unsafe {
-        DCBAA = Some(Arc::new(SpinNoIrq::new(
-            DeviceContextBaseAddressArray::new(slot_count as usize),
-        )))
+        DCBAA = Some(Arc::new(Spinlock::new(DeviceContextBaseAddressArray::new(
+            slot_count as usize,
+        ))))
     }
 }
 
