@@ -7,12 +7,18 @@
 
 #![no_std]
 #![feature(allocator_api)]
+
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate lazy_static;
+
 extern crate alloc;
+
 
 mod page;
 
+use alloc::sync::Arc;
 use allocator::{AllocResult, BaseAllocator, BitmapPageAllocator, ByteAllocator, PageAllocator};
 use core::alloc::{Allocator, GlobalAlloc, Layout};
 use core::ptr::{slice_from_raw_parts_mut, NonNull};
@@ -211,21 +217,30 @@ static GLOBAL_ALLOCATOR: GlobalAllocator = GlobalAllocator::new();
 pub fn global_allocator() -> &'static GlobalAllocator {
     &GLOBAL_ALLOCATOR
 }
+lazy_static! {
+    static ref GLOBAL_NO_CACHE_ALLOCATOR: GlobalNoCacheAllocator = {
+       GlobalNoCacheAllocator::new() 
+    };
 
-static GLOBAL_NO_CACHE_ALLOCATOR: GlobalNoCacheAllocator = GlobalNoCacheAllocator::new();
+}
+// static GLOBAL_NO_CACHE_ALLOCATOR: SyncUnsafeCell< GlobalNoCacheAllocator> = LazyCell::new(|| GlobalNoCacheAllocator::new());
 
 /// Returns the reference to the global allocator.
-pub fn global_no_cache_allocator() -> &'static GlobalNoCacheAllocator {
-    &GLOBAL_NO_CACHE_ALLOCATOR
+pub fn global_no_cache_allocator() -> GlobalNoCacheAllocator {
+    GLOBAL_NO_CACHE_ALLOCATOR.clone()
 }
+
+#[derive(Clone)]
 pub struct GlobalNoCacheAllocator{
-    balloc: SpinNoIrq<DefaultByteAllocator>,
+    balloc: Arc<SpinNoIrq<DefaultByteAllocator>>,
 }
+
+
 impl GlobalNoCacheAllocator {
     /// Creates an empty [`GlobalAllocator`].
-    pub const fn new() -> Self {
+    pub fn new() -> Self {
         Self {
-            balloc: SpinNoIrq::new(DefaultByteAllocator::new()),
+            balloc: Arc::new(SpinNoIrq::new(DefaultByteAllocator::new())),
         }
     }    
     /// Add the given region to the allocator.

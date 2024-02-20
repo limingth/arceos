@@ -279,6 +279,7 @@ dependencies = [
  "allocator",
  "axerrno",
  "cfg-if",
+ "lazy_static",
  "log",
  "memory_addr",
  "spinlock",

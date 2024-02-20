@@ -22,3 +22,4 @@ spinlock = { path = "../../crates/spinlock" }
 memory_addr = { path = "../../crates/memory_addr" }
 allocator = { path = "../../crates/allocator", features = ["bitmap"] }
 axerrno = { path = "../../crates/axerrno" }
+lazy_static = {version="1.4", features=["spin_no_std"]}
