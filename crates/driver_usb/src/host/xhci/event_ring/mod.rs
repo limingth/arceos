@@ -1,4 +1,4 @@
-use alloc::{boxed::Box, vec};
+use alloc::{boxed::Box, vec, vec::Vec};
 use axhal::mem::PhysAddr;
 use bit_field::BitField;
 use log::{info, warn};
@@ -17,7 +17,7 @@ const MAX_NUM_OF_TRB_IN_QUEUE: usize = 256;
 
 pub(crate) struct EventRing {
     seg_table: Box<SegmentTable>,
-    rings: Vec<[[u32; 4]]>,
+    rings: Vec<Vec<[u32; 4]>>,
     counter: usize,
     index: usize,
     erst_num: usize,
@@ -33,7 +33,7 @@ impl EventRing {
             .event_ring_segment_table_max() as usize;
         let mut event_ring = Self {
             seg_table: segment_table::new(erst_num),
-            rings: vec![[[0; 4]; MAX_NUM_OF_TRB_IN_QUEUE]; erst_num],
+            rings: vec![vec![[0; 4]; MAX_NUM_OF_TRB_IN_QUEUE]; erst_num],
             counter: 0,
             index: 0,
             erst_num,

@@ -1,7 +1,6 @@
 pub mod bindings;
-mod command_exchanger;
-pub mod command_exchanger;
 pub mod dcbaa;
+pub mod exchanger;
 mod scratchpad;
 pub mod xhci;
 use driver_common::BaseDriverOps;

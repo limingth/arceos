@@ -1,14 +1,14 @@
-use alloc::{
-    sync::Arc,
-    vec::{self, Vec},
-};
+use core::ops::{Index, IndexMut};
+
+use alloc::vec;
+use alloc::{sync::Arc, vec::Vec};
 use axhal::mem::PhysAddr;
 use spinlock::SpinNoIrq;
 use xhci::{accessor::Mapper, registers::doorbell::Register, Registers};
 
 pub static DCBAA: Option<Arc<SpinNoIrq<DeviceContextBaseAddressArray>>> = None;
 
-pub(crate) fn init(r: &Registers) {
+pub(crate) fn init(r: &Registers<impl Mapper + Clone>) {
     let slot_count = r
         .capability
         .hcsparams1
@@ -32,20 +32,20 @@ impl DeviceContextBaseAddressArray {
         Self { devices: arr }
     }
 
-    fn init(&self, register: &mut Registers) {
+    fn init(&self, register: &mut Registers<impl Mapper + Clone>) {
         self.register_address_to_xhci_register(register);
     }
 
-    fn register_address_to_xhci_register(&self, r: &mut Registers) {
+    fn register_address_to_xhci_register(&self, r: &mut Registers<impl Mapper + Clone>) {
         let _ = &self;
         r.operational.dcbaap.update_volatile(|d| {
             let _ = &self;
-            d.set(self.phys_addr().as_u64());
+            d.set(self.phys_addr().as_usize() as u64);
         });
     }
 
     fn phys_addr(&self) -> PhysAddr {
-        self.arr.phys_addr()
+        self.devices.as_ptr().addr().into()
     }
 }
 

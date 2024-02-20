@@ -3,6 +3,7 @@
 #![no_std]
 #![feature(allocator_api)]
 #![feature(strict_provenance)]
+#![allow(warnings)]
 
 extern crate alloc;
 pub(crate) mod dma;
@@ -10,6 +11,3 @@ pub mod host;
 #[doc(no_inline)]
 pub use driver_common::{BaseDriverOps, DevError, DevResult, DeviceType};
 use log::info;
-
-
-

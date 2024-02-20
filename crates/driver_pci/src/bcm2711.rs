@@ -353,7 +353,6 @@ impl BCM2711 {
                 + MISC_MISC_CTRL::SCB2_SIZE::SET,
         );
 
-
         regs.misc_rc_bar2_config_lo
             .write(MISC_RC_BAR2_CONFIG_LO::VALUE_LO::init_val);
         regs.misc_rc_bar2_config_hi
@@ -411,7 +410,7 @@ impl BCM2711 {
 
         // outbound memory
         // regs.misc_cpu_2_pcie_mem_win0_lo.set(0xC0000000);
-        // regs.misc_cpu_2_pcie_mem_win0_hi.set(0x0);        
+        // regs.misc_cpu_2_pcie_mem_win0_hi.set(0x0);
         regs.misc_cpu_2_pcie_mem_win0_lo.set(0x0);
         regs.misc_cpu_2_pcie_mem_win0_hi.set(0x6);
         regs.misc_cpu_2_pcie_mem_win0_base_limit.set(0x3FF00000);
@@ -562,4 +561,3 @@ pub fn busy_wait_until(deadline: Duration) {
         core::hint::spin_loop();
     }
 }
-

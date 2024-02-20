@@ -1,20 +1,16 @@
 #[cfg(feature = "vl805")]
 pub mod vl805;
-use alloc::{boxed::Box, sync::Arc};
-use axalloc::{global_allocator, GlobalAllocator};
-use axhal::mem::{phys_to_virt, PhysAddr, VirtAddr};
-use core::{borrow::BorrowMut, cell::RefMut, f32::consts::E, num::NonZeroUsize, ptr::NonNull};
+use alloc::sync::Arc;
+use axhal::mem::phys_to_virt;
+use core::{borrow::BorrowMut, num::NonZeroUsize};
 use log::info;
 use spinlock::SpinNoIrq;
-use std::process::Command;
-use xhci::{accessor::Mapper, extended_capabilities, ring::trb::event, Registers};
+use xhci::{accessor::Mapper, extended_capabilities, ExtendedCapability, Registers};
 
-use crate::host::{
-    dcbaa::{self, DeviceContextBaseAddressArray, DCBAA},
-    scratchpad,
-};
+use crate::host::{dcbaa, exchanger::command_exchanger, scratchpad};
 
 use self::{command_ring::CommandRing, event_ring::EventRing};
+use spinning_top::Spinlock;
 
 pub mod command_ring;
 pub mod event_ring;
@@ -23,9 +19,9 @@ pub mod event_ring;
 struct MemoryMapper;
 
 struct XhciController<'a> {
-    controller: Arc<SpinNoIrq<&'a mut dyn XhciBehaviors>>,
+    controller: Arc<Spinlock<&'a mut dyn XhciBehaviors>>,
     event_ring: EventRing,
-    command_ring: Arc<spinlock::SpinNoIrq<CommandRing>>,
+    command_ring: Arc<Spinlock<CommandRing<'a>>>,
 }
 
 pub(crate) trait XhciBehaviors {
@@ -47,12 +43,12 @@ impl Mapper for MemoryMapper {
 impl XhciController<'_> {
     pub(crate) fn new(xhci_behavior_impl: &mut dyn XhciBehaviors) -> Result<XhciController, ()> {
         let mut event_ring = EventRing::new(xhci_behavior_impl.borrow_mut().regs());
-        let mut command_ring = Arc::new(spinlock::SpinNoIrq::new(CommandRing::new(
+        let mut command_ring = Arc::new(Spinlock::new(CommandRing::new(
             xhci_behavior_impl.borrow_mut().regs(),
         )));
 
         Ok(XhciController {
-            controller: Arc::new(SpinNoIrq::new(xhci_behavior_impl)),
+            controller: Arc::new(Spinlock::new(xhci_behavior_impl)),
             event_ring: event_ring,
             command_ring: command_ring,
         })
@@ -99,10 +95,8 @@ impl XhciController<'_> {
             .read_volatile()
             .number_of_device_slots();
         info!("setting num of slots:{}", n);
-        registers::handle(|r| {
-            r.operational.config.update_volatile(|c| {
-                c.set_max_device_slots_enabled(n);
-            });
+        r.operational.config.update_volatile(|c| {
+            c.set_max_device_slots_enabled(n);
         });
 
         info!("init event ring...");
@@ -114,7 +108,7 @@ impl XhciController<'_> {
 
         dcbaa::init(r);
         scratchpad::init_once(r);
-        super::command_exchanger::init(self.command_ring)
+        command_exchanger::init(self.command_ring)
         // TODO:修改为多线程，并兼容异步模型
         // MORE TODO: 好吧，修一下error
     }
