@@ -1,8 +1,9 @@
-pub mod bindings;
-pub mod dcbaa;
-pub mod exchanger;
-mod scratchpad;
+mod exchanger;
+mod multitask;
+mod port;
+mod structures;
 pub mod xhci;
+use axhal::mem::PhysAddr;
 use driver_common::BaseDriverOps;
 
 /// The information of the graphics device.
