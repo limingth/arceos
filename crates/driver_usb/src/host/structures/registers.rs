@@ -7,9 +7,7 @@ use {
 
 static REGISTERS: OnceCell<Spinlock<Registers<MemoryMapper>>> = OnceCell::uninit();
 
-pub(crate) unsafe fn init(mmio_base: PhysAddr) {
-    let mmio_base: usize = mmio_base.as_usize();
-
+pub(crate) unsafe fn init(mmio_base: usize) {
     REGISTERS
         .try_init_once(|| Spinlock::new(unsafe { Registers::new(mmio_base, MemoryMapper {}) }))
         .expect("Failed to initialize `REGISTERS`.");

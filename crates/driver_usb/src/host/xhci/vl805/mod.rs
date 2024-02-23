@@ -6,12 +6,22 @@ mod mailbox;
 use super::MemoryMapper;
 use crate::{
     dma::DMAVec,
-    host::xhci::vl805::mailbox::{Mailbox, MsgNotifyXhciReset},
+    host::{
+        exchanger,
+        structures::{
+            dcbaa::{self, register},
+            extended_capabilities, registers,
+            ring::{command, event},
+            scratchpad,
+        },
+        xhci::vl805::mailbox::{Mailbox, MsgNotifyXhciReset},
+    },
 };
+use alloc::sync::Arc;
 use driver_common::*;
 use driver_pci::types::{Bar, ConfigCommand, ConfigKind, ConfigSpace};
 use log::{debug, info};
-use xhci::{accessor::Mapper, extended_capabilities, Registers};
+use spinning_top::Spinlock;
 
 const VL805_VENDOR_ID: u16 = 0x1106;
 const VL805_DEVICE_ID: u16 = 0x3483;
@@ -19,7 +29,7 @@ const VL805_DEVICE_ID: u16 = 0x3483;
 pub struct VL805 {
     // regs: Registers<MemoryMapper>,
     // extended_capabilities: Option<extended_capabilities::List<MemoryMapper>>,
-    // base_addr: usize,
+    base_addr: usize,
 }
 
 impl BaseDriverOps for VL805 {
@@ -64,6 +74,10 @@ impl VL805 {
         //     base_addr: mmio_base,
         // }
         //todo 移植一下
+        super::init(mmio_base);
+        VL805 {
+            base_addr: mmio_base,
+        }
     }
 }
 

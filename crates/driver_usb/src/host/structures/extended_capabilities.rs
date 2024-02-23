@@ -14,20 +14,21 @@ static EXTENDED_CAPABILITIES: OnceCell<
     Spinlock<Option<extended_capabilities::List<MemoryMapper>>>,
 > = OnceCell::uninit();
 
-pub(crate) unsafe fn init(mmio_base: PhysAddr) {
+pub(crate) unsafe fn init(mmio_base: usize) {
     let hccparams1 = registers::handle(|r| r.capability.hccparams1.read_volatile());
 
-    // EXTENDED_CAPABILITIES
-    // .try_init_once(|| unsafe {
-    // Spinlock::new(
-    let list = extended_capabilities::List::new(
-        (mmio_base.as_usize() as u64).try_into().unwrap(),
-        hccparams1,
-        MemoryMapper,
-    );
-    // )
-    // })
-    // .expect("Failed to initialize `EXTENDED_CAPABILITIES`.");
+    EXTENDED_CAPABILITIES
+        .try_init_once(|| unsafe {
+            Spinlock::new({
+                let list = extended_capabilities::List::new(
+                    (mmio_base as u64).try_into().unwrap(),
+                    hccparams1,
+                    MemoryMapper,
+                );
+                list
+            })
+        })
+        .expect("Failed to initialize `EXTENDED_CAPABILITIES`.");
 }
 
 pub(crate) fn iter() -> Option<

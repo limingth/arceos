@@ -8,9 +8,24 @@ use core::{
 };
 use log::info;
 use spinlock::SpinNoIrq;
-use xhci::{accessor::Mapper, extended_capabilities, ExtendedCapability, Registers};
+use spinning_top::Spinlock;
+use xhci::{accessor::Mapper, ExtendedCapability, Registers};
 
-use crate::host::structures::{dcbaa, scratchpad};
+use crate::host::{
+    exchanger,
+    structures::{
+        dcbaa,
+        extended_capabilities::{self},
+        registers,
+        ring::{command, event},
+        scratchpad,
+    },
+};
+
+use super::{
+    multitask::{self, task::Task},
+    port,
+};
 
 #[derive(Clone, Copy)]
 pub struct MemoryMapper;
@@ -25,80 +40,101 @@ impl Mapper for MemoryMapper {
     fn unmap(&mut self, virt_base: usize, bytes: usize) {}
 }
 
-// pub(crate) fn new(xhci_behavior_impl: &'static mut dyn XhciBehaviors) {
-//     let mut cont = Arc::new(Spinlock::new(xhci_behavior_impl));
-//     let mut event_ring = Arc::new(Spinlock::new(EventRing::new(cont.clone())));
-//     let mut command_ring = Arc::new(Spinlock::new(CommandRing::new(cont.clone())));
+pub(crate) fn init(mmio_base: usize) {
+    info!("init statics");
+    unsafe {
+        registers::init(mmio_base);
+        extended_capabilities::init(mmio_base);
+    };
+    let mut event_ring = event::Ring::new();
+    let command_ring = Arc::new(Spinlock::new(command::Ring::new()));
 
-//     unsafe {
-//         XHCI_CONTROLLER = Some(cont);
-//         EVENT_RING = Some(event_ring);
-//         COMMAND_RING = Some(command_ring);
-//     }
-//     // Ok(XhciController {
-//     //     inner_impl: cont,
-//     //     event_ring: event_ring,
-//     //     command_ring: command_ring,
-//     // })
-// }
+    info!("get bios perms");
+    if let Some(iter) = extended_capabilities::iter() {
+        for c in iter.filter_map(Result::ok) {
+            if let ExtendedCapability::UsbLegacySupport(mut u) = c {
+                let l = &mut u.usblegsup;
+                l.update_volatile(|s| {
+                    s.set_hc_os_owned_semaphore();
+                });
 
-// pub(crate) fn init() {
-//     if let Some(ref mut inited_controller) = unsafe { XHCI_CONTROLLER.borrow_mut() } {
-//         let mut r = inited_controller.borrow_mut().lock().regs();
-//         // get owner ship from bios(?)
-//         if let Some(extended_caps) = inited_controller.lock().borrow_mut()..extra_features() {
-//             let iter = extended_caps.into_iter();
-//             for c in iter.filter_map(Result::ok) {
-//                 if let ExtendedCapability::UsbLegacySupport(mut u) = c {
-//                     let l = &mut u.usblegsup;
-//                     l.update_volatile(|s| {
-//                         s.set_hc_os_owned_semaphore();
-//                     });
+                while l.read_volatile().hc_bios_owned_semaphore()
+                    || !l.read_volatile().hc_os_owned_semaphore()
+                {}
+            }
+        }
+    }
 
-//                     while l.read_volatile().hc_bios_owned_semaphore()
-//                         || !l.read_volatile().hc_os_owned_semaphore()
-//                     {}
-//                 }
-//             }
-//         }
+    registers::handle(|r| {
+        info!("stop");
+        r.operational.usbcmd.update_volatile(|u| {
+            u.clear_run_stop();
+        })
+    });
 
-//         info!("stop");
-//         r.operational.usbcmd.update_volatile(|u| {
-//             u.clear_run_stop();
-//         });
-//         info!("wait until halt");
-//         while !r.operational.usbsts.read_volatile().hc_halted() {}
-//         info!("start reset");
-//         r.operational.usbcmd.update_volatile(|u| {
-//             u.set_host_controller_reset();
-//         });
-//         info!("wait until reset complete");
-//         while r.operational.usbcmd.read_volatile().host_controller_reset() {}
-//         info!("wait until ready");
-//         while r.operational.usbsts.read_volatile().controller_not_ready() {}
+    registers::handle(|r| {
+        info!("wait until halt");
+        while !r.operational.usbsts.read_volatile().hc_halted() {}
+    });
 
-//         let n = r
-//             .capability
-//             .hcsparams1
-//             .read_volatile()
-//             .number_of_device_slots();
-//         info!("setting num of slots:{}", n);
-//         r.operational.config.update_volatile(|c| {
-//             c.set_max_device_slots_enabled(n);
-//         });
+    registers::handle(|r| {
+        info!("start reset");
+        r.operational.usbcmd.update_volatile(|u| {
+            u.set_host_controller_reset();
+        });
+    });
 
-//         info!("init event ring...");
-//         inited_controller
-//             .into_inner()
-//             .event_ring
-//             .update_deq_with_xhci(r);
-//         inited_controller.into_inner().event_ring.init_segtable(r);
+    registers::handle(|r| {
+        info!("wait until reset complete");
+        while r.operational.usbcmd.read_volatile().host_controller_reset() {}
+    });
 
-//         info!("init command ring...");
-//         inited_controller.into_inner().command_ring.lock().init();
+    registers::handle(|r| {
+        info!("wait until ready");
+        while r.operational.usbsts.read_volatile().controller_not_ready() {}
+    });
 
-//         dcbaa::init(r);
-//         scratchpad::init_once(r);
-//         command_exchanger::init(inited_controller.into_inner().command_ring.clone())
-//     }
-// }
+    registers::handle(|r| {
+        let n = r
+            .capability
+            .hcsparams1
+            .read_volatile()
+            .number_of_device_slots();
+        info!("setting num of slots:{}", n);
+        r.operational.config.update_volatile(|c| {
+            c.set_max_device_slots_enabled(n);
+        });
+    });
+
+    event_ring.init();
+    command_ring.lock().init();
+    dcbaa::init();
+    scratchpad::init();
+    exchanger::command::init(command_ring);
+
+    info!("run!");
+    registers::handle(|r| {
+        let o = &mut r.operational;
+        o.usbcmd.update_volatile(|u| {
+            u.set_run_stop();
+        });
+        while o.usbsts.read_volatile().hc_halted() {}
+    });
+
+    registers::handle(|r| {
+        let s = r.operational.usbsts.read_volatile();
+
+        assert!(!s.hc_halted(), "HC is halted.");
+        assert!(
+            !s.host_system_error(),
+            "An error occured on the host system."
+        );
+        assert!(!s.host_controller_error(), "An error occured on the xHC.");
+    });
+}
+
+fn spawn_tasks(e: event::Ring) {
+    port::spawn_all_connected_port_tasks();
+
+    multitask::add(Task::new_poll(event::task(e)));
+}
