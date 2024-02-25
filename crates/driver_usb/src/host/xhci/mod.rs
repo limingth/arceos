@@ -7,9 +7,12 @@ use core::{
     num::NonZeroUsize,
 };
 use log::info;
+use page_table_entry::aarch64;
 use spinlock::SpinNoIrq;
 use spinning_top::Spinlock;
 use xhci::{accessor::Mapper, ExtendedCapability, Registers};
+
+use aarch64_cpu::asm::barrier;
 
 use crate::host::{
     exchanger,
@@ -112,15 +115,35 @@ pub(crate) fn init(mmio_base: usize) {
     scratchpad::init();
     exchanger::command::init(command_ring);
 
+    run();
+    barrier::isb(barrier::SY);
+    ensure_no_error();
+    spawn_tasks(event_ring);
+}
+
+fn run() {
     info!("run!");
     registers::handle(|r| {
         let o = &mut r.operational;
         o.usbcmd.update_volatile(|u| {
             u.set_run_stop();
         });
-        while o.usbsts.read_volatile().hc_halted() {}
-    });
 
+        info!("out: wait until halt");
+        while o.usbsts.read_volatile().hc_halted() {
+            // info!("wait until halt");
+            // barrier::isb(barrier::SY);
+        }
+
+        // info!("out: wait until not halt");
+        // while !o.usbsts.read_volatile().hc_halted() {
+        //     // info!("wait until not halt");
+        //     // barrier::isb(barrier::SY);
+        // }
+    });
+}
+
+fn ensure_no_error() {
     registers::handle(|r| {
         let s = r.operational.usbsts.read_volatile();
 
