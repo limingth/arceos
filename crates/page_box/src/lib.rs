@@ -2,13 +2,16 @@
 
 #![cfg_attr(not(test), no_std)]
 #![allow(clippy::type_repetition_in_bounds)]
+#![feature(strict_provenance)]
 use core::{
+    alloc::Layout,
     convert::{TryFrom, TryInto},
     fmt,
     marker::PhantomData,
     mem,
     ops::{Deref, DerefMut},
-    ptr, slice,
+    ptr::{self, NonNull},
+    slice,
 };
 
 use axhal::mem::{virt_to_phys, PhysAddr, VirtAddr};
@@ -183,13 +186,14 @@ impl<T: ?Sized> PageBox<T> {
     /// This method panics if the `PageBox` is not mapped.
     #[must_use]
     pub fn phys_addr(&self) -> PhysAddr {
-        let a = virt_to_phys(self.virt);
+        // let a = virt_to_phys(self.virt);
 
         // if a.is_null() {
         //     unreachable!("Address: {:?} is not mapped.", self.virt);
         // }
 
-        a
+        // a
+        PhysAddr::from(self.virt.as_usize())
     }
 
     #[must_use]
@@ -200,8 +204,10 @@ impl<T: ?Sized> PageBox<T> {
     fn from_bytes(bytes: usize) -> Self {
         let alloc_pages = VirtAddr::from(
             axalloc::global_allocator()
-                .alloc_pages(as_num_of_pages(bytes), PageSize::Size4K as usize)
-                .expect("error on alloc page"),
+                .alloc(Layout::from_size_align(bytes, PageSize::Size4K as usize).unwrap())
+                .expect("error on alloc page")
+                .addr()
+                .get(),
         );
         //TODO
 

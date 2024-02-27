@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use axhal::mem::PhysAddr;
+use axhal::mem::{phys_to_virt, PhysAddr, VirtAddr};
 use bit_field::BitArray;
 use page_table::PageSize;
+
+use crate::host::multitask::executor;
 
 use {
     super::CycleBit,
@@ -70,8 +72,8 @@ impl Ring {
         self.raw.update_deq_p_with_xhci();
     }
 
-    fn phys_addr_to_segment_table(&self) -> PhysAddr {
-        self.segment_table.phys_addr()
+    fn virt_addr_to_segment_table(&self) -> VirtAddr {
+        phys_to_virt(self.segment_table.phys_addr())
     }
 
     fn init_tbl(&mut self) {
@@ -82,7 +84,7 @@ impl Ring {
         self.raw.try_dequeue()
     }
 
-    fn ring_addrs(&self) -> Vec<PhysAddr> {
+    fn ring_addrs(&self) -> Vec<VirtAddr> {
         self.raw.head_addrs()
     }
 
@@ -94,11 +96,24 @@ impl Stream for Ring {
     type Item = event::Allowed;
 
     fn poll_next(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        Pin::into_inner(self)
+        let map_or_else = Pin::into_inner(self)
             .try_dequeue()
-            .map_or_else(|| Poll::Pending, |trb| Poll::Ready(Some(trb)))
+            .map_or_else(|| Poll::Pending, |trb| Poll::Ready(Some(trb)));
+        debug!("polled:{:?}", map_or_else);
+        map_or_else
     }
 }
+// impl Iterator for Ring {
+//     type Item = event::Allowed;
+
+//     fn next(&mut self) -> Option<Self::Item> {
+//         let try_dequeue = self.try_dequeue();
+//         if try_dequeue.is_some() {
+//             debug!("dequed some");
+//         }
+//         try_dequeue
+//     }
+// }
 
 struct Raw {
     rings: Vec<PageBox<[[u32; 4]]>>,
@@ -136,16 +151,26 @@ impl Raw {
     }
 
     fn try_dequeue(&mut self) -> Option<event::Allowed> {
-        let c_bit_of_next_trb =
-            CycleBit::new(self.rings[self.deq_p_seg][self.deq_p_trb].get_bit(0));
-        match { c_bit_of_next_trb != self.c } {
-            true => None,
-            false => {
-                let t = self.get_next_trb().ok();
-                self.increment();
-                t
-            }
+        if self.empty() {
+            None
+        } else {
+            self.dequeue()
         }
+    }
+
+    fn empty(&self) -> bool {
+        self.c_bit_of_next_trb() != self.c
+    }
+
+    fn c_bit_of_next_trb(&self) -> CycleBit {
+        let t = self.rings[self.deq_p_seg][self.deq_p_trb];
+        CycleBit::new(t[3].get_bit(0))
+    }
+
+    fn dequeue(&mut self) -> Option<event::Allowed> {
+        let t = self.get_next_trb().ok();
+        self.increment();
+        t
     }
 
     fn get_next_trb(&self) -> Result<event::Allowed, [u32; 4]> {
@@ -187,12 +212,12 @@ impl Raw {
         });
     }
 
-    fn next_trb_addr(&self) -> PhysAddr {
-        self.rings[self.deq_p_seg].phys_addr() + trb::BYTES * self.deq_p_trb
+    fn next_trb_addr(&self) -> VirtAddr {
+        self.rings[self.deq_p_seg].virt_addr() + trb::BYTES * self.deq_p_trb
     }
 
-    fn head_addrs(&self) -> Vec<PhysAddr> {
-        self.rings.iter().map(PageBox::phys_addr).collect()
+    fn head_addrs(&self) -> Vec<VirtAddr> {
+        self.rings.iter().map(PageBox::virt_addr).collect()
     }
 }
 
@@ -238,8 +263,8 @@ impl<'a> SegTblInitializer<'a> {
         });
     }
 
-    fn tbl_addr(&self) -> PhysAddr {
-        self.ring.phys_addr_to_segment_table()
+    fn tbl_addr(&self) -> VirtAddr {
+        self.ring.virt_addr_to_segment_table()
     }
 
     fn tbl_len(&self) -> usize {

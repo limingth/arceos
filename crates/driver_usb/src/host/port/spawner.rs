@@ -13,7 +13,7 @@ static SPAWN_STATUS: Lazy<Spinlock<Vec<bool>>> =
 
 pub(crate) fn spawn_all_connected_ports() {
     let n = super::max_num();
-    for i in 0..n {
+    for i in 1..n {
         let _ = try_spawn(i + 1);
     }
 }

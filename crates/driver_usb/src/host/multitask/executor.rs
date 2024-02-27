@@ -12,6 +12,7 @@ use {
     super::task,
     alloc::collections::BTreeMap,
     core::task::{Context, Poll, Waker},
+    log::debug,
     task::Task,
 };
 
@@ -29,6 +30,9 @@ impl Executor {
     pub(crate) fn run(&mut self) -> ! {
         loop {
             self.run_woken_tasks();
+            if !self.waker_collection.is_empty() {
+                debug!("running!...{:?}", self.waker_collection);
+            }
         }
     }
 

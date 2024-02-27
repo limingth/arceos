@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    axhal::mem::PhysAddr,
+    axhal::mem::{PhysAddr, VirtAddr},
     core::{
         ops::{Index, IndexMut},
         slice,
@@ -57,7 +57,7 @@ pub struct Entry {
 }
 impl Entry {
     // Although the size of segment_size is u64, bits 16:63 are reserved.
-    pub fn set(&mut self, addr: PhysAddr, size: u16) {
+    pub fn set(&mut self, addr: VirtAddr, size: u16) {
         self.base_address = addr.as_usize() as u64;
         self.segment_size = size.into();
     }

@@ -1036,6 +1036,7 @@ dependencies = [
  "axalloc",
  "axconfig",
  "axhal",
+ "axtask",
  "bit_field",
  "byteorder",
  "conquer-once",

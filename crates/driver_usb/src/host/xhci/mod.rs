@@ -1,12 +1,12 @@
 #[cfg(feature = "vl805")]
 pub mod vl805;
-use alloc::sync::Arc;
+use alloc::{string::String, sync::Arc};
 use axhal::mem::phys_to_virt;
 use core::{
     borrow::{Borrow, BorrowMut},
     num::NonZeroUsize,
 };
-use log::info;
+use log::{debug, info};
 use page_table_entry::aarch64;
 use spinlock::SpinNoIrq;
 use spinning_top::Spinlock;
@@ -44,6 +44,15 @@ impl Mapper for MemoryMapper {
 }
 
 pub(crate) fn init(mmio_base: usize) {
+    let mut task = axtask::spawn_raw(
+        || {
+            debug!("little executer running!");
+            multitask::executor::Executor::new().run();
+        },
+        "usb_executer".into(),
+        axconfig::TASK_STACK_SIZE,
+    );
+
     info!("init statics");
     unsafe {
         registers::init(mmio_base);
@@ -110,9 +119,13 @@ pub(crate) fn init(mmio_base: usize) {
     });
 
     event_ring.init();
+
     command_ring.lock().init();
+
     dcbaa::init();
+
     scratchpad::init();
+
     exchanger::command::init(command_ring);
 
     run();
@@ -133,6 +146,9 @@ fn run() {
         while o.usbsts.read_volatile().hc_halted() {
             // info!("wait until halt");
             // barrier::isb(barrier::SY);
+            if o.usbsts.read_volatile().host_system_error() {
+                panic!("xhci stat: {:?}", o.usbsts.read_volatile());
+            }
         }
 
         // info!("out: wait until not halt");
@@ -147,6 +163,8 @@ fn ensure_no_error() {
     registers::handle(|r| {
         let s = r.operational.usbsts.read_volatile();
 
+        debug!("xhci stat: {:?}", s);
+
         assert!(!s.hc_halted(), "HC is halted.");
         assert!(
             !s.host_system_error(),
@@ -158,6 +176,5 @@ fn ensure_no_error() {
 
 fn spawn_tasks(e: event::Ring) {
     port::spawn_all_connected_port_tasks();
-
     multitask::add(Task::new_poll(event::task(e)));
 }
