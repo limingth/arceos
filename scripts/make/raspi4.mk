@@ -35,7 +35,7 @@ EXEC_MINIPUSH      = ruby tools/raspi4/common/serial/minipush.rb
 ##------------------------------------------------------------------------------
 ## Dockerization
 ##------------------------------------------------------------------------------
-DOCKER_CMD            = docker run -t --rm -v $(shell pwd):/work/tutorial -w /work/tutorial
+DOCKER_CMD            = sudo docker run -t --rm -v $(shell pwd):/work/tutorial -w /work/tutorial
 DOCKER_CMD_INTERACT   = $(DOCKER_CMD) -i
 DOCKER_ARG_DIR_COMMON = -v $(shell pwd)/tools/raspi4/common:/work/common
 DOCKER_ARG_DIR_JTAG   = -v $(shell pwd)/tools/raspi4/X1_JTAG_boot:/work/X1_JTAG_boot
