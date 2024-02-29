@@ -106,6 +106,7 @@
 //!     - It is implemented in `src/_arch/__arch_name__/cpu/boot.s`.
 //! 2. Once finished with architectural setup, the arch code calls `kernel_init()`.
 
+#![allow(dead_code)]
 #![allow(clippy::upper_case_acronyms)]
 #![feature(asm_const)]
 #![feature(format_args_nl)]
