@@ -1,1 +1,0 @@
-cargo:rerun-if-changed=/home/jacky/original/06_uart_chainloader/src/bsp/raspberrypi/kernel.ld

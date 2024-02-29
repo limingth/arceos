@@ -11,43 +11,30 @@ include ../common/operating_system.mk
 ##--------------------------------------------------------------------------------------------------
 
 # Default to the RPi3.
-BSP ?= rpi3
+BSP ?= rpi4
 
 # Default to a serial device name that is common in Linux.
 DEV_SERIAL ?= /dev/ttyUSB0
 
-
+# Default not to enable jtag debug
+JTAG ?= n
 
 ##--------------------------------------------------------------------------------------------------
 ## BSP-specific configuration values
 ##--------------------------------------------------------------------------------------------------
 QEMU_MISSING_STRING = "This board is not yet supported for QEMU."
 
-ifeq ($(BSP),rpi3)
-    TARGET                 = aarch64-unknown-none-softfloat
-    KERNEL_BIN             = kernel8.img
-    QEMU_BINARY            = qemu-system-aarch64
-    QEMU_MACHINE_TYPE      = raspi3
-    QEMU_RELEASE_ARGS      = -serial stdio -display none
-    OBJDUMP_BINARY         = aarch64-none-elf-objdump
-    NM_BINARY              = aarch64-none-elf-nm
-    READELF_BINARY         = aarch64-none-elf-readelf
-    LD_SCRIPT_PATH         = $(shell pwd)/src/bsp/raspberrypi
-    RUSTC_MISC_ARGS        = -C target-cpu=cortex-a53
-    CHAINBOOT_DEMO_PAYLOAD = demo_payload_rpi3.img
-else ifeq ($(BSP),rpi4)
-    TARGET                 = aarch64-unknown-none-softfloat
-    KERNEL_BIN             = kernel8.img
-    QEMU_BINARY            = qemu-system-aarch64
-    QEMU_MACHINE_TYPE      =
-    QEMU_RELEASE_ARGS      = -serial stdio -display none
-    OBJDUMP_BINARY         = aarch64-none-elf-objdump
-    NM_BINARY              = aarch64-none-elf-nm
-    READELF_BINARY         = aarch64-none-elf-readelf
-    LD_SCRIPT_PATH         = $(shell pwd)/src/bsp/raspberrypi
-    RUSTC_MISC_ARGS        = -C target-cpu=cortex-a72
-    CHAINBOOT_DEMO_PAYLOAD = demo_payload_rpi4.img
-endif
+TARGET                 = aarch64-unknown-none-softfloat
+KERNEL_BIN             = kernel8.img
+QEMU_BINARY            = qemu-system-aarch64
+QEMU_MACHINE_TYPE      =
+QEMU_RELEASE_ARGS      = -serial stdio -display none
+OBJDUMP_BINARY         = aarch64-none-elf-objdump
+NM_BINARY              = aarch64-none-elf-nm
+READELF_BINARY         = aarch64-none-elf-readelf
+LD_SCRIPT_PATH         = $(shell pwd)/src/bsp/raspberrypi
+RUSTC_MISC_ARGS        = -C target-cpu=cortex-a72
+CHAINBOOT_DEMO_PAYLOAD = demo_payload_rpi4.img
 
 # Export for build.rs.
 export LD_SCRIPT_PATH
@@ -79,7 +66,10 @@ RUSTFLAGS_PEDANTIC = $(RUSTFLAGS) \
     -D warnings                   \
     -D missing_docs
 
-FEATURES      = --features bsp_$(BSP)
+FEATURES    = --features bsp_$(BSP)
+ifeq ($(JTAG),y)
+	FEATURES += --features enable_jtag_debug
+endif 
 COMPILER_ARGS = --target=$(TARGET) \
     $(FEATURES)                    \
     --release
