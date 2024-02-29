@@ -29,5 +29,8 @@ tock-registers = { version = "0.8.x", default-features = false, features = ["reg
 # Platform specific dependencies
 [target.'cfg(target_arch = "aarch64")'.dependencies]
 aarch64-cpu = { version = "9.x.x" }
+<<<<<<< HEAD
 
 [workspace]
+=======
+>>>>>>> 9d89218 (chore(tools::jtag): merge chainloader from rust-raspberrypi-OS-tutorials)
