@@ -3,7 +3,7 @@
 use {
     super::CycleBit,
     crate::host::structures::registers,
-    axhal::mem::PhysAddr,
+    axhal::mem::VirtAddr,
     page_box::PageBox,
     page_table::PageSize,
     trb::Link,
@@ -25,13 +25,13 @@ impl Ring {
         Initializer::new(self).init();
     }
 
-    pub(crate) fn enqueue(&mut self, trb: command::Allowed) -> PhysAddr {
+    pub(crate) fn enqueue(&mut self, trb: command::Allowed) -> VirtAddr {
         let a = self.raw.enqueue(trb);
         Self::notify_command_is_sent();
         a
     }
 
-    fn phys_addr(&self) -> PhysAddr {
+    fn virt_addr(&self) -> VirtAddr {
         self.raw.head_addr()
     }
 
@@ -63,7 +63,7 @@ impl Raw {
         }
     }
 
-    fn enqueue(&mut self, mut trb: command::Allowed) -> PhysAddr {
+    fn enqueue(&mut self, mut trb: command::Allowed) -> VirtAddr {
         self.set_cycle_bit(&mut trb);
         self.write_trb(trb);
         let trb_a = self.enq_addr();
@@ -102,12 +102,12 @@ impl Raw {
         self.c.toggle();
     }
 
-    fn enq_addr(&self) -> PhysAddr {
+    fn enq_addr(&self) -> VirtAddr {
         self.head_addr() + trb::BYTES * self.enq_p
     }
 
-    fn head_addr(&self) -> PhysAddr {
-        self.raw.phys_addr()
+    fn head_addr(&self) -> VirtAddr {
+        self.raw.virt_addr()
     }
 
     fn len(&self) -> usize {
@@ -133,7 +133,7 @@ impl<'a> Initializer<'a> {
 
     fn init(&mut self) {
         registers::handle(|r| {
-            let a = self.ring.phys_addr();
+            let a = self.ring.virt_addr();
 
             // Do not split this closure to avoid read-modify-write bug. Reading fields may return
             // 0, this will cause writing 0 to fields.

@@ -67,12 +67,12 @@ impl SlotStructuresInitializer {
     }
 
     fn register_with_dcbaa(&self) {
-        let a = self.cx.lock().output.phys_addr();
+        let a = self.cx.lock().output.virt_addr();
         dcbaa::register(self.slot_number.into(), a);
     }
 
     async fn issue_address_device(&self) {
-        let cx_addr = self.cx.lock().input.phys_addr();
+        let cx_addr = self.cx.lock().input.addr();
         exchanger::command::address_device(cx_addr, self.slot_number).await;
     }
 }

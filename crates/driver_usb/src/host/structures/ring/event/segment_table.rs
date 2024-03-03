@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    axhal::mem::{PhysAddr, VirtAddr},
+    axhal::mem::VirtAddr,
     core::{
         ops::{Index, IndexMut},
         slice,
@@ -16,8 +16,8 @@ impl SegmentTable {
         Self(PageBox::new_slice(Entry::null(), len))
     }
 
-    pub fn phys_addr(&self) -> PhysAddr {
-        self.0.phys_addr()
+    pub fn virt_addr(&self) -> VirtAddr {
+        self.0.virt_addr()
     }
 
     pub fn len(&self) -> usize {

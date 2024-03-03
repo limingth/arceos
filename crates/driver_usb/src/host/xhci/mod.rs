@@ -58,80 +58,119 @@ pub(crate) fn init(mmio_base: usize) {
         registers::init(mmio_base);
         extended_capabilities::init(mmio_base);
     };
-    let mut event_ring = event::Ring::new();
-    let command_ring = Arc::new(Spinlock::new(command::Ring::new()));
 
-    info!("get bios perms");
-    if let Some(iter) = extended_capabilities::iter() {
-        for c in iter.filter_map(Result::ok) {
-            if let ExtendedCapability::UsbLegacySupport(mut u) = c {
-                let l = &mut u.usblegsup;
-                l.update_volatile(|s| {
-                    s.set_hc_os_owned_semaphore();
-                });
-
-                while l.read_volatile().hc_bios_owned_semaphore()
-                    || !l.read_volatile().hc_os_owned_semaphore()
-                {}
-            }
-        }
-    }
-
+    debug!("Hardware RESET!");
     registers::handle(|r| {
+        let sts = &r.operational.usbsts;
+
         info!("stop");
         r.operational.usbcmd.update_volatile(|u| {
             u.clear_run_stop();
-        })
-    });
-
-    registers::handle(|r| {
-        info!("wait until halt");
-        while !r.operational.usbsts.read_volatile().hc_halted() {}
-    });
-
-    registers::handle(|r| {
-        info!("start reset");
-        r.operational.usbcmd.update_volatile(|u| {
-            u.set_host_controller_reset();
         });
-    });
 
-    registers::handle(|r| {
-        info!("wait until reset complete");
-        while r.operational.usbcmd.read_volatile().host_controller_reset() {}
-    });
+        while sts.read_volatile().controller_not_ready() || !sts.read_volatile().hc_halted() {}
 
-    registers::handle(|r| {
-        info!("wait until ready");
-        while r.operational.usbsts.read_volatile().controller_not_ready() {}
-    });
-
-    registers::handle(|r| {
-        let n = r
-            .capability
-            .hcsparams1
-            .read_volatile()
-            .number_of_device_slots();
-        info!("setting num of slots:{}", n);
-        r.operational.config.update_volatile(|c| {
-            c.set_max_device_slots_enabled(n);
+        r.operational.usbcmd.update_volatile(|r| {
+            r.set_host_controller_reset();
         });
+
+        while !r.operational.usbcmd.read_volatile().host_controller_reset() {}
+
+        if sts.read_volatile().controller_not_ready() {
+            panic!(
+                "controller not ready:{:?}\n reset failed",
+                sts.read_volatile()
+            )
+        }
     });
-
-    event_ring.init();
-
-    command_ring.lock().init();
 
     dcbaa::init();
+    let mut event_ring = event::Ring::new();
+    event_ring.init();
+
+    let command_ring = Arc::new(Spinlock::new(command::Ring::new()));
+    command_ring.lock().init();
 
     scratchpad::init();
 
     exchanger::command::init(command_ring);
 
-    run();
-    barrier::isb(barrier::SY);
-    ensure_no_error();
-    spawn_tasks(event_ring);
+    // // info!("get bios perms");
+    // // if let Some(iter) = extended_capabilities::iter() {
+    // //     for c in iter.filter_map(Result::ok) {
+    // //         if let ExtendedCapability::UsbLegacySupport(mut u) = c {
+    // //             let l = &mut u.usblegsup;
+    // //             l.update_volatile(|s| {
+    // //                 s.set_hc_os_owned_semaphore();
+    // //             });
+
+    // //             while l.read_volatile().hc_bios_owned_semaphore()
+    // //                 || !l.read_volatile().hc_os_owned_semaphore()
+    // //             {}
+    // //         }
+    // //     }
+    // // }
+
+    // registers::handle(|r| {
+    //     info!("stop");
+    //     r.operational.usbcmd.update_volatile(|u| {
+    //         u.clear_run_stop();
+    //     })
+    // });
+
+    // registers::handle(|r| {
+    //     info!("wait until halt");
+    //     while !r.operational.usbsts.read_volatile().hc_halted() {}
+    // });
+
+    // registers::handle(|r| {
+    //     info!("wait until ready");
+    //     while r.operational.usbsts.read_volatile().controller_not_ready() {}
+    // });
+
+    // registers::handle(|r| {
+    //     info!("start reset");
+    //     r.operational.usbcmd.update_volatile(|u| {
+    //         u.set_host_controller_reset();
+    //     });
+    // });
+
+    // registers::handle(|r| {
+    //     info!("wait until reset complete");
+    //     while r.operational.usbcmd.read_volatile().host_controller_reset() {}
+    // });
+
+    // debug!("host controller reset(hcrst) complete");
+
+    // registers::handle(|r| {
+    //     let n = r
+    //         .capability
+    //         .hcsparams1
+    //         .read_volatile()
+    //         .number_of_device_slots();
+    //     info!("setting num of slots:{}", n);
+    //     r.operational.config.update_volatile(|c| {
+    //         c.set_max_device_slots_enabled(n);
+    //     });
+    // });
+
+    // let mut event_ring = event::Ring::new();
+    // let command_ring = Arc::new(Spinlock::new(command::Ring::new()));
+
+    // event_ring.init();
+
+    // command_ring.lock().init();
+
+    // dcbaa::init();
+
+    // scratchpad::init();
+
+    // exchanger::command::init(command_ring);
+
+    // run();
+    // barrier::isb(barrier::SY);
+    // ensure_no_error();
+    // spawn_tasks(event_ring);
 }
 
 fn run() {

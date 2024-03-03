@@ -2,7 +2,7 @@
 
 use {
     alloc::{collections::BTreeMap, sync::Arc},
-    axhal::mem::PhysAddr,
+    axhal::mem::VirtAddr,
     conquer_once::spin::Lazy,
     core::{
         future::Future,
@@ -16,7 +16,7 @@ use {
 
 static RECEIVER: Lazy<Spinlock<Receiver>> = Lazy::new(|| Spinlock::new(Receiver::new()));
 
-pub(crate) fn add_entry(trb_a: PhysAddr, waker: Arc<Spinlock<AtomicWaker>>) -> Result<(), Error> {
+pub(crate) fn add_entry(trb_a: VirtAddr, waker: Arc<Spinlock<AtomicWaker>>) -> Result<(), Error> {
     lock().add_entry(trb_a, waker)
 }
 
@@ -31,8 +31,8 @@ fn lock() -> SpinlockGuard<'static, Receiver> {
 }
 
 struct Receiver {
-    trbs: BTreeMap<PhysAddr, Option<event::Allowed>>,
-    wakers: BTreeMap<PhysAddr, Arc<Spinlock<AtomicWaker>>>,
+    trbs: BTreeMap<VirtAddr, Option<event::Allowed>>,
+    wakers: BTreeMap<VirtAddr, Arc<Spinlock<AtomicWaker>>>,
 }
 impl Receiver {
     fn new() -> Self {
@@ -44,7 +44,7 @@ impl Receiver {
 
     fn add_entry(
         &mut self,
-        addr_to_trb: PhysAddr,
+        addr_to_trb: VirtAddr,
         waker: Arc<Spinlock<AtomicWaker>>,
     ) -> Result<(), Error> {
         if self.trbs.insert(addr_to_trb, None).is_some() {
@@ -79,7 +79,7 @@ impl Receiver {
         Ok(())
     }
 
-    fn wake_runner(&mut self, addr_to_trb: PhysAddr) -> Result<(), Error> {
+    fn wake_runner(&mut self, addr_to_trb: VirtAddr) -> Result<(), Error> {
         self.wakers
             .remove(&addr_to_trb)
             .ok_or(Error::NoSuchAddress)?
@@ -88,22 +88,22 @@ impl Receiver {
         Ok(())
     }
 
-    fn trb_arrives(&self, addr_to_trb: PhysAddr) -> bool {
+    fn trb_arrives(&self, addr_to_trb: VirtAddr) -> bool {
         match self.trbs.get(&addr_to_trb) {
             Some(trb) => trb.is_some(),
             None => panic!("No such TRB with the address {:?}", addr_to_trb),
         }
     }
 
-    fn remove_entry(&mut self, addr_to_trb: PhysAddr) -> Option<event::Allowed> {
+    fn remove_entry(&mut self, addr_to_trb: VirtAddr) -> Option<event::Allowed> {
         match self.trbs.remove(&addr_to_trb) {
             Some(trb) => trb,
             None => panic!("No such receiver with TRB address: {:?}", addr_to_trb),
         }
     }
 
-    fn trb_addr(t: event::Allowed) -> PhysAddr {
-        PhysAddr::from(match t {
+    fn trb_addr(t: event::Allowed) -> VirtAddr {
+        VirtAddr::from(match t {
             event::Allowed::TransferEvent(e) => e.trb_pointer(),
             event::Allowed::CommandCompletion(c) => c.command_trb_pointer(),
             _ => todo!(),
@@ -118,11 +118,11 @@ pub(crate) enum Error {
 }
 
 pub(crate) struct ReceiveFuture {
-    addr_to_trb: PhysAddr,
+    addr_to_trb: VirtAddr,
     waker: Arc<Spinlock<AtomicWaker>>,
 }
 impl ReceiveFuture {
-    pub(crate) fn new(addr_to_trb: PhysAddr, waker: Arc<Spinlock<AtomicWaker>>) -> Self {
+    pub(crate) fn new(addr_to_trb: VirtAddr, waker: Arc<Spinlock<AtomicWaker>>) -> Self {
         Self { addr_to_trb, waker }
     }
 }

@@ -3,10 +3,10 @@
 use {
     super::CycleBit,
     alloc::vec::Vec,
-    axhal::mem::PhysAddr,
+    axhal::mem::VirtAddr,
     page_box::PageBox,
     trb::Link,
-    xhci::ring::{trb, trb::transfer},
+    xhci::ring::trb::{self, transfer},
 };
 
 const SIZE_OF_RING: usize = 256;
@@ -19,11 +19,11 @@ impl Ring {
         Self { raw: Raw::new() }
     }
 
-    pub(crate) fn phys_addr(&self) -> PhysAddr {
-        self.raw.phys_addr()
+    pub(crate) fn virt_addr(&self) -> VirtAddr {
+        self.raw.virt_addr()
     }
 
-    pub(crate) fn enqueue(&mut self, trbs: &[transfer::Allowed]) -> Vec<PhysAddr> {
+    pub(crate) fn enqueue(&mut self, trbs: &[transfer::Allowed]) -> Vec<VirtAddr> {
         self.raw.enqueue_trbs(trbs)
     }
 }
@@ -42,11 +42,11 @@ impl Raw {
         }
     }
 
-    fn enqueue_trbs(&mut self, trbs: &[transfer::Allowed]) -> Vec<PhysAddr> {
+    fn enqueue_trbs(&mut self, trbs: &[transfer::Allowed]) -> Vec<VirtAddr> {
         trbs.iter().map(|t| self.enqueue(*t)).collect()
     }
 
-    fn enqueue(&mut self, mut trb: transfer::Allowed) -> PhysAddr {
+    fn enqueue(&mut self, mut trb: transfer::Allowed) -> VirtAddr {
         self.set_cycle_bit(&mut trb);
         self.write_trb_on_memory(trb);
         let addr_to_trb = self.addr_to_enqueue_ptr();
@@ -59,12 +59,12 @@ impl Raw {
         self.ring[self.enq_p] = trb.into_raw();
     }
 
-    fn addr_to_enqueue_ptr(&self) -> PhysAddr {
-        self.phys_addr() + trb::BYTES * self.enq_p
+    fn addr_to_enqueue_ptr(&self) -> VirtAddr {
+        self.virt_addr() + trb::BYTES * self.enq_p
     }
 
-    fn phys_addr(&self) -> PhysAddr {
-        self.ring.phys_addr()
+    fn virt_addr(&self) -> VirtAddr {
+        self.ring.virt_addr()
     }
 
     fn increment_enqueue_ptr(&mut self) {
@@ -82,7 +82,7 @@ impl Raw {
     }
 
     fn append_link_trb(&mut self) {
-        let t = *Link::default().set_ring_segment_pointer(self.phys_addr().as_usize() as u64);
+        let t = *Link::default().set_ring_segment_pointer(self.virt_addr().as_usize() as u64);
         let mut t = transfer::Allowed::Link(t);
         self.set_cycle_bit(&mut t);
         self.ring[self.enq_p] = t.into_raw();

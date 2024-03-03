@@ -2,7 +2,7 @@
 
 use {
     crate::{host::exchanger::transfer, host::structures::descriptor},
-    axhal::mem::PhysAddr,
+    axhal::mem::VirtAddr,
     page_box::PageBox,
     xhci::context::EndpointType,
 };
@@ -15,7 +15,7 @@ impl Default {
         Self { sender }
     }
 
-    pub(super) fn ring_addr(&self) -> PhysAddr {
+    pub(super) fn ring_addr(&self) -> VirtAddr {
         self.sender.ring_addr()
     }
 
@@ -55,7 +55,7 @@ impl NonDefault {
         self.desc
     }
 
-    pub(super) fn transfer_ring_addr(&self) -> PhysAddr {
+    pub(super) fn transfer_ring_addr(&self) -> VirtAddr {
         self.sender.ring_addr()
     }
 

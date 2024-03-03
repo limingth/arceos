@@ -2,7 +2,7 @@
 
 use {
     super::registers,
-    axhal::mem::PhysAddr,
+    axhal::mem::VirtAddr,
     conquer_once::spin::Lazy,
     core::ops::{Index, IndexMut},
     page_box::PageBox,
@@ -16,16 +16,16 @@ pub(crate) fn init() {
     DCBAA.lock().init();
 }
 
-pub(crate) fn register(port_id: usize, a: PhysAddr) {
+pub(crate) fn register(port_id: usize, a: VirtAddr) {
     DCBAA.lock()[port_id] = a;
 }
 
 pub(crate) struct DeviceContextBaseAddressArray {
-    arr: PageBox<[PhysAddr]>,
+    arr: PageBox<[VirtAddr]>,
 }
 impl DeviceContextBaseAddressArray {
     fn new() -> Self {
-        let arr = PageBox::new_slice(PhysAddr::from(0 as usize), Self::num_of_slots());
+        let arr = PageBox::new_slice(VirtAddr::from(0 as usize), Self::num_of_slots());
         Self { arr }
     }
 
@@ -49,17 +49,17 @@ impl DeviceContextBaseAddressArray {
             let _ = &self;
             r.operational.dcbaap.update_volatile(|d| {
                 let _ = &self;
-                d.set(self.phys_addr().as_usize() as u64);
+                d.set(self.virt_addr().as_usize() as u64);
             });
         });
     }
 
-    fn phys_addr(&self) -> PhysAddr {
-        self.arr.phys_addr()
+    fn virt_addr(&self) -> VirtAddr {
+        self.arr.virt_addr()
     }
 }
 impl Index<usize> for DeviceContextBaseAddressArray {
-    type Output = PhysAddr;
+    type Output = VirtAddr;
     fn index(&self, index: usize) -> &Self::Output {
         &self.arr[index]
     }

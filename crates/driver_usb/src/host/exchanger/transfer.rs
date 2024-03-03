@@ -4,7 +4,7 @@ use {
     super::receiver::{self, ReceiveFuture},
     crate::host::structures::{descriptor, registers, ring::transfer},
     alloc::{sync::Arc, vec::Vec},
-    axhal::mem::PhysAddr,
+    axhal::mem::VirtAddr,
     core::convert::TryInto,
     futures_util::task::AtomicWaker,
     log::debug,
@@ -26,7 +26,7 @@ impl Sender {
         }
     }
 
-    pub(crate) fn ring_addr(&self) -> PhysAddr {
+    pub(crate) fn ring_addr(&self) -> VirtAddr {
         self.channel.ring_addr()
     }
 
@@ -45,7 +45,7 @@ impl Sender {
             .set_direction(Direction::In)
             .set_trb_transfer_length(8)
             .clear_interrupt_on_completion()
-            .set_data_buffer_pointer(b.phys_addr().as_usize() as u64);
+            .set_data_buffer_pointer(b.virt_addr().as_usize() as u64);
 
         let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion();
 
@@ -112,7 +112,7 @@ impl Sender {
 
     pub(crate) async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
         let t = *Normal::default()
-            .set_data_buffer_pointer(b.phys_addr().as_usize() as u64)
+            .set_data_buffer_pointer(b.virt_addr().as_usize() as u64)
             .set_trb_transfer_length(b.bytes().try_into().unwrap())
             .set_interrupt_on_completion();
         debug!("Normal TRB: {:X?}", t);
@@ -135,7 +135,7 @@ impl Sender {
             .set_transfer_type(TransferType::In);
 
         let data = *transfer_trb::DataStage::default()
-            .set_data_buffer_pointer(b.phys_addr().as_usize() as u64)
+            .set_data_buffer_pointer(b.virt_addr().as_usize() as u64)
             .set_trb_transfer_length(b.bytes() as u32)
             .set_direction(Direction::In);
 
@@ -163,8 +163,8 @@ impl Channel {
         }
     }
 
-    fn ring_addr(&self) -> PhysAddr {
-        self.ring.phys_addr()
+    fn ring_addr(&self) -> VirtAddr {
+        self.ring.virt_addr()
     }
 
     async fn send_and_receive(
@@ -177,13 +177,13 @@ impl Channel {
         self.get_trbs(trbs, &addrs).await
     }
 
-    fn register_with_receiver(&mut self, ts: &[transfer_trb::Allowed], addrs: &[PhysAddr]) {
+    fn register_with_receiver(&mut self, ts: &[transfer_trb::Allowed], addrs: &[VirtAddr]) {
         for (t, addr) in ts.iter().zip(addrs) {
             self.register_trb(t, *addr);
         }
     }
 
-    fn register_trb(&mut self, t: &transfer_trb::Allowed, a: PhysAddr) {
+    fn register_trb(&mut self, t: &transfer_trb::Allowed, a: VirtAddr) {
         if t.interrupt_on_completion() {
             receiver::add_entry(a, self.waker.clone()).expect("Sender is already registered.");
         }
@@ -196,7 +196,7 @@ impl Channel {
     async fn get_trbs(
         &mut self,
         ts: &[transfer_trb::Allowed],
-        addrs: &[PhysAddr],
+        addrs: &[VirtAddr],
     ) -> Vec<Option<event::Allowed>> {
         let mut v = Vec::new();
         for (t, a) in ts.iter().zip(addrs) {
@@ -208,7 +208,7 @@ impl Channel {
     async fn get_single_trb(
         &mut self,
         t: &transfer_trb::Allowed,
-        addr: PhysAddr,
+        addr: VirtAddr,
     ) -> Option<event::Allowed> {
         if t.interrupt_on_completion() {
             Some(ReceiveFuture::new(addr, self.waker.clone()).await)

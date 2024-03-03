@@ -13,7 +13,7 @@ use {
         },
     },
     alloc::{sync::Arc, vec::Vec},
-    axhal::mem::PhysAddr,
+    axhal::mem::VirtAddr,
     bit_field::BitField,
     core::convert::TryInto,
     num_derive::FromPrimitive,
@@ -82,7 +82,7 @@ impl EndpointsInitializer {
     }
 
     async fn configure_endpoint(&mut self) {
-        let a = self.cx.lock().input.phys_addr();
+        let a = self.cx.lock().input.addr();
         exchanger::command::configure_endpoint(a, self.slot_number).await;
     }
 }
@@ -90,7 +90,7 @@ impl EndpointsInitializer {
 struct ContextInitializer<'a> {
     cx: &'a mut Context,
     ep: &'a descriptor::Endpoint,
-    transfer_ring_addr: PhysAddr,
+    transfer_ring_addr: VirtAddr,
     port_number: u8,
 }
 impl<'a> ContextInitializer<'a> {
@@ -98,7 +98,7 @@ impl<'a> ContextInitializer<'a> {
     fn new(
         cx: &'a mut Context,
         ep: &'a descriptor::Endpoint,
-        transfer_ring_addr: PhysAddr,
+        transfer_ring_addr: VirtAddr,
         port_number: u8,
     ) -> Self {
         Self {

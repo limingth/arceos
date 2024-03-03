@@ -75,7 +75,7 @@ impl MaxPacketSizeSetter {
 
             i.control_mut().set_add_context_flag(1);
 
-            i.phys_addr()
+            i.addr()
         };
 
         exchanger::command::evaluate_context(addr, self.slot_number).await;

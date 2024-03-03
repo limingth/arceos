@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::dcbaa, crate::host::structures::registers, alloc::vec::Vec, axhal::mem::PhysAddr,
+    super::dcbaa, crate::host::structures::registers, alloc::vec::Vec, axhal::mem::VirtAddr,
     conquer_once::spin::OnceCell, core::convert::TryInto, page_box::PageBox,
 };
 
@@ -22,7 +22,7 @@ fn init_static() {
 }
 
 struct Scratchpad {
-    arr: PageBox<[PhysAddr]>,
+    arr: PageBox<[VirtAddr]>,
     bufs: Vec<PageBox<[u8]>>,
 }
 impl Scratchpad {
@@ -30,7 +30,7 @@ impl Scratchpad {
         let len: usize = Self::num_of_buffers().try_into().unwrap();
 
         Self {
-            arr: PageBox::new_slice(PhysAddr::from(0 as usize), len),
+            arr: PageBox::new_slice(VirtAddr::from(0 as usize), len),
             bufs: Vec::new(),
         }
     }
@@ -45,7 +45,7 @@ impl Scratchpad {
     }
 
     fn register_with_dcbaa(&self) {
-        dcbaa::register(0, self.arr.phys_addr());
+        dcbaa::register(0, self.arr.virt_addr());
     }
 
     fn allocate_buffers(&mut self) {
@@ -60,7 +60,7 @@ impl Scratchpad {
     fn write_buffer_addresses(&mut self) {
         let page_size = Self::page_size();
         for (x, buf) in self.arr.iter_mut().zip(self.bufs.iter()) {
-            *x = buf.phys_addr().align_up(page_size);
+            *x = buf.virt_addr().align_up(page_size);
         }
     }
 

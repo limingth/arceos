@@ -48,21 +48,21 @@ impl<A: Allocator + Clone + Sync + Send> BaseDriverOps for VL805<A> {
 
 impl<A: Allocator + Clone> VL805<A> {
     fn new(mmio_base: usize, alloc: A) -> Self {
-        let mapper = MemoryMapper;
-        let regs: xhci::Registers<MemoryMapper> =
-            unsafe { xhci::Registers::new(mmio_base, mapper) };
-        let version = regs.capability.hciversion.read_volatile();
-        debug!("xhci version: {:x}", version.get());
-        let mut o = regs.operational;
-        debug!("xhci stat: {:?}", o.usbsts.read_volatile());
+        // let mapper = MemoryMapper;
+        // let regs: xhci::Registers<MemoryMapper> =
+        //     unsafe { xhci::Registers::new(mmio_base, mapper) };
+        // let version = regs.capability.hciversion.read_volatile();
+        // debug!("xhci version: {:x}", version.get());
+        // let mut o = regs.operational;
+        // debug!("xhci stat: {:?}", o.usbsts.read_volatile());
 
         // debug!("xhci wait for ready...");
         // while o.usbsts.read_volatile().controller_not_ready() {}
         // info!("xhci ok");
 
-        o.usbcmd.update_volatile(|f| {
-            f.set_host_controller_reset();
-        });
+        // o.usbcmd.update_volatile(|f| {
+        //     f.set_host_controller_reset();
+        // });
 
         // while o.usbcmd.read_volatile().host_controller_reset() {}
 

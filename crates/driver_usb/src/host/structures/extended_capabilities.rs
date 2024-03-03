@@ -3,7 +3,6 @@
 use {
     super::registers,
     crate::host::xhci::MemoryMapper,
-    axhal::mem::PhysAddr,
     conquer_once::spin::OnceCell,
     core::convert::TryInto,
     spinning_top::Spinlock,

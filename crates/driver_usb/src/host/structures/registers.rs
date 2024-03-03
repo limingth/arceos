@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::host::xhci::MemoryMapper, axhal::mem::PhysAddr, conquer_once::spin::OnceCell,
-    core::convert::TryInto, spinning_top::Spinlock, xhci::Registers,
+    crate::host::xhci::MemoryMapper, conquer_once::spin::OnceCell, core::convert::TryInto,
+    spinning_top::Spinlock, xhci::Registers,
 };
 
 static REGISTERS: OnceCell<Spinlock<Registers<MemoryMapper>>> = OnceCell::uninit();

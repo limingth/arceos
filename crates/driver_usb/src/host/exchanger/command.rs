@@ -7,7 +7,7 @@ use {
     },
     crate::{Futurelock, FuturelockGuard},
     alloc::sync::Arc,
-    axhal::mem::PhysAddr,
+    axhal::mem::VirtAddr,
     command_trb::{AddressDevice, ConfigureEndpoint, EnableSlot, EvaluateContext},
     conquer_once::spin::OnceCell,
     event::CompletionCode,
@@ -28,15 +28,15 @@ pub(crate) async fn enable_device_slot() -> u8 {
     lock().await.enable_device_slot().await
 }
 
-pub(crate) async fn address_device(input_cx: PhysAddr, slot: u8) {
+pub(crate) async fn address_device(input_cx: VirtAddr, slot: u8) {
     lock().await.address_device(input_cx, slot).await;
 }
 
-pub(crate) async fn configure_endpoint(cx: PhysAddr, slot: u8) {
+pub(crate) async fn configure_endpoint(cx: VirtAddr, slot: u8) {
     lock().await.configure_endpoint(cx, slot).await;
 }
 
-pub(crate) async fn evaluate_context(cx: PhysAddr, slot: u8) {
+pub(crate) async fn evaluate_context(cx: VirtAddr, slot: u8) {
     lock().await.evaluate_context(cx, slot).await;
 }
 
@@ -66,7 +66,7 @@ impl Sender {
         }
     }
 
-    async fn address_device(&mut self, input_context_addr: PhysAddr, slot_id: u8) {
+    async fn address_device(&mut self, input_context_addr: VirtAddr, slot_id: u8) {
         let t = *AddressDevice::default()
             .set_input_context_pointer(input_context_addr.as_usize() as u64)
             .set_slot_id(slot_id);
@@ -74,7 +74,7 @@ impl Sender {
         panic_on_error("Address Device", c);
     }
 
-    async fn configure_endpoint(&mut self, context_addr: PhysAddr, slot_id: u8) {
+    async fn configure_endpoint(&mut self, context_addr: VirtAddr, slot_id: u8) {
         let t = *ConfigureEndpoint::default()
             .set_input_context_pointer(context_addr.as_usize() as u64)
             .set_slot_id(slot_id);
@@ -82,7 +82,7 @@ impl Sender {
         panic_on_error("Configure Endpoint", c);
     }
 
-    async fn evaluate_context(&mut self, cx: PhysAddr, slot: u8) {
+    async fn evaluate_context(&mut self, cx: VirtAddr, slot: u8) {
         let t = *EvaluateContext::default()
             .set_input_context_pointer(cx.as_usize() as u64)
             .set_slot_id(slot);
@@ -113,11 +113,11 @@ impl Channel {
         self.get_trb(a).await
     }
 
-    fn register_with_receiver(&mut self, trb_a: PhysAddr) {
+    fn register_with_receiver(&mut self, trb_a: VirtAddr) {
         receiver::add_entry(trb_a, self.waker.clone()).expect("Sender is already registered.");
     }
 
-    async fn get_trb(&mut self, trb_a: PhysAddr) -> event::Allowed {
+    async fn get_trb(&mut self, trb_a: VirtAddr) -> event::Allowed {
         ReceiveFuture::new(trb_a, self.waker.clone()).await
     }
 }

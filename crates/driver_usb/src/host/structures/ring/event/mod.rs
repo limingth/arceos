@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use axhal::mem::{phys_to_virt, PhysAddr, VirtAddr};
+use axhal::mem::VirtAddr;
 use bit_field::BitArray;
 use page_table::PageSize;
 
@@ -73,7 +73,7 @@ impl Ring {
     }
 
     fn virt_addr_to_segment_table(&self) -> VirtAddr {
-        phys_to_virt(self.segment_table.phys_addr())
+        self.segment_table.virt_addr()
     }
 
     fn init_tbl(&mut self) {
