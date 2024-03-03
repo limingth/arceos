@@ -25,7 +25,8 @@ ifeq ($(BSP),rpi4)
     READELF_BINARY    = aarch64-none-elf-readelf
     # OPENOCD_ARG       = -f /openocd/tcl/interface/ftdi/olimex-arm-usb-tiny-h.cfg -f /openocd/rpi4.cfg
     OPENOCD_ARG       = -f /openocd/tcl/interface/jlink.cfg -f /openocd/rpi4.cfg
-    JTAG_BOOT_IMAGE   = tools/raspi4/X1_JTAG_boot/jtag_boot_rpi4.img
+    # JTAG_BOOT_IMAGE   = tools/raspi4/X1_JTAG_boot/jtag_boot_rpi4.img
+	JTAG_BOOT_IMAGE   := $(OUT_BIN)
     RUSTC_MISC_ARGS   = -C target-cpu=cortex-a72
 endif
 
@@ -34,7 +35,7 @@ EXEC_MINIPUSH      = ruby tools/raspi4/common/serial/minipush.rb
 ##------------------------------------------------------------------------------
 ## Dockerization
 ##------------------------------------------------------------------------------
-DOCKER_CMD            = docker run -t --rm -v $(shell pwd):/work/tutorial -w /work/tutorial
+DOCKER_CMD            = sudo docker run -t --rm -v $(shell pwd):/work/tutorial -w /work/tutorial
 DOCKER_CMD_INTERACT   = $(DOCKER_CMD) -i
 DOCKER_ARG_DIR_COMMON = -v $(shell pwd)/tools/raspi4/common:/work/common
 DOCKER_ARG_DIR_JTAG   = -v $(shell pwd)/tools/raspi4/X1_JTAG_boot:/work/X1_JTAG_boot
