@@ -99,7 +99,7 @@ impl Stream for Ring {
         let map_or_else = Pin::into_inner(self)
             .try_dequeue()
             .map_or_else(|| Poll::Pending, |trb| Poll::Ready(Some(trb)));
-        debug!("polled:{:?}", map_or_else);
+        // debug!("polled:{:?}", map_or_else);
         map_or_else
     }
 }

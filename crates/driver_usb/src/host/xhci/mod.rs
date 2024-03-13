@@ -1,16 +1,20 @@
 #[cfg(feature = "vl805")]
 pub mod vl805;
-use alloc::{string::String, sync::Arc};
-use axhal::mem::phys_to_virt;
+use alloc::{string::String, sync::Arc, vec};
+use axhal::{mem::phys_to_virt, time::busy_wait};
 use core::{
     borrow::{Borrow, BorrowMut},
+    cmp::min,
     num::NonZeroUsize,
+    time::Duration,
 };
 use log::{debug, info};
 use page_table_entry::aarch64;
 use spinlock::SpinNoIrq;
 use spinning_top::Spinlock;
-use xhci::{accessor::Mapper, ExtendedCapability, Registers};
+use xhci::{
+    accessor::Mapper, registers::capability::CapabilityParameters1, ExtendedCapability, Registers,
+};
 
 use aarch64_cpu::asm::barrier;
 
@@ -59,118 +63,47 @@ pub(crate) fn init(mmio_base: usize) {
         extended_capabilities::init(mmio_base);
     };
 
-    debug!("Hardware RESET!");
-    registers::handle(|r| {
-        let sts = &r.operational.usbsts;
-
-        info!("stop");
-        r.operational.usbcmd.update_volatile(|u| {
-            u.clear_run_stop();
-        });
-
-        while sts.read_volatile().controller_not_ready() || !sts.read_volatile().hc_halted() {}
-
-        r.operational.usbcmd.update_volatile(|r| {
-            r.set_host_controller_reset();
-        });
-
-        while !r.operational.usbcmd.read_volatile().host_controller_reset() {}
-
-        if sts.read_volatile().controller_not_ready() {
-            panic!(
-                "controller not ready:{:?}\n reset failed",
-                sts.read_volatile()
-            )
-        }
-    });
-
+    reset_xhci_controller();
+    //TODO: RELEASE BIOS OWNER SHIP FOR GENERAL SITUATION
+    xhci_pair_port();
     dcbaa::init();
-    let mut event_ring = event::Ring::new();
-    event_ring.init();
 
-    let command_ring = Arc::new(Spinlock::new(command::Ring::new()));
-    command_ring.lock().init();
+    let mut command = command::Ring::new();
+    command.init();
+    registers::handle(|r| {});
+}
 
-    scratchpad::init();
-
-    exchanger::command::init(command_ring);
-
-    // // info!("get bios perms");
-    // // if let Some(iter) = extended_capabilities::iter() {
-    // //     for c in iter.filter_map(Result::ok) {
-    // //         if let ExtendedCapability::UsbLegacySupport(mut u) = c {
-    // //             let l = &mut u.usblegsup;
-    // //             l.update_volatile(|s| {
-    // //                 s.set_hc_os_owned_semaphore();
-    // //             });
-
-    // //             while l.read_volatile().hc_bios_owned_semaphore()
-    // //                 || !l.read_volatile().hc_os_owned_semaphore()
-    // //             {}
-    // //         }
-    // //     }
-    // // }
-
+fn xhci_pair_port() {
     // registers::handle(|r| {
-    //     info!("stop");
-    //     r.operational.usbcmd.update_volatile(|u| {
-    //         u.clear_run_stop();
-    //     })
+    //     let count = r.port_register_set.into_iter().count();
+    //     debug!("{port_nums} ports");
+    //     let mut xhci_ports = vec![[0 as u8, 0xFF as u8, 0xff as u8]; count];
+    //     let paramoff = r.capability.rtsoff * 4; //_rd16(base + hccparams1 + 2) * 4
     // });
+    //TODO: Pair each USB 3 port with their USB 2 port,ref:https://github.com/foliagecanine/tritium-os/blob/master/kernel/arch/i386/usb/xhci.c#L423
+}
 
-    // registers::handle(|r| {
-    //     info!("wait until halt");
-    //     while !r.operational.usbsts.read_volatile().hc_halted() {}
-    // });
+fn reset_xhci_controller() {
+    registers::handle(|r| {
+        debug!("stop");
+        r.operational.usbcmd.update_volatile(|c| {
+            c.clear_run_stop();
+        });
+        debug!("wait until halt");
+        while !r.operational.usbsts.read_volatile().hc_halted() {}
+        debug!("halted");
 
-    // registers::handle(|r| {
-    //     info!("wait until ready");
-    //     while r.operational.usbsts.read_volatile().controller_not_ready() {}
-    // });
+        debug!("HCRST!");
+        r.operational.usbcmd.update_volatile(|c| {
+            c.set_host_controller_reset();
+        });
 
-    // registers::handle(|r| {
-    //     info!("start reset");
-    //     r.operational.usbcmd.update_volatile(|u| {
-    //         u.set_host_controller_reset();
-    //     });
-    // });
+        while r.operational.usbcmd.read_volatile().host_controller_reset()
+            || r.operational.usbsts.read_volatile().controller_not_ready()
+        {}
 
-    // registers::handle(|r| {
-    //     info!("wait until reset complete");
-    //     while r.operational.usbcmd.read_volatile().host_controller_reset() {}
-    // });
-
-    // debug!("host controller reset(hcrst) complete");
-
-    // registers::handle(|r| {
-    //     let n = r
-    //         .capability
-    //         .hcsparams1
-    //         .read_volatile()
-    //         .number_of_device_slots();
-    //     info!("setting num of slots:{}", n);
-    //     r.operational.config.update_volatile(|c| {
-    //         c.set_max_device_slots_enabled(n);
-    //     });
-    // });
-
-    // let mut event_ring = event::Ring::new();
-    // let command_ring = Arc::new(Spinlock::new(command::Ring::new()));
-
-    // event_ring.init();
-
-    // command_ring.lock().init();
-
-    // dcbaa::init();
-
-    // scratchpad::init();
-
-    // exchanger::command::init(command_ring);
-
-    // run();
-    // barrier::isb(barrier::SY);
-    // ensure_no_error();
-    // spawn_tasks(event_ring);
+        debug!("Reset xHCI Controller Globally");
+    });
 }
 
 fn run() {

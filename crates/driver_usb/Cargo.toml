@@ -18,12 +18,13 @@ default = []
 vl805 = []
 
 
+
 [dependencies]
 driver_common = { path = "../driver_common" }
 driver_pci = { path = "../driver_pci" }
 xhci = "0.9"
 log="0.4"
-axhal = {path = "../../modules/axhal"}
+axhal = {path = "../../modules/axhal",features=["irq"]}
 axtask = {path = "../../modules/axtask",features = ["multitask","sched_rr"]}
 axconfig = {path = "../../modules/axconfig"}
 page_table = {path = "../page_table"}

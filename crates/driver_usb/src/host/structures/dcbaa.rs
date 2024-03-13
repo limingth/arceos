@@ -25,7 +25,10 @@ pub(crate) struct DeviceContextBaseAddressArray {
 }
 impl DeviceContextBaseAddressArray {
     fn new() -> Self {
-        let arr = PageBox::new_slice(VirtAddr::from(0 as usize), Self::num_of_slots());
+        // let arr = PageBox::new_slice(VirtAddr::from(0 as usize), Self::num_of_slots());
+        let arr = PageBox::alloc_pages(1, VirtAddr::from(0 as usize));
+        //just alloc 1 page with full of zeros directly
+
         Self { arr }
     }
 

@@ -57,7 +57,7 @@ struct Raw {
 impl Raw {
     fn new() -> Self {
         Self {
-            raw: PageBox::new_slice([0; 4], NUM_OF_TRBS),
+            raw: PageBox::alloc_pages(1, [0 as u32; 4]),
             enq_p: 0,
             c: CycleBit::new(true),
         }
@@ -134,7 +134,6 @@ impl<'a> Initializer<'a> {
     fn init(&mut self) {
         registers::handle(|r| {
             let a = self.ring.virt_addr();
-
             // Do not split this closure to avoid read-modify-write bug. Reading fields may return
             // 0, this will cause writing 0 to fields.
             r.operational.crcr.update_volatile(|c| {
@@ -142,5 +141,7 @@ impl<'a> Initializer<'a> {
                 c.set_ring_cycle_state();
             });
         });
+
+        self.ring.raw.write_trb(command::Allowed::Link(()));
     }
 }
