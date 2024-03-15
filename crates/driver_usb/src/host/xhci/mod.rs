@@ -1,32 +1,19 @@
 #[cfg(feature = "vl805")]
 pub mod vl805;
-use alloc::{string::String, sync::Arc, vec};
-use axhal::{mem::phys_to_virt, time::busy_wait};
-use core::{
-    borrow::{Borrow, BorrowMut},
-    cmp::min,
-    num::NonZeroUsize,
-    time::Duration,
-};
+use axhal::mem::phys_to_virt;
+use core::num::NonZeroUsize;
 use log::{debug, info};
-use page_table_entry::aarch64;
-use spinlock::SpinNoIrq;
-use spinning_top::Spinlock;
 use xhci::{
-    accessor::Mapper, registers::capability::CapabilityParameters1, ExtendedCapability, Registers,
+    accessor::Mapper,
+    extended_capabilities::debug::EventRingDequeuePointer,
+    registers::operational::{ConfigureRegister, DeviceNotificationControl},
 };
 
 use aarch64_cpu::asm::barrier;
 
-use crate::host::{
-    exchanger,
-    structures::{
-        dcbaa,
-        extended_capabilities::{self},
-        registers,
-        ring::{command, event},
-        scratchpad,
-    },
+use crate::host::structures::{
+    dcbaa, extended_capabilities, registers,
+    ring::{command, event},
 };
 
 use super::{
@@ -70,7 +57,34 @@ pub(crate) fn init(mmio_base: usize) {
 
     let mut command = command::Ring::new();
     command.init();
-    registers::handle(|r| {});
+
+    registers::handle(|r| {
+        r.operational.config.update_volatile(|c| {
+            c.set_max_device_slots_enabled(
+                r.capability
+                    .hcsparams1
+                    .read_volatile()
+                    .number_of_device_slots(),
+            );
+        });
+        r.operational.dnctrl.update_volatile(|c| {
+            c.set(2);
+        });
+    });
+
+    let mut event_ring = event::Ring::new();
+    event_ring.init();
+
+    registers::handle(|r| {
+        r.operational.usbsts.update_volatile(|s| {
+            s.clear_host_system_error();
+            s.clear_event_interrupt();
+            s.clear_port_change_detect();
+            s.clear_save_restore_error();
+        });
+    });
+
+    ///todo add irq func
 }
 
 fn xhci_pair_port() {

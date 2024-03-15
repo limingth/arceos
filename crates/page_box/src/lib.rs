@@ -100,7 +100,7 @@ where
     pub fn alloc_pages(pages: usize, zero: T) -> Self {
         let bytes = PageSize::Size4K as usize * pages;
         let mut page_box = Self::from_bytes(bytes);
-        page_box.write_all_elements_with_same_value(zero)
+        page_box.write_all_elements_with_same_value(zero);
         page_box
     }
 

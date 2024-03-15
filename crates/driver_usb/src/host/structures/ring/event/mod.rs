@@ -64,8 +64,8 @@ impl Ring {
     }
 
     pub(crate) fn init(&mut self) {
-        self.init_dequeue_ptr();
         self.init_tbl();
+        self.init_dequeue_ptr();
     }
 
     fn init_dequeue_ptr(&mut self) {
@@ -231,8 +231,29 @@ impl<'a> SegTblInitializer<'a> {
 
     fn init(&mut self) {
         self.write_addrs();
+        self.prep_intreg0();
         self.register_tbl_sz();
         self.enable_event_ring();
+    }
+
+    fn prep_intreg0(&self) {
+        registers::handle(|r| {
+            r.interrupter_register_set
+                .interrupter_mut(0)
+                .iman
+                .update_volatile(|r| {
+                    r.set_0_interrupt_pending();
+                    r.set_interrupt_enable();
+                });
+
+            r.interrupter_register_set
+                .interrupter_mut(0)
+                .imod
+                .update_volatile(|i| {
+                    i.set_interrupt_moderation_counter(0);
+                    i.set_interrupt_moderation_interval(0);
+                });
+        });
     }
 
     fn write_addrs(&mut self) {

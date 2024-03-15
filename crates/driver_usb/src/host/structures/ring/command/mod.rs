@@ -124,10 +124,10 @@ impl Raw {
 }
 
 struct Initializer<'a> {
-    ring: &'a Ring,
+    ring: &'a mut Ring,
 }
 impl<'a> Initializer<'a> {
-    fn new(ring: &'a Ring) -> Self {
+    fn new(ring: &'a mut Ring) -> Self {
         Self { ring }
     }
 
@@ -142,6 +142,8 @@ impl<'a> Initializer<'a> {
             });
         });
 
-        self.ring.raw.write_trb(command::Allowed::Link(()));
+        self.ring
+            .raw
+            .write_trb(xhci::ring::trb::command::Allowed::Link(Link::default()));
     }
 }
