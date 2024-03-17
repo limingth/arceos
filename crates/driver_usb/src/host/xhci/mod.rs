@@ -84,7 +84,18 @@ pub(crate) fn init(mmio_base: usize) {
         });
     });
 
-    ///todo add irq func
+    //todo add irq func
+    // handle_irq(pci_irq)
+
+    registers::handle(|r| {
+        r.operational.usbcmd.update_volatile(|o| {
+            o.set_controller_restore_state();
+            // o.interrupter_enable();
+            o.host_system_error_enable();
+        });
+    });
+
+    spawn_tasks(event_ring);
 }
 
 fn xhci_pair_port() {
@@ -120,30 +131,7 @@ fn reset_xhci_controller() {
     });
 }
 
-fn run() {
-    info!("run!");
-    registers::handle(|r| {
-        let o = &mut r.operational;
-        o.usbcmd.update_volatile(|u| {
-            u.set_run_stop();
-        });
-
-        info!("out: wait until halt");
-        while o.usbsts.read_volatile().hc_halted() {
-            // info!("wait until halt");
-            // barrier::isb(barrier::SY);
-            if o.usbsts.read_volatile().host_system_error() {
-                panic!("xhci stat: {:?}", o.usbsts.read_volatile());
-            }
-        }
-
-        // info!("out: wait until not halt");
-        // while !o.usbsts.read_volatile().hc_halted() {
-        //     // info!("wait until not halt");
-        //     // barrier::isb(barrier::SY);
-        // }
-    });
-}
+fn handle_irq(pci_irq: usize) {}
 
 fn ensure_no_error() {
     registers::handle(|r| {
