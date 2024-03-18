@@ -12,13 +12,9 @@ use xhci::{
 
 use aarch64_cpu::asm::barrier;
 
-use crate::host::structures::{extended_capabilities, xhci_slotmanager};
+use crate::host::structures::{extended_capabilities, xhci_event_manager, xhci_slot_manager};
 
-use super::{
-    multitask::{self, task::Task},
-    port,
-    structures::registers,
-};
+use super::structures::registers;
 
 #[derive(Clone, Copy)]
 pub struct MemoryMapper;
@@ -42,7 +38,8 @@ pub(crate) fn init(mmio_base: usize) {
     debug!("resetting xhci controller");
     reset_xhci_controller();
 
-    xhci_slotmanager::new();
+    xhci_slot_manager::new();
+    xhci_event_manager::new();
 }
 
 fn reset_xhci_controller() {
@@ -66,7 +63,10 @@ fn reset_xhci_controller() {
         {}
 
         debug!("get bios ownership");
-        for c in extended_capabilities::iter().filter_map(Result::ok) {
+        for c in extended_capabilities::iter()
+            .unwrap()
+            .filter_map(Result::ok)
+        {
             if let ExtendedCapability::UsbLegacySupport(mut u) = c {
                 let l = &mut u.usblegsup;
                 l.update_volatile(|s| {

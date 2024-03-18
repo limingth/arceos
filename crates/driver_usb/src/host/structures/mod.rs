@@ -2,5 +2,8 @@
 
 pub(super) mod extended_capabilities;
 pub(super) mod registers;
-pub(super) mod xhci_eventmanager;
-pub(super) mod xhci_slotmanager;
+pub(super) mod xhci_command_manager;
+pub(super) mod xhci_event_manager;
+pub(super) mod xhci_slot_manager;
+
+pub(crate) mod event_ring;

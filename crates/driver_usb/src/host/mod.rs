@@ -1,6 +1,3 @@
-mod exchanger;
-mod multitask;
-mod port;
 mod structures;
 pub mod xhci;
 use axhal::mem::PhysAddr;

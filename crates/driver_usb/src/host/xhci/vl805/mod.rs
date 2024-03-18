@@ -1,30 +1,12 @@
-use core::{
-    alloc::{Allocator, Layout},
-    ptr::slice_from_raw_parts_mut,
-};
+use core::alloc::Allocator;
 mod mailbox;
-use super::MemoryMapper;
 use crate::{
     dma::DMAVec,
-    host::{
-        exchanger,
-        structures::{
-            dcbaa::{self, register},
-            extended_capabilities, registers,
-            ring::{command, event},
-            scratchpad,
-        },
-        xhci::vl805::mailbox::{Mailbox, MsgNotifyXhciReset},
-    },
+    host::xhci::vl805::mailbox::{Mailbox, MsgNotifyXhciReset},
 };
-use alloc::sync::Arc;
 use driver_common::*;
-use driver_pci::{
-    types::{Bar, ConfigCommand, ConfigKind, ConfigSpace},
-    PciAddress,
-};
-use log::{debug, info};
-use spinning_top::Spinlock;
+use driver_pci::types::{Bar, ConfigCommand, ConfigKind, ConfigSpace};
+use log::debug;
 
 const VL805_VENDOR_ID: u16 = 0x1106;
 const VL805_DEVICE_ID: u16 = 0x3483;

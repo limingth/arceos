@@ -1,14 +1,16 @@
 use alloc::{sync::Arc, vec};
 use axhal::mem::VirtAddr;
+use conquer_once::spin::OnceCell;
 use page_box::PageBox;
+use spinning_top::Spinlock;
 use xhci::context::{Device, Device64Byte};
 
 use super::registers;
 
 const XHCI_CONFIG_MAX_SLOTS: usize = 64;
 struct SlotManager {
-    dcbaa: PageBox<VirtAddr>,
-    device: PageBox<xhci::context::Device>,
+    dcbaa: PageBox<[VirtAddr]>,
+    device: PageBox<[xhci::context::Device64Byte]>,
 }
 
 static SLOT_MANAGER: OnceCell<Spinlock<SlotManager>> = OnceCell::uninit();
@@ -22,7 +24,7 @@ pub(crate) fn new() {
 
         r.operational
             .dcbaap
-            .update_volatile(|d| d.set(slot_manager.dcbaa.virt_addr()));
+            .update_volatile(|d| d.set(slot_manager.dcbaa.virt_addr().as_usize() as u64));
 
         SLOT_MANAGER
             .try_init_once(move || Spinlock::new(slot_manager))
