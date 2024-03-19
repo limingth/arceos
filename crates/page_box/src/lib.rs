@@ -119,6 +119,7 @@ where
         self.bytes / mem::size_of::<T>()
     }
 }
+
 impl<T> Deref for PageBox<[T]>
 where
     T: Clone,

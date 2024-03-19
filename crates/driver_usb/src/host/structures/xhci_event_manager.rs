@@ -5,12 +5,7 @@ use xhci::extended_capabilities::debug::EventRingDequeuePointer;
 
 use crate::{dma, host::structures::event_ring};
 
-use super::{event_ring::Ring, registers};
-
-const XHCI_CONFIG_IMODI: u16 = 500;
-const XHCI_CONFIG_MAX_SLOTS: usize = 64;
-const DMA_ADDRESS: usize = 0xfd50_0000; //TODO sus
-                                        //TODO FIX VIRTUAL ADDRESS
+use super::{event_ring::EvtRing, registers, DMA_ADDRESS, XHCI_CONFIG_IMODI};
 
 struct ErstEntry {
     pub seg_base: usize,
@@ -18,17 +13,17 @@ struct ErstEntry {
     pub reserved: u32,
 }
 
-struct EventManager {
-    event_ring: Ring,
+pub(crate) struct EventManager {
+    event_ring: EvtRing,
     erst_entry: PageBox<ErstEntry>,
 }
 
-static EVENT_MANAGER: OnceCell<Spinlock<EventManager>> = OnceCell::uninit();
+pub(crate) static EVENT_MANAGER: OnceCell<Spinlock<EventManager>> = OnceCell::uninit();
 
 pub(crate) fn new() {
     registers::handle(|r| {
         let mut event_manager = EventManager {
-            event_ring: Ring::new(),
+            event_ring: EvtRing::new(),
             erst_entry: PageBox::new_slice(
                 ErstEntry {
                     seg_base: 0,

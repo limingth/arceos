@@ -8,12 +8,12 @@ use xhci::context::{Device, Device64Byte};
 use super::registers;
 
 const XHCI_CONFIG_MAX_SLOTS: usize = 64;
-struct SlotManager {
+pub(crate) struct SlotManager {
     dcbaa: PageBox<[VirtAddr]>,
     device: PageBox<[xhci::context::Device64Byte]>,
 }
 
-static SLOT_MANAGER: OnceCell<Spinlock<SlotManager>> = OnceCell::uninit();
+pub(crate) static SLOT_MANAGER: OnceCell<Spinlock<SlotManager>> = OnceCell::uninit();
 
 pub(crate) fn new() {
     registers::handle(|r| {
@@ -30,4 +30,12 @@ pub(crate) fn new() {
             .try_init_once(move || Spinlock::new(slot_manager))
             .expect("Failed to initialize `SlotManager`.");
     });
+}
+
+pub fn set_dcbaa(buffer_array: &[VirtAddr]) {
+    let mut dcbaa_box = SLOT_MANAGER.get().unwrap().lock().dcbaa;
+    buffer_array
+        .iter()
+        .zip(dcbaa_box.iter_mut())
+        .for_each(|(l, r)| *r = *l);
 }

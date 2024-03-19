@@ -12,7 +12,9 @@ use xhci::{
 
 use aarch64_cpu::asm::barrier;
 
-use crate::host::structures::{extended_capabilities, xhci_event_manager, xhci_slot_manager};
+use crate::host::structures::{
+    extended_capabilities, scratchpad, xhci_command_manager, xhci_event_manager, xhci_slot_manager,
+};
 
 use super::structures::registers;
 
@@ -40,6 +42,9 @@ pub(crate) fn init(mmio_base: usize) {
 
     xhci_slot_manager::new();
     xhci_event_manager::new();
+    xhci_command_manager::new();
+    scratchpad::new();
+    scratchpad::assign_scratchpad_into_dcbaa();
 }
 
 fn reset_xhci_controller() {
