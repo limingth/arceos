@@ -40,6 +40,8 @@ pub fn new() {
                     (*r) = VirtAddr::from(l as usize);
                 })
         }
+
+        SCRATCH_PAD.init_once(move || Spinlock::new(scratch_pad));
     });
 }
 

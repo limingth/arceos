@@ -1,3 +1,5 @@
+use core::f32::consts::E;
+
 use conquer_once::spin::OnceCell;
 use page_box::PageBox;
 use spinning_top::Spinlock;
@@ -5,7 +7,10 @@ use xhci::extended_capabilities::debug::EventRingDequeuePointer;
 
 use crate::{dma, host::structures::event_ring};
 
-use super::{event_ring::EvtRing, registers, DMA_ADDRESS, XHCI_CONFIG_IMODI};
+use super::{
+    event_ring::{EvtRing, TypeXhciTrb},
+    registers, DMA_ADDRESS, XHCI_CONFIG_IMODI,
+};
 
 struct ErstEntry {
     pub seg_base: usize,
@@ -76,4 +81,22 @@ pub(crate) fn new() {
         //         .try_init_once(move || Spinlock::new(slot_manager))
         //         .expect("Failed to initialize `SlotManager`.");
     });
+}
+
+pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
+    if let Some(manager) = EVENT_MANAGER.get().unwrap().try_lock() {
+        if let Some(trb) = manager.event_ring.get_deque_trb() {
+            match trb {
+                xhci::ring::trb::event::Allowed::TransferEvent(evt) => evt.completion_code(),
+                xhci::ring::trb::event::Allowed::CommandCompletion(_) => todo!(),
+                xhci::ring::trb::event::Allowed::PortStatusChange(_) => todo!(),
+                xhci::ring::trb::event::Allowed::BandwidthRequest(_) => todo!(),
+                xhci::ring::trb::event::Allowed::Doorbell(_) => todo!(),
+                xhci::ring::trb::event::Allowed::HostController(_) => todo!(),
+                xhci::ring::trb::event::Allowed::DeviceNotification(_) => todo!(),
+                xhci::ring::trb::event::Allowed::MfindexWrap(_) => todo!(),
+            }
+        }
+    }
+    return Err(());
 }

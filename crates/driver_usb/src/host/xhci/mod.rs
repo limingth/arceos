@@ -1,8 +1,8 @@
 #[cfg(feature = "vl805")]
 pub mod vl805;
-use axhal::mem::phys_to_virt;
+use axhal::{irq::IrqHandler, mem::phys_to_virt};
 use core::num::NonZeroUsize;
-use log::{debug, info};
+use log::{debug, error, info};
 use xhci::{
     accessor::Mapper,
     extended_capabilities::debug::EventRingDequeuePointer,
@@ -13,10 +13,15 @@ use xhci::{
 use aarch64_cpu::asm::barrier;
 
 use crate::host::structures::{
-    extended_capabilities, scratchpad, xhci_command_manager, xhci_event_manager, xhci_slot_manager,
+    extended_capabilities,
+    roothub::{self, Roothub},
+    scratchpad, xhci_command_manager, xhci_event_manager, xhci_slot_manager,
 };
 
 use super::structures::registers;
+
+const ARM_IRQ_PCIE_HOST_INTA: usize = 143 + 32;
+const XHCI_CONFIG_MAX_EVENTS_PER_INTR: usize = 16;
 
 #[derive(Clone, Copy)]
 pub struct MemoryMapper;
@@ -45,6 +50,33 @@ pub(crate) fn init(mmio_base: usize) {
     xhci_command_manager::new();
     scratchpad::new();
     scratchpad::assign_scratchpad_into_dcbaa();
+    roothub::new();
+
+    axhal::irq::register_handler(ARM_IRQ_PCIE_HOST_INTA, interrupt_handler)
+}
+
+fn interrupt_handler() {
+    registers::handle(|r| {
+        r.operational.usbsts.update_volatile(|sts| {
+            sts.clear_event_interrupt();
+        });
+
+        r.interrupter_register_set
+            .interrupter_mut(0)
+            .iman
+            .update_volatile(|iman| {
+                iman.clear_interrupt_pending();
+            });
+
+        if r.operational.usbsts.read_volatile().hc_halted() {
+            error!("HC halted");
+            return;
+        }
+
+        for tries in 0..XHCI_CONFIG_MAX_EVENTS_PER_INTR {
+            if(xhci_event_manager::)
+        }
+    })
 }
 
 fn reset_xhci_controller() {

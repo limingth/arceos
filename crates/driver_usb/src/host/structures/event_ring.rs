@@ -11,6 +11,8 @@ use crate::host::structures::XHCI_LINK_TRB_CONTROL_TC;
 
 use super::{registers, XHCI_CONFIG_EVENT_RING_SIZE, XHCI_TRB_CONTROL_C};
 
+pub type TypeXhciTrb = [u32; 4];
+
 pub struct EvtRing {
     ring: PageBox<[[u32; 4]]>,
     enque_index: usize,
