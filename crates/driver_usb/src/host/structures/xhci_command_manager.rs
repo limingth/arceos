@@ -4,9 +4,8 @@ use axhal::mem::VirtAddr;
 use conquer_once::spin::OnceCell;
 use spinning_top::Spinlock;
 
+use super::{command_ring::CmdRing, registers};
 use crate::dma::DMAVec;
-
-use super::{command_ring::CmdRing, registers, DMA_ADDRESS};
 
 pub(crate) struct CommandManager {
     command_ring: CmdRing,

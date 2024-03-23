@@ -9,7 +9,7 @@ use crate::{dma, host::structures::event_ring};
 
 use super::{
     event_ring::{EvtRing, TypeXhciTrb},
-    registers, DMA_ADDRESS, XHCI_CONFIG_IMODI,
+    registers, XHCI_CONFIG_IMODI,
 };
 
 struct ErstEntry {
@@ -39,7 +39,7 @@ pub(crate) fn new() {
             ),
         };
         let erst_ent = &mut event_manager.erst_entry;
-        erst_ent.seg_base = event_manager.event_ring.get_ring_addr().as_usize() | DMA_ADDRESS;
+        erst_ent.seg_base = event_manager.event_ring.get_ring_addr().as_usize();
         erst_ent.seg_size = event_manager.event_ring.get_trb_count();
         erst_ent.reserved = 0;
 
@@ -49,12 +49,12 @@ pub(crate) fn new() {
         });
 
         ir0.erstba.update_volatile(|b| {
-            b.set(erst_ent.virt_addr().as_usize() as u64 | DMA_ADDRESS);
+            b.set(erst_ent.virt_addr().as_usize() as u64);
         });
         //TODO FIXIT
         ir0.erdp.update_volatile(|dp| {
             dp.set_event_ring_dequeue_pointer(
-                event_manager.event_ring.get_ring_addr().as_usize() as u64 | DMA_ADDRESS,
+                event_manager.event_ring.get_ring_addr().as_usize() as u64
             );
         });
         ir0.imod.update_volatile(|im| {
