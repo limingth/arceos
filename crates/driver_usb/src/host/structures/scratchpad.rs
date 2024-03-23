@@ -14,7 +14,7 @@ use super::{
 pub(crate) static SCRATCH_PAD: OnceCell<Spinlock<ScratchPad>> = OnceCell::uninit();
 
 struct ScratchPad {
-    buffer: PageBox<[usize; mem::PAGE_SIZE_4K]>,
+    buffer: PageBox<[[usize; mem::PAGE_SIZE_4K]]>,
     buffer_indexs: PageBox<[VirtAddr]>,
 }
 
@@ -26,8 +26,14 @@ pub fn new() {
             .read_volatile()
             .max_scratchpad_buffers();
         let mut scratch_pad = ScratchPad {
-            buffer: PageBox::alloc_pages(max_scratchpad_buffers.try_into().unwrap(), [0 as usize; mem::PAGE_SIZE_4K]),
-            buffer_indexs: PageBox::new_slice(VirtAddr::from(0), max_scratchpad_buffers.try_into().unwrap()),
+            buffer: PageBox::alloc_pages(
+                max_scratchpad_buffers.try_into().unwrap(),
+                [0 as usize; mem::PAGE_SIZE_4K],
+            ),
+            buffer_indexs: PageBox::new_slice(
+                VirtAddr::from(0),
+                max_scratchpad_buffers.try_into().unwrap(),
+            ),
         };
 
         unsafe {
@@ -36,8 +42,9 @@ pub fn new() {
                 .iter()
                 .zip(scratch_pad.buffer_indexs.iter_mut())
                 .for_each(|(l, r)| {
-                    debug!("check this add is not zero? {:x}", *l as usize);
-                    (*r) = VirtAddr::from(*l as usize);
+                    debug!("check this add is not zero? {:x}", l.as_ptr().addr());
+                    // (*r) = VirtAddr::from(*l as usize);
+                    (*r) = VirtAddr::from(l.as_ptr().addr());
                 })
         }
 

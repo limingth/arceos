@@ -28,7 +28,7 @@ pub(crate) fn command_completed(trb: VirtAddr, uch_complete_code: u8, uch_slot_i
     command_manager.uch_slot_id = uch_slot_id;
 
     barrier::dmb(SY);
-    
+
     command_manager.command_complete = true;
 }
 
@@ -44,7 +44,7 @@ pub(crate) fn new() {
 
         r.operational.crcr.update_volatile(|c| {
             c.set_command_ring_pointer(cmd_manager.command_ring.get_ring_addr().as_usize() as u64);
-            if cmd_manager.command_ring.cycle_state() {
+            if cmd_manager.command_ring.cycle_state() != 0 {
                 c.set_ring_cycle_state();
             } else {
                 c.clear_ring_cycle_state();

@@ -23,22 +23,23 @@ pub struct CmdRing {
 impl CmdRing {
     pub fn new() -> Self {
         super::registers::handle(|r| {
-            let command_ring = CmdRing {
+            let mut command_ring = CmdRing {
                 ring: PageBox::new_slice([0 as u32; 4], XHCI_CONFIG_EVENT_RING_SIZE), //TODO 此处写死256，后续可更改
                 enque_index: 0,
                 deque_index: 0,
                 cycle_state: XHCI_TRB_CONTROL_C as u32,
             };
 
-            let link_trb = &mut command_ring.ring[command_ring.get_trb_count() - 1];
+            let get_trb_count = command_ring.get_trb_count();
+            let ringsize = command_ring.ring.virt_addr().as_usize() as u64;
+            let mut link_trb = &mut command_ring.ring[get_trb_count - 1];
 
-            unsafe {
-                *(link_trb.as_ptr() as *mut u64) = command_ring.ring.virt_addr().as_usize() as u64
-            };
+            unsafe { *(link_trb.as_ptr() as *mut u64) = ringsize };
             link_trb[2] = 0;
-            link_trb[3] = xhci::ring::trb::Type::Link << XHCI_TRB_CONTROL_TRB_TYPE_SHIFT
-                | XHCI_LINK_TRB_CONTROL_TC;
-                command_ring
+            link_trb[3] = (((xhci::ring::trb::Type::Link as usize)
+                << XHCI_TRB_CONTROL_TRB_TYPE_SHIFT)
+                | XHCI_LINK_TRB_CONTROL_TC) as u32;
+            command_ring
         })
     }
 
