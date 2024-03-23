@@ -52,7 +52,7 @@ pub(crate) fn init(mmio_base: usize) {
     scratchpad::assign_scratchpad_into_dcbaa();
     roothub::new();
 
-    axhal::irq::register_handler(ARM_IRQ_PCIE_HOST_INTA, interrupt_handler)
+    axhal::irq::register_handler(ARM_IRQ_PCIE_HOST_INTA, interrupt_handler);
 }
 
 fn interrupt_handler() {
@@ -74,7 +74,9 @@ fn interrupt_handler() {
         }
 
         for tries in 0..XHCI_CONFIG_MAX_EVENTS_PER_INTR {
-            if(xhci_event_manager::)
+            if xhci_event_manager::handle_event().is_ok() {
+                
+            }
         }
     })
 }

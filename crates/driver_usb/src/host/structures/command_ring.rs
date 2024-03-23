@@ -1,5 +1,4 @@
 use core::{char::REPLACEMENT_CHARACTER, marker::PhantomData, mem};
-use std::env::var;
 
 use alloc::vec::Vec;
 use axhal::mem::VirtAddr;
@@ -39,6 +38,7 @@ impl CmdRing {
             link_trb[2] = 0;
             link_trb[3] = xhci::ring::trb::Type::Link << XHCI_TRB_CONTROL_TRB_TYPE_SHIFT
                 | XHCI_LINK_TRB_CONTROL_TC;
+                command_ring
         })
     }
 

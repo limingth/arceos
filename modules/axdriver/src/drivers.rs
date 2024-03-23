@@ -5,13 +5,12 @@
 use crate::AxDeviceEnum;
 use axalloc::{global_allocator, global_no_cache_allocator};
 use driver_common::DeviceType;
-use driver_pci::{types::ConfigSpace, PciAddress};
 
 #[cfg(feature = "virtio")]
 use crate::virtio::{self, VirtIoDevMeta};
 
 #[cfg(feature = "bus-pci")]
-use driver_pci::{DeviceFunction, DeviceFunctionInfo, PciRoot};
+use driver_pci::{DeviceFunction, DeviceFunctionInfo, PciRoot, types::ConfigSpace, PciAddress};
 
 pub use super::dummy::*;
 
