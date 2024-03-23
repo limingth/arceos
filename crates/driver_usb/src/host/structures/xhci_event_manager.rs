@@ -4,15 +4,21 @@ use conquer_once::spin::OnceCell;
 use log::warn;
 use page_box::PageBox;
 use spinning_top::Spinlock;
-use ::xhci::ring::trb::{transfer::Normal, Type, event::CompletionCode};
-
-use crate::{dma, host::{structures::{event_ring, roothub::status_changed, XHCI_PORT_STATUS_EVENT_TRB_PARAMETER1_PORTID_SHIFT}, xhci}};
+use xhci::ring::trb::{transfer::Normal, Type, event::CompletionCode};
+use xhci::ring::trb::command::Allowed as CommandAllowed;
+use xhci::ring::trb::event::Allowed as EventAllowed;
+use xhci::ring::trb::transfer::Allowed as TransferAllowed;
+use crate::{dma, host::structures::{event_ring, roothub::status_changed, 
+                                    XHCI_PORT_STATUS_EVENT_TRB_PARAMETER1_PORTID_SHIFT,
+                                    xhci_command_manager::command_completed,
+                                    XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT,
+                                    XHCI_CMD_COMPLETION_EVENT_TRB_CONTROL_SLOTID_SHIFT}};
 
 use super::{
     event_ring::{EvtRing, TypeXhciTrb},
     registers, XHCI_CONFIG_IMODI,
 };
-
+#[derive(Clone)]
 struct ErstEntry {
     pub seg_base: usize,
     pub seg_size: u32,
@@ -89,7 +95,7 @@ pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
     if let Some(manager) = EVENT_MANAGER.get().unwrap().try_lock() {
         if let Some(trb) = manager.event_ring.get_deque_trb() {
             match trb {
-                xhci::ring::trb::event::Allowed::TransferEvent(evt) => {
+                EventAllowed::TransferEvent(evt) => {
                     info!("event = {:?}", evt);
                     info!("step into transfer event\n");
                     // let trb_array = trb.into_raw();
@@ -101,22 +107,22 @@ pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
                     //         (trb_array[3] & XHCI_TRANSFER_EVENT_TRB_CONTROL_ENDPOINTID_MASK) >> XHCI_TRANSFER_EVENT_TRB_CONTROL_ENDPOINTID_SHIFT
                     // )
                 },
-                xhci::ring::trb::event::Allowed::CommandCompletion(_) => {
+                EventAllowed::CommandCompletion(_) => {
                     info!("step into command completion.\n");
                     let trb_array = trb.into_raw();
-                    command_completed( (((trb_array[0] as usize) << 32) | ((trb_array[1] as usize) << 32)),
-                    trb_array[2] >> XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT, 
-                    trb_array[3] >> XHCI_CMD_COMPLETION_EVENT_TRB_CONTROL_SLOTID_SHIFT)
+                    command_completed( (((trb_array[0] as usize) << 32) | ((trb_array[1] as usize) << 32)).into(),
+                    (trb_array[2] >> XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT).try_into().unwrap(), 
+                    (trb_array[3] >> XHCI_CMD_COMPLETION_EVENT_TRB_CONTROL_SLOTID_SHIFT).try_into().unwrap())
                 },
-                xhci::ring::trb::event::Allowed::PortStatusChange(_) => {
+                EventAllowed::PortStatusChange(_) => {
                     info!("step into port status change.\n");
                     let trb_array = trb.into_raw();
                     assert!(trb_array[2] >> XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT == CompletionCode::Success);
-                    status_changed(trb_array[0] >> XHCI_PORT_STATUS_EVENT_TRB_PARAMETER1_PORTID_SHIFT)
+                    status_changed((trb_array[0] >> XHCI_PORT_STATUS_EVENT_TRB_PARAMETER1_PORTID_SHIFT).try_into().unwrap())
                 },
-                xhci::ring::trb::event::Allowed::BandwidthRequest(_) => todo!(),
-                xhci::ring::trb::event::Allowed::Doorbell(_) => todo!(),
-                xhci::ring::trb::event::Allowed::HostController(_) => {
+                EventAllowed::BandwidthRequest(_) => todo!(),
+                EventAllowed::Doorbell(_) => todo!(),
+                EventAllowed::HostController(_) => {
                     info!("step into host controller.\n");
                     let trb_array = trb.into_raw();
                     let uch_completion_code = trb_array[2] >> XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT;
@@ -125,8 +131,8 @@ pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
                     }
                     info!("Host controller event completion")
                 },
-                xhci::ring::trb::event::Allowed::DeviceNotification(_) => todo!(),
-                xhci::ring::trb::event::Allowed::MfindexWrap(_) => todo!(),
+                EventAllowed::DeviceNotification(_) => todo!(),
+                EventAllowed::MfindexWrap(_) => todo!(),
             }
         }
     }

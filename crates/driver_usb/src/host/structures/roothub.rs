@@ -6,6 +6,7 @@ use conquer_once::spin::OnceCell;
 use page_box::PageBox;
 use spinning_top::{lock_api::Mutex, Spinlock};
 use xhci::{context::Device, registers::PortRegisterSet};
+use xhci::context::Device64Byte;
 
 use crate::{dma::DMAVec, host::structures::XHCI_CONFIG_MAX_PORTS};
 
@@ -56,13 +57,13 @@ pub(crate) fn new() {
         let root_ports = PageBox::new_slice(Option::None, number_of_ports);
         for i in 0..number_of_ports {
             root_ports[i] = Some(Arc::new(Spinlock::new(RootPort {
-                index: i,
+                index: i as usize,
                 device: Option::None,
             })))
         }
         ROOT_HUB.init_once(move || Roothub {
-            ports: number_of_ports,
+            ports: number_of_ports as usize,
             root_ports,
-        })
+        }.into())
     });
 }

@@ -27,7 +27,7 @@ pub fn new() {
             .max_scratchpad_buffers();
         let mut scratch_pad = ScratchPad {
             buffer: PageBox::alloc_pages(max_scratchpad_buffers.try_into().unwrap(), [0 as usize; mem::PAGE_SIZE_4K]),
-            buffer_indexs: PageBox::new_slice(VirtAddr(0), max_scratchpad_buffers),
+            buffer_indexs: PageBox::new_slice(VirtAddr::from(0), max_scratchpad_buffers.try_into().unwrap()),
         };
 
         unsafe {
