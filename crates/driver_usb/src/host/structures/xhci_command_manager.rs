@@ -1,5 +1,6 @@
 use core::f32::consts::E;
 
+use aarch64_cpu::asm::barrier::{self, SY};
 use axhal::mem::VirtAddr;
 use conquer_once::spin::OnceCell;
 use spinning_top::Spinlock;
@@ -17,6 +18,20 @@ pub(crate) struct CommandManager {
 }
 
 pub(crate) static COMMAND_MANAGER: OnceCell<Spinlock<CommandManager>> = OnceCell::uninit();
+
+pub(crate) fn command_completed(trb: VirtAddr, uch_complete_code: u8, uch_slot_id: u8) {
+    let mut command_manager = COMMAND_MANAGER.try_get().unwrap().lock();
+    if command_manager.command_complete || command_manager.current_trb != trb {
+        return;
+    }
+    command_manager.current_trb = 0;
+    command_manager.uch_complete_code = uch_complete_code;
+    command_manager.uch_slot_id = uch_slot_id;
+
+    barrier::dmb(SY);
+    
+    command_manager.command_complete = true;
+}
 
 pub(crate) fn new() {
     registers::handle(|r| {

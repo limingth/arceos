@@ -26,8 +26,8 @@ pub fn new() {
             .read_volatile()
             .max_scratchpad_buffers();
         let mut scratch_pad = ScratchPad {
-            buffer: PageBox::alloc_pages(max_scratchpad_buffers, [0 as usize; mem::PAGE_SIZE_4K]),
-            buffer_indexs: PageBox::new_slice(0, max_scratchpad_buffers),
+            buffer: PageBox::alloc_pages(max_scratchpad_buffers.try_into().unwrap(), [0 as usize; mem::PAGE_SIZE_4K]),
+            buffer_indexs: PageBox::new_slice(VirtAddr(0), max_scratchpad_buffers),
         };
 
         unsafe {
@@ -36,8 +36,8 @@ pub fn new() {
                 .iter()
                 .zip(scratch_pad.buffer_indexs.iter_mut())
                 .for_each(|(l, r)| {
-                    debug!("check this add is not zero? {:x}", l as usize);
-                    (*r) = VirtAddr::from(l as usize);
+                    debug!("check this add is not zero? {:x}", *l as usize);
+                    (*r) = VirtAddr::from(*l as usize);
                 })
         }
 
