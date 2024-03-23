@@ -2,7 +2,6 @@ pub(super) mod extended_capabilities;
 pub(super) mod registers;
 pub(super) mod roothub;
 pub(super) mod xhci_command_manager;
-pub(super) mod xhci_device;
 pub(super) mod xhci_event_manager;
 pub(super) mod xhci_slot_manager;
 
@@ -23,5 +22,5 @@ const XHCI_PORT_STATUS_EVENT_TRB_PARAMETER1_PORTID_SHIFT: usize = 24;
 const XHCI_CONFIG_IMODI: u16 = 500;
 const XHCI_CONFIG_MAX_PORTS : usize = 5;
 const XHCI_CONFIG_MAX_SLOTS: usize = 64;
-const DMA_ADDRESS: usize = 0xfd50_0000; //TODO sus
-                                        //TODO FIX VIRTUAL ADDRESS
+//const DMA_ADDRESS: usize = 0xfd50_0000; //TODO sus
+//TODO FIX VIRTUAL ADDRESS

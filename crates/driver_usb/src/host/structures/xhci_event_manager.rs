@@ -9,7 +9,8 @@ use ::xhci::ring::trb::{transfer::Normal, Type, event::CompletionCode};
 use crate::{dma, host::{structures::{event_ring, roothub::status_changed, XHCI_PORT_STATUS_EVENT_TRB_PARAMETER1_PORTID_SHIFT}, xhci}};
 
 use super::{
-    event_ring::{EvtRing, TypeXhciTrb}, registers, roothub::{self, ROOT_HUB}, xhci_command_manager::command_completed, xhci_slot_manager::transfer_event, DMA_ADDRESS, XHCI_CMD_COMPLETION_EVENT_TRB_CONTROL_SLOTID_SHIFT, XHCI_CONFIG_IMODI, XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT, XHCI_TRANSFER_EVENT_TRB_CONTROL_ENDPOINTID_MASK, XHCI_TRANSFER_EVENT_TRB_CONTROL_ENDPOINTID_SHIFT, XHCI_TRANSFER_EVENT_TRB_STATUS_TRB_TRANSFER_LENGTH_MASK, XHCI_TRB_CONTROL_TRB_TYPE_SHIFT
+    event_ring::{EvtRing, TypeXhciTrb},
+    registers, XHCI_CONFIG_IMODI,
 };
 
 struct ErstEntry {
@@ -39,7 +40,7 @@ pub(crate) fn new() {
             ),
         };
         let erst_ent = &mut event_manager.erst_entry;
-        erst_ent.seg_base = event_manager.event_ring.get_ring_addr().as_usize() | DMA_ADDRESS;
+        erst_ent.seg_base = event_manager.event_ring.get_ring_addr().as_usize();
         erst_ent.seg_size = event_manager.event_ring.get_trb_count();
         erst_ent.reserved = 0;
 
@@ -49,12 +50,12 @@ pub(crate) fn new() {
         });
 
         ir0.erstba.update_volatile(|b| {
-            b.set(erst_ent.virt_addr().as_usize() as u64 | DMA_ADDRESS);
+            b.set(erst_ent.virt_addr().as_usize() as u64);
         });
         //TODO FIXIT
         ir0.erdp.update_volatile(|dp| {
             dp.set_event_ring_dequeue_pointer(
-                event_manager.event_ring.get_ring_addr().as_usize() as u64 | DMA_ADDRESS,
+                event_manager.event_ring.get_ring_addr().as_usize() as u64
             );
         });
         ir0.imod.update_volatile(|im| {
