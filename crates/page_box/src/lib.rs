@@ -3,8 +3,9 @@
 #![cfg_attr(not(test), no_std)]
 #![allow(clippy::type_repetition_in_bounds)]
 #![feature(strict_provenance)]
+#![feature(allocator_api)]
 use core::{
-    alloc::Layout,
+    alloc::{Allocator, Layout},
     convert::{TryFrom, TryInto},
     fmt,
     marker::PhantomData,
@@ -211,8 +212,8 @@ impl<T: ?Sized> PageBox<T> {
 
     fn from_bytes(bytes: usize) -> Self {
         let alloc_pages = VirtAddr::from(
-            axalloc::global_allocator()
-                .alloc(Layout::from_size_align(bytes, PageSize::Size4K as usize).unwrap())
+            axalloc::global_no_cache_allocator()
+                .allocate(Layout::from_size_align(bytes, PageSize::Size4K as usize).unwrap())
                 .expect("error on alloc page")
                 .addr()
                 .get(),

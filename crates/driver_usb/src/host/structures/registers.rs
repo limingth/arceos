@@ -2,7 +2,7 @@
 
 use {
     crate::host::xhci::MemoryMapper, conquer_once::spin::OnceCell, core::convert::TryInto,
-    spinning_top::Spinlock, xhci::Registers,
+    log::info, spinning_top::Spinlock, xhci::Registers,
 };
 
 static REGISTERS: OnceCell<Spinlock<Registers<MemoryMapper>>> = OnceCell::uninit();
@@ -15,6 +15,8 @@ pub(crate) unsafe fn init(mmio_base: usize) {
 
 /// Handle xHCI registers.
 ///
+/// warning! do not call this method inside the closure in any form!
+///
 /// To avoid deadlocking, this method takes a closure. Caller is supposed not to call this method
 /// inside the closure, otherwise a deadlock will happen.
 ///
@@ -25,6 +27,7 @@ pub(crate) fn handle<T, U>(f: T) -> U
 where
     T: FnOnce(&mut Registers<MemoryMapper>) -> U,
 {
+    info!("handleing!");
     let mut r = REGISTERS.try_get().unwrap().lock();
     f(&mut r)
 }

@@ -50,9 +50,12 @@ pub fn new() {
 
         SCRATCH_PAD.init_once(move || Spinlock::new(scratch_pad));
     });
+
+    debug!("initialized!");
 }
 
 pub fn assign_scratchpad_into_dcbaa() {
     xhci_slot_manager::set_dcbaa(&SCRATCH_PAD.get().unwrap().lock().buffer_indexs);
     //TODO Redundent design, simplify it.
+    debug!("initialized!");
 }

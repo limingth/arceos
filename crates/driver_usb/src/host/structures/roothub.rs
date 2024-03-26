@@ -3,6 +3,7 @@ use core::{option, panic};
 use aarch64_cpu::registers::VTCR_EL2::SH0::Non;
 use alloc::sync::Arc;
 use conquer_once::spin::OnceCell;
+use log::debug;
 use page_box::PageBox;
 use spinning_top::{lock_api::Mutex, Spinlock};
 use xhci::context::Device64Byte;
@@ -73,4 +74,6 @@ pub(crate) fn new() {
             .into()
         })
     });
+
+    debug!("initialized!");
 }

@@ -4,6 +4,7 @@ use alloc::vec::Vec;
 use axhal::mem::VirtAddr;
 use driver_pci::types;
 use futures_util::stream::All;
+use log::info;
 use page_box::PageBox;
 use xhci::ring::trb::{self, event::Allowed, Link};
 
@@ -29,6 +30,8 @@ impl EvtRing {
                 deque_index: 0,
                 cycle_state: XHCI_TRB_CONTROL_C as u32,
             };
+
+            info!("created!");
 
             event_ring
         })

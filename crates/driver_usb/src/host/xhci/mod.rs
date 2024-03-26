@@ -53,9 +53,21 @@ pub(crate) fn init(mmio_base: usize) {
     roothub::new();
 
     axhal::irq::register_handler(ARM_IRQ_PCIE_HOST_INTA, interrupt_handler);
+    registers::handle(|r| {
+        r.operational.usbcmd.update_volatile(|r| {
+            r.interrupter_enable();
+            r.set_run_stop();
+        })
+    });
+
+    debug!(
+        "init completed!, coltroller state:{:?}",
+        registers::handle(|r| r.operational.usbsts.read_volatile())
+    );
 }
 
 fn interrupt_handler() {
+    debug!("interrupt!");
     registers::handle(|r| {
         r.operational.usbsts.update_volatile(|sts| {
             sts.clear_event_interrupt();
@@ -74,9 +86,7 @@ fn interrupt_handler() {
         }
 
         for tries in 0..XHCI_CONFIG_MAX_EVENTS_PER_INTR {
-            if xhci_event_manager::handle_event().is_ok() {
-                
-            }
+            if xhci_event_manager::handle_event().is_ok() {}
         }
     })
 }

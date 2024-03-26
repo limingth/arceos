@@ -9,8 +9,8 @@ use crate::{
 };
 use conquer_once::spin::OnceCell;
 use core::f32::consts::E;
-use log::info;
 use log::warn;
+use log::{debug, info};
 use page_box::PageBox;
 use spinning_top::Spinlock;
 use xhci::ring::trb::command::Allowed as CommandAllowed;
@@ -37,18 +37,20 @@ pub(crate) struct EventManager {
 pub(crate) static EVENT_MANAGER: OnceCell<Spinlock<EventManager>> = OnceCell::uninit();
 
 pub(crate) fn new() {
+    debug!("initilizating!");
+    let mut event_manager = EventManager {
+        event_ring: EvtRing::new(),
+        erst_entry: PageBox::new_slice(
+            ErstEntry {
+                seg_base: 0,
+                seg_size: 0,
+                reserved: 0,
+            },
+            1,
+        ),
+    };
     registers::handle(|r| {
-        let mut event_manager = EventManager {
-            event_ring: EvtRing::new(),
-            erst_entry: PageBox::new_slice(
-                ErstEntry {
-                    seg_base: 0,
-                    seg_size: 0,
-                    reserved: 0,
-                },
-                1,
-            ),
-        };
+        debug!("test");
         let erst_ent = &mut event_manager.erst_entry[0];
         erst_ent.seg_base = event_manager.event_ring.get_ring_addr().as_usize();
         erst_ent.seg_size = event_manager.event_ring.get_trb_count() as u32;
@@ -92,6 +94,8 @@ pub(crate) fn new() {
         //         .try_init_once(move || Spinlock::new(slot_manager))
         //         .expect("Failed to initialize `SlotManager`.");
     });
+
+    debug!("initialized!");
 }
 
 pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
