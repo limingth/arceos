@@ -59,7 +59,7 @@ pci-ecam-base = "0x40000000"
 pci-bus-end = "0x2" #?
 # PCI device memory ranges.
 pci-ranges = [
-    ["58000000","7fffffff"], 
+    ["58000000","0x7fffffff"], 
     ["0x6_0000_0000", "0x6_3fff_ffff"],
 ]
 

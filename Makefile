@@ -107,6 +107,10 @@ else ifeq ($(ARCH), aarch64)
   ACCEL ?= n
   PLATFORM_NAME ?= aarch64-qemu-virt
   TARGET := aarch64-unknown-none-softfloat
+else ifeq ($(ARCH), phytium-pi)
+  ACCEL ?= n
+  PLATFORM_NAME ?= aarch64-phytium_pi
+  TARGET := aarch64-unknown-none-softfloat
 else
   $(error "ARCH" must be one of "x86_64", "riscv64", or "aarch64")
 endif
@@ -147,7 +151,7 @@ include scripts/make/qemu.mk
 include scripts/make/test.mk
 ifeq ($(PLATFORM_NAME), aarch64-raspi4)
   include scripts/make/raspi4.mk
- else ifeq ($(PLATFORM_NAME), aarch64-raspi4)
+ else ifeq ($(PLATFORM_NAME), phytium-pi)
    include scripts/make/phytium-pi.mk
 else ifeq ($(PLATFORM_NAME), aarch64-bsta1000b)
   include scripts/make/bsta1000b-fada.mk
