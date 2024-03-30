@@ -1,16 +1,19 @@
 # Architecture identifier.
 arch = "aarch64"
 # Platform identifier.
-platform = "aarch64-phytium-pi"
+# platform = "aarch64-phytium-pi"
+# # Platform family.
+# family = "aarch64-phytium-pi"
+platform = "aarch64-raspi4"
 # Platform family.
-family = "aarch64-phytium-pi"
+family = "aarch64-raspi"
 
 # Base address of the whole physical memory.
 phys-memory-base = "0x8000_0000"
 # Size of the whole physical memory.
 phys-memory-size = "0x7fff_ffff"     # 2G
 # Base physical address of the kernel image.
-kernel-base-paddr = "0x8_0000"
+kernel-base-paddr = "0x9_0000"
 # Base virtual address of the kernel image.
 kernel-base-vaddr = "0xffff_0000_0008_0000"
 # Linear mapping offset, for quick conversions between physical and virtual
@@ -43,7 +46,7 @@ mmio-regions = [
 ]
 virtio-mmio-regions = []
 # UART Address
-uart-paddr = "0xFE20_1000"
+uart-paddr = "0x2800_C000"
 uart-irq = "0x79"
 
 # GIC Address
