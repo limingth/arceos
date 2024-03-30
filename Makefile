@@ -107,10 +107,10 @@ else ifeq ($(ARCH), aarch64)
   ACCEL ?= n
   PLATFORM_NAME ?= aarch64-qemu-virt
   TARGET := aarch64-unknown-none-softfloat
-else ifeq ($(ARCH), phytium-pi)
-  ACCEL ?= n
-  PLATFORM_NAME ?= aarch64-phytium_pi
-  TARGET := aarch64-unknown-none-softfloat
+# else ifeq ($(ARCH), phytium-pi)
+#   ACCEL ?= n
+#   PLATFORM_NAME ?= aarch64-phytium-pi
+#   TARGET := aarch64-unknown-none-softfloat
 else
   $(error "ARCH" must be one of "x86_64", "riscv64", or "aarch64")
 endif
