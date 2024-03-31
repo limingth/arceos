@@ -16,8 +16,8 @@
 			arch = "arm64";
 			os = "linux";
 			compression = "gzip";
-			load = <0x8000000>;
-			entry = <0x8000000>;
+			load = <0x81000000>;
+			entry = <0x81000000>;
 			hash-1 {
 				algo = "md5";
 			};
@@ -41,7 +41,7 @@
 	configurations {
 		default = "config-phytium-pi";
 
-		config-phytium {
+		config-phytium-pi {
 			description = "phytium-pi configuration";
 			kernel = "kernel";
 			fdt = "fdt-phytium";
