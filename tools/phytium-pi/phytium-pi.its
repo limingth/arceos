@@ -16,8 +16,8 @@
 			arch = "arm64";
 			os = "linux";
 			compression = "gzip";
-			load = <0x81000000>;
-			entry = <0x81000000>;
+			load = <0x90100000>;
+			entry = <0x90100000>;
 			hash-1 {
 				algo = "md5";
 			};

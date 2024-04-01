@@ -129,6 +129,7 @@ unsafe extern "C" fn _start() -> ! {
         ldr     x8, ={entry}
         blr     x8
         b      .",
+        // TODO consider add some light?
         switch_to_el1 = sym switch_to_el1,
         init_boot_page_table = sym init_boot_page_table,
         init_mmu = sym init_mmu,
