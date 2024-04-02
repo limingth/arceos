@@ -20,28 +20,28 @@ pub(crate) unsafe fn init_boot_page_table(
 ) {
     // 0x0000_0000_0000 ~ 0x0080_0000_0000, table
     boot_pt_l0[0] = A64PTE::new_table(PhysAddr::from(boot_pt_l1.as_ptr() as usize));
-    // 0x0000_0000_0000..0x0000_4000_0000, 1G block, device memory
+    // 0x0000_0000_0000..0x0000_8000_0000, 1G block, device memory
     boot_pt_l1[0] = A64PTE::new_page(
         PhysAddr::from(0),
-        MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
+        MappingFlags::READ | MappingFlags::WRITE | MappingFlags::DEVICE,
         true,
     );
-    // 0x0000_4000_0000..0x0000_8000_0000, 1G block, normal memory
-    boot_pt_l1[1] = A64PTE::new_page(
-        PhysAddr::from(0x4000_0000),
-        MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
-        true,
-    );
-    // 0x0000_8000_0000..0x0000_C000_0000, 1G block, normal memory
+    // // 0x0000_4000_0000..0x0000_8000_0000, 1G block, normal memory
+    // boot_pt_l1[1] = A64PTE::new_page(
+    //     PhysAddr::from(0x4000_0000),
+    //     MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
+    //     true,
+    // );
+    // 0x0000_8000_0000..0x0000_C000_0000, 2G block, normal memory
     boot_pt_l1[2] = A64PTE::new_page(
         PhysAddr::from(0x8000_0000),
         MappingFlags::READ | MappingFlags::WRITE | MappingFlags::EXECUTE,
         true,
     );
     // 0x0000_C000_0000..0x0001_0000_0000, 1G block, DEVICE memory
-    boot_pt_l1[3] = A64PTE::new_page(
-        PhysAddr::from(0xc000_0000),
-        MappingFlags::READ | MappingFlags::WRITE | MappingFlags::DEVICE,
-        true,
-    );
+    // boot_pt_l1[3] = A64PTE::new_page(
+    //     PhysAddr::from(0xc000_0000),
+    //     MappingFlags::READ | MappingFlags::WRITE | MappingFlags::DEVICE,
+    //     true,
+    // );
 }
