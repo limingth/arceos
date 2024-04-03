@@ -1,4 +1,5 @@
 use aarch64_cpu::{asm, asm::barrier, registers::*};
+use core::ptr;
 use memory_addr::PhysAddr;
 use page_table_entry::aarch64::{MemAttr, A64PTE};
 use tock_registers::interfaces::{ReadWriteable, Readable, Writeable};
@@ -109,6 +110,7 @@ unsafe extern "C" fn _start() -> ! {
     // X0 = dtb
     core::arch::asm!("
         mrs     x19, mpidr_el1
+        bl      {debug}         // put debug a
         and     x19, x19, #0xffffff     // get current CPU id
         mov     x20, x0                 // save DTB pointer
 
@@ -130,6 +132,7 @@ unsafe extern "C" fn _start() -> ! {
         blr     x8
         b      .",
         // TODO consider add some light?
+        debug = sym put_debug,
         switch_to_el1 = sym switch_to_el1,
         init_boot_page_table = sym init_boot_page_table,
         init_mmu = sym init_mmu,
@@ -140,6 +143,15 @@ unsafe extern "C" fn _start() -> ! {
         entry = sym crate::platform::rust_entry,
         options(noreturn),
     )
+}
+
+#[cfg(all(target_arch = "aarch64", platform_family = "aarch64-phytium-pi"))]
+#[no_mangle]
+unsafe extern "C" fn put_debug() {
+    let state = (0x2800D018 as usize) as *mut u8;
+    let put = (0x2800D000 as usize) as *mut u8;
+    while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
+    *put = b'a';
 }
 
 /// The earliest entry point for the secondary CPUs.
