@@ -117,11 +117,16 @@ unsafe extern "C" fn _start() -> ! {
         adrp    x8, {boot_stack}        // setup boot stack
         add     x8, x8, {boot_stack_size}
         mov     sp, x8
+        bl      {debug}
 
         bl      {switch_to_el1}         // switch to EL1
+        bl      {debug}
         bl      {init_boot_page_table}
+        bl      {debug}
         bl      {init_mmu}              // setup MMU
+        bl      {debug_paged}
         bl      {enable_fp}             // enable fp/neon
+        bl      {debug_paged}
 
         mov     x8, {phys_virt_offset}  // set SP to the high address
         add     sp, sp, x8
@@ -133,6 +138,7 @@ unsafe extern "C" fn _start() -> ! {
         b      .",
         // TODO consider add some light?
         debug = sym put_debug,
+        debug_paged = sym put_debug_paged,
         switch_to_el1 = sym switch_to_el1,
         init_boot_page_table = sym init_boot_page_table,
         init_mmu = sym init_mmu,
@@ -150,6 +156,15 @@ unsafe extern "C" fn _start() -> ! {
 unsafe extern "C" fn put_debug() {
     let state = (0x2800D018 as usize) as *mut u8;
     let put = (0x2800D000 as usize) as *mut u8;
+    while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
+    *put = b'a';
+}
+
+#[cfg(all(target_arch = "aarch64", platform_family = "aarch64-phytium-pi"))]
+#[no_mangle]
+unsafe extern "C" fn put_debug_paged() {
+    let state = (0xFFFF00002800D018 as usize) as *mut u8;
+    let put = (0xFFFF00002800D000 as usize) as *mut u8;
     while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
     *put = b'a';
 }
