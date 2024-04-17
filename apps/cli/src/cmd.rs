@@ -18,7 +18,7 @@ const CMD_TABLE: &[(&str, CmdHandler)] = &[
     ("help", do_help),
     ("uname", do_uname),
     ("ldr", do_ldr),
-    ("str", do_str)
+    ("str", do_str),
 ];
 
 fn do_uname(_args: &str) {
@@ -83,7 +83,6 @@ fn do_ldr(args: &str) {
     }
 }
 
-
 // use crate::mem::phys_to_virt;
 // use core::ptr::{read_volatile, write_volatile};
 
@@ -131,7 +130,6 @@ fn do_str(args: &str) {
             str_one(addr, val).unwrap(); // 调用 str_one 函数并传递 addr 和 val
         }
     }
-
 }
 
 pub fn run_cmd(line: &[u8]) {
@@ -153,3 +151,5 @@ fn split_whitespace(str: &str) -> (&str, &str) {
     str.find(char::is_whitespace)
         .map_or((str, ""), |n| (&str[..n], str[n + 1..].trim()))
 }
+
+fn test_net(str: &str) {}
