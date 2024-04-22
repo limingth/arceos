@@ -10,7 +10,7 @@ use driver_common::DeviceType;
 use crate::virtio::{self, VirtIoDevMeta};
 
 #[cfg(feature = "bus-pci")]
-use driver_pci::{DeviceFunction, DeviceFunctionInfo, PciRoot, types::ConfigSpace, PciAddress};
+use driver_pci::{types::ConfigSpace, DeviceFunction, DeviceFunctionInfo, PciAddress, PciRoot};
 
 pub use super::dummy::*;
 
@@ -100,7 +100,7 @@ cfg_if::cfg_if! {
                     dev_info: &DeviceFunctionInfo,
                     cfg: &ConfigSpace,
                 ) -> Option<AxDeviceEnum> {
-              
+
                 VL805::probe_pci(cfg, global_no_cache_allocator()).map(|d| AxDeviceEnum::from_usb_host(d))
             }
         }
@@ -122,6 +122,7 @@ cfg_if::cfg_if! {
                 ) -> Option<crate::AxDeviceEnum> {
                     use crate::ixgbe::IxgbeHalImpl;
                     use driver_net::ixgbe::{INTEL_82599, INTEL_VEND, IxgbeNic};
+                    debug!("suspecious_device:(vendor-{:x}|device-{:x})",dev_info.vendor_id,dev_info.device_id);
                     if dev_info.vendor_id == INTEL_VEND && dev_info.device_id == INTEL_82599 {
                         // Intel 10Gb Network
                         info!("ixgbe PCI device found at {:?}", bdf);
