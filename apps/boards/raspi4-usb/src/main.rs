@@ -7,4 +7,3 @@ use axstd::println;
 fn main() {
     println!("usb test!!!");
 }
-

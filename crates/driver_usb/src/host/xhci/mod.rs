@@ -1,5 +1,8 @@
+#[cfg(feature = "phytium")]
+pub mod phytium_xhci;
 #[cfg(feature = "vl805")]
 pub mod vl805;
+
 use axhal::{irq::IrqHandler, mem::phys_to_virt};
 use core::num::NonZeroUsize;
 use log::{debug, error, info};

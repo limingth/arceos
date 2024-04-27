@@ -67,7 +67,6 @@ unsafe extern "C" fn put_debug_paged2() {
     *put = b'a';
 }
 
-
 #[cfg(feature = "smp")]
 pub(crate) unsafe extern "C" fn rust_entry_secondary(cpu_id: usize) {
     crate::arch::set_exception_vector_base(exception_vector_base as usize);

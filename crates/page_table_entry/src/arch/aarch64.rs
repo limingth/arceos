@@ -80,8 +80,8 @@ impl DescriptorAttr {
         let mut bits = (idx as u64) << 2;
         if matches!(idx, MemAttr::Normal | MemAttr::NormalNonCacheable) {
             bits |= Self::INNER.bits() | Self::SHAREABLE.bits();
-        }        
-        if matches!(idx, MemAttr::Device){
+        }
+        if matches!(idx, MemAttr::Device) {
             bits |= Self::SHAREABLE.bits();
         }
         Self::from_bits_retain(bits)

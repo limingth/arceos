@@ -26,7 +26,7 @@ pub enum DeviceType {
     /// Network device (e.g., ethernet card).
     Net,
     /// Graphic display device (e.g., GPU)
-    Display,    
+    Display,
     /// USB host controller
     USBHost,
 }

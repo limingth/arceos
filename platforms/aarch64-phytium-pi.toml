@@ -23,7 +23,7 @@ mmio-regions = [
   # ["0xFE00_B000", "0x1000"],      # mailbox
   # ["0xFE20_1000", "0x1000"],      # PL011 UART
   # ["0xFF84_1000", "0x8000"],      # GICv2    
-  # ["0xFD50_0000", "0x20_0000"],      # pcie ecam
+  ["0x40000000", "0xfff_ffff"],      # pcie ecam
 
 
   # ["0x6_0000_0000", "0x4000_0000"] # pcie control
@@ -55,7 +55,7 @@ gicd-paddr = "0xFF84_1000"
 # Base physical address of the PCIe ECAM space.
 pci-ecam-base = "0x40000000"
 # End PCI bus number.
-pci-bus-end = "0x2" #?
+pci-bus-end = "0x1"
 # PCI device memory ranges.
 pci-ranges = [["0x58000000", "0x7fffffff"], ["0x6_0000_0000", "0x6_3fff_ffff"]]
 

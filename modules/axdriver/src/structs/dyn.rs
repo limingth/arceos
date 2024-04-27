@@ -33,7 +33,7 @@ impl super::AxDeviceEnum {
     #[cfg(feature = "display")]
     pub fn from_display(dev: impl DisplayDriverOps + 'static) -> Self {
         Self::Display(Box::new(dev))
-    }    
+    }
     /// Constructs a display device.
     #[cfg(feature = "usb_host")]
     pub fn from_display(dev: impl XhciDriverOps + 'static) -> Self {

@@ -62,17 +62,17 @@ impl<A: Access> PciRootComplex<A> {
         ep.bar(slot)
     }
 
-    fn read<T>(&self, bdf: PciAddress, offset: usize)->T{
+    fn read<T>(&self, bdf: PciAddress, offset: usize) -> T {
         let cfg_addr = A::map_conf(self.mmio_base, bdf).unwrap();
-        unsafe{
+        unsafe {
             let addr = cfg_addr + offset;
             (addr as *const T).read_volatile()
         }
     }
 
-    fn write<T>(&self, bdf: PciAddress, offset: usize, value: T){
+    fn write<T>(&self, bdf: PciAddress, offset: usize, value: T) {
         let cfg_addr = A::map_conf(self.mmio_base, bdf).unwrap();
-        unsafe{
+        unsafe {
             let addr = cfg_addr + offset;
             (addr as *mut T).write_volatile(value)
         }

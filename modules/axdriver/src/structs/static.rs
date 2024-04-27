@@ -24,8 +24,8 @@ impl super::AxDeviceEnum {
     #[cfg(feature = "display")]
     pub const fn from_display(dev: AxDisplayDevice) -> Self {
         Self::Display(dev)
-    }    
-    
+    }
+
     /// Constructs a usb host device.
     #[cfg(feature = "usb_host")]
     pub const fn from_usb_host(dev: AxUSBHostDevice) -> Self {

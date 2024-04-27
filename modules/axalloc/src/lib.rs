@@ -15,7 +15,6 @@ extern crate lazy_static;
 
 extern crate alloc;
 
-
 mod page;
 
 use alloc::sync::Arc;
@@ -83,10 +82,7 @@ impl GlobalAllocator {
     /// a small region (32 KB) to initialize the byte allocator. Therefore,
     /// the given region must be larger than 32 KB.
     /// added nocache allocator-2024.1.23
-    pub fn init(
-        &self,
-        (free_base, free_size): (usize, usize),
-    ) {
+    pub fn init(&self, (free_base, free_size): (usize, usize)) {
         {
             assert!(free_size > MIN_HEAP_SIZE);
             let init_heap_size = MIN_HEAP_SIZE;
@@ -104,8 +100,6 @@ impl GlobalAllocator {
     pub fn add_free_memory(&self, start_vaddr: usize, size: usize) -> AllocResult {
         self.balloc_free.lock().add_memory(start_vaddr, size)
     }
-
-
 
     /// Allocate arbitrary number of bytes. Returns the left bound of the
     /// allocated region.
@@ -150,7 +144,6 @@ impl GlobalAllocator {
         self.balloc_free.lock().dealloc(pos, layout)
     }
 
-
     /// Allocates contiguous pages.
     ///
     /// It allocates `num_pages` pages from the page allocator.
@@ -172,8 +165,6 @@ impl GlobalAllocator {
         self.palloc_free.lock().dealloc_pages(pos, num_pages)
     }
 
-
-
     /// Returns the number of allocated bytes in the byte allocator.
     pub fn used_bytes(&self) -> usize {
         self.balloc_free.lock().used_bytes()
@@ -193,7 +184,6 @@ impl GlobalAllocator {
     pub fn available_pages(&self) -> usize {
         self.palloc_free.lock().available_pages()
     }
-
 }
 
 unsafe impl GlobalAlloc for GlobalAllocator {
@@ -218,10 +208,8 @@ pub fn global_allocator() -> &'static GlobalAllocator {
     &GLOBAL_ALLOCATOR
 }
 lazy_static! {
-    static ref GLOBAL_NO_CACHE_ALLOCATOR: GlobalNoCacheAllocator = {
-       GlobalNoCacheAllocator::new() 
-    };
-
+    static ref GLOBAL_NO_CACHE_ALLOCATOR: GlobalNoCacheAllocator =
+        { GlobalNoCacheAllocator::new() };
 }
 // static GLOBAL_NO_CACHE_ALLOCATOR: SyncUnsafeCell< GlobalNoCacheAllocator> = LazyCell::new(|| GlobalNoCacheAllocator::new());
 
@@ -231,10 +219,9 @@ pub fn global_no_cache_allocator() -> GlobalNoCacheAllocator {
 }
 
 #[derive(Clone)]
-pub struct GlobalNoCacheAllocator{
+pub struct GlobalNoCacheAllocator {
     balloc: Arc<SpinNoIrq<DefaultByteAllocator>>,
 }
-
 
 impl GlobalNoCacheAllocator {
     /// Creates an empty [`GlobalAllocator`].
@@ -242,27 +229,24 @@ impl GlobalNoCacheAllocator {
         Self {
             balloc: Arc::new(SpinNoIrq::new(DefaultByteAllocator::new())),
         }
-    }    
+    }
     /// Add the given region to the allocator.
     ///
     /// It will add the whole region to the byte allocator.
     pub fn add_memory(&self, start_vaddr: usize, size: usize) -> AllocResult {
         let mut g = self.balloc.lock();
-        if g.total_bytes()==0 {
-            return  Err(allocator::AllocError::NoMemory);
+        if g.total_bytes() == 0 {
+            return Err(allocator::AllocError::NoMemory);
         }
         g.add_memory(start_vaddr, size)
-    }     
+    }
     /// Initializes the allocator with the given region.
     ///
     /// It firstly adds the whole region to the page allocator, then allocates
     /// a small region (32 KB) to initialize the byte allocator. Therefore,
     /// the given region must be larger than 32 KB.
     /// added nocache allocator-2024.1.23
-    pub fn init(
-        &self,
-        (nocache_base, nocache_size): (usize, usize),
-    ) {
+    pub fn init(&self, (nocache_base, nocache_size): (usize, usize)) {
         if nocache_size > 0 {
             self.balloc.lock().init(nocache_base, nocache_size);
         }
@@ -271,11 +255,11 @@ impl GlobalNoCacheAllocator {
 
 unsafe impl Allocator for GlobalNoCacheAllocator {
     fn allocate(&self, layout: Layout) -> Result<NonNull<[u8]>, core::alloc::AllocError> {
-               let mut balloc = self.balloc.lock();
-        let data = balloc.alloc(layout).map_err(|_e|core::alloc::AllocError)?;
-        unsafe{
+        let mut balloc = self.balloc.lock();
+        let data = balloc.alloc(layout).map_err(|_e| core::alloc::AllocError)?;
+        unsafe {
             let ptr = data.as_ptr();
-            let data = &mut * slice_from_raw_parts_mut(ptr, layout.size());
+            let data = &mut *slice_from_raw_parts_mut(ptr, layout.size());
             let data = NonNull::from(data);
             Ok(data)
         }
@@ -285,7 +269,6 @@ unsafe impl Allocator for GlobalNoCacheAllocator {
         self.balloc.lock().dealloc(ptr, layout)
     }
 }
-
 
 /// Initializes the global allocator with the given memory region.
 ///

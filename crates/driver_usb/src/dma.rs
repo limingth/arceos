@@ -10,7 +10,7 @@ use log::debug;
 pub struct DMAVec<A: Allocator, T> {
     layout: Layout,
     ptr: NonNull<[T]>,
-    allocator:  A,
+    allocator: A,
 }
 
 impl<A: Allocator, T> DMAVec<A, T> {
@@ -44,7 +44,7 @@ impl<A: Allocator, T> DerefMut for DMAVec<A, T> {
     }
 }
 
-impl<A: Allocator, T> Drop for DMAVec< A, T> {
+impl<A: Allocator, T> Drop for DMAVec<A, T> {
     fn drop(&mut self) {
         unsafe {
             let ptr = self.ptr.cast::<u8>();

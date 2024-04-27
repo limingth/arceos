@@ -15,13 +15,14 @@ documentation = "https://rcore-os.github.io/arceos/driver_usb/index.html"
 
 [features]
 default = []
-vl805 = []
+vl805 = ["driver_pci"]
+phytium=[]
 
 
 
 [dependencies]
 driver_common = { path = "../driver_common" }
-driver_pci = { path = "../driver_pci" }
+driver_pci = { path = "../driver_pci" ,optional = true,default-features = false}
 xhci = "0.9"
 log="0.4"
 axhal = {path = "../../modules/axhal",features=["irq"]}

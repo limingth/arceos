@@ -2,7 +2,6 @@ use core::{char::REPLACEMENT_CHARACTER, marker::PhantomData, mem};
 
 use alloc::vec::Vec;
 use axhal::mem::VirtAddr;
-use driver_pci::types;
 use futures_util::stream::All;
 use page_box::PageBox;
 use xhci::ring::trb::{self, event::Allowed, Link};

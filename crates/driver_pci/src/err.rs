@@ -5,7 +5,6 @@ use core::fmt::{Display, Formatter};
 pub enum PciError {
     /// The device reported an invalid BAR type.
     InvalidBarType,
-
 }
 
 impl Display for PciError {
@@ -16,5 +15,4 @@ impl Display for PciError {
     }
 }
 
-
-pub type Result<T=()> =core::result:: Result<T, PciError>;
+pub type Result<T = ()> = core::result::Result<T, PciError>;

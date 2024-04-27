@@ -93,7 +93,6 @@ pub use self::structs::AxNetDevice;
 #[cfg(feature = "usb_host")]
 pub use self::structs::AxUSBHostDevice;
 
-
 /// A structure that contains all device drivers, organized by their category.
 #[derive(Default)]
 pub struct AllDevices {
@@ -148,7 +147,7 @@ impl AllDevices {
             AxDeviceEnum::Block(dev) => self.block.push(dev),
             #[cfg(feature = "display")]
             AxDeviceEnum::Display(dev) => self.display.push(dev),
-          #[cfg(feature = "usb_host")]
+            #[cfg(feature = "usb_host")]
             AxDeviceEnum::USBHost(dev) => self.usb_host.push(dev),
         }
     }
@@ -194,6 +193,6 @@ pub fn init_drivers() -> AllDevices {
             debug!("  usb host controller {}: {:?}", i, dev.device_name());
         }
     }
-    
+
     all_devs
 }

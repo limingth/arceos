@@ -1,8 +1,7 @@
 const NET_DEV_FEATURES: &[&str] = &["ixgbe", "virtio-net"];
 const BLOCK_DEV_FEATURES: &[&str] = &["ramdisk", "bcm2835-sdhci", "virtio-blk"];
 const DISPLAY_DEV_FEATURES: &[&str] = &["virtio-gpu"];
-const USB_HOST_DEV_FEATURES: &[&str] = &["vl805"];
-
+const USB_HOST_DEV_FEATURES: &[&str] = &["vl805", "phytium"];
 
 fn has_feature(feature: &str) -> bool {
     std::env::var(format!(
@@ -19,9 +18,16 @@ fn enable_cfg(key: &str, value: &str) {
 fn main() {
     if has_feature("bus-pci") {
         enable_cfg("bus", "pci");
-    } else {
-        enable_cfg("bus", "mmio");
     }
+
+    // if has_feature("bus-mmio") {
+    enable_cfg("bus", "mmio");
+    // }
+
+    // if #[cfg(platform = "aarch64-phytium-pi"{
+    // if has_feature(feature)
+    // enable_cfg("bus", "mmio");
+    // }
 
     // Generate cfgs like `net_dev="virtio-net"`. if `dyn` is not enabled, only one device is
     // selected for each device category. If no device is selected, `dummy` is selected.
@@ -29,7 +35,7 @@ fn main() {
     for (dev_kind, feat_list) in [
         ("net", NET_DEV_FEATURES),
         ("block", BLOCK_DEV_FEATURES),
-        ("display", DISPLAY_DEV_FEATURES),        
+        ("display", DISPLAY_DEV_FEATURES),
         ("usb_host", USB_HOST_DEV_FEATURES),
     ] {
         if !has_feature(dev_kind) {

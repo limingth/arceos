@@ -17,7 +17,7 @@ pub enum AxDeviceEnum {
     Block(AxBlockDevice),
     /// Graphic display device.
     #[cfg(feature = "display")]
-    Display(AxDisplayDevice),    
+    Display(AxDisplayDevice),
     /// USB host controller.
     #[cfg(feature = "usb_host")]
     USBHost(AxUSBHostDevice),

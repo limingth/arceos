@@ -1,16 +1,16 @@
 #![cfg_attr(feature = "axstd", no_std)]
 #![cfg_attr(feature = "axstd", no_main)]
 
+use arm_pl011::pl011::Pl011Uart;
 #[cfg(feature = "axstd")]
 use axstd::println;
-use arm_pl011::pl011::Pl011Uart;
 
 #[cfg_attr(feature = "axstd", no_mangle)]
 fn main() {
     println!("Hello, world!");
 
     fn delay(seconds: u64) {
-        for i in 1..seconds+1 {
+        for i in 1..seconds + 1 {
             println!("{} ", i);
 
             fn fibonacci_recursive(n: u64) -> u64 {
@@ -155,5 +155,4 @@ fn main() {
         }
         delay(1);
     }
-
 }
