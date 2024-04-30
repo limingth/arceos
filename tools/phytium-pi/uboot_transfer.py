@@ -1,6 +1,8 @@
 import serial
 import sys
 import os
+import time
+import threading
 
 class UbootTransfer:
     def __init__(self, device, baud, filePath):
@@ -17,8 +19,25 @@ class UbootTransfer:
             print("Device {} does not exist".format(self.device))
             sys.exit(1)
 
-    def sendCommand(self, command): 
-        self.ser.write(bytes(command+"\1a", encoding='ascii'))
+    def readOutput(self):
+        while True:
+            line = self.ser.readline().decode().strip()
+            if line:
+                print(line)
+            if 'Phytium-Pi#' in line:
+                    break
+        
+    def start(self):
+        while True:
+            if self.ser.in_waiting:
+                # 读取串口数据
+                serial_data = self.ser.read(self.ser.in_waiting).decode('utf-8')
+                print(serial_data, end='')
+
+            # 从终端获取用户输入，并发送到串口
+            if serial_data.endswith('# '):
+                user_input = input() + '\r\n'
+                self.ser.write(user_input.encode('utf-8'))
 
     def transfer(self):
         # 检查串口设备是否存在
@@ -51,7 +70,6 @@ class UbootTransfer:
                 if line:
                     print(line)
                 if 'Phytium-Pi#' in line:
-                    print("find the line: Phytium-Pi#")
                     break
 
             # 检测到输出'Phytium-Pi#'字样后，模拟输入指令
@@ -62,19 +80,23 @@ class UbootTransfer:
                 if 'Phytium-Pi#' in line:
                     print("find the line: Phytium-Pi#")
                     # 发送命令：usb start; fatload usb 0 0x90100000 文件名; go 0x90100000
-                    self.ser.write('usb start; fatload usb 0 0x90100000 {}\n'.format(os.path.basename(self.filePath)).encode())
+                    self.ser.write(b'usb start\n')
+                    self.readOutput()
+                    self.ser.write(b'fatls usb 0\n')
+                    self.readOutput()
+                    self.ser.write(b'fatload usb 0 0x90100000 ' + filePath.encode() + b'\n')
+                    self.readOutput()
                     self.ser.write(b'go 0x90100000\n')
+                    self.readOutput()
+                    print("finish send command")
                     break
 
             # 模拟终端，接收用户输入并发送到串口，同时打印串口输出
-            while True:
-                user_input = input()
-                self.ser.write(user_input.encode() + b'\n')
-                line = self.ser.readline().decode().strip()
-                print(line)
-                if user_input == 'exit':
-                    break
-
+            # 用户输入一个指令之后，发送到串口，然后等待串口输出，然后打印输出
+            # 等待出现 Phytium-Pi# 用户可以发送下一个指令
+            self.start()
+                   
+       
         except serial.SerialException as e:
             print("Serial error:", e)
 
