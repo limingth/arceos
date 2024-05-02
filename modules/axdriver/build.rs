@@ -1,4 +1,4 @@
-const NET_DEV_FEATURES: &[&str] = &["ixgbe", "virtio-net"];
+const NET_DEV_FEATURES: &[&str] = &["ixgbe", "virtio-net", "phytium"];
 const BLOCK_DEV_FEATURES: &[&str] = &["ramdisk", "bcm2835-sdhci", "virtio-blk"];
 const DISPLAY_DEV_FEATURES: &[&str] = &["virtio-gpu"];
 const USB_HOST_DEV_FEATURES: &[&str] = &["vl805", "phytium"];
@@ -21,7 +21,7 @@ fn main() {
     }
 
     // if has_feature("bus-mmio") {
-    enable_cfg("bus", "mmio");
+    // enable_cfg("bus", "mmio");
     // }
 
     // if #[cfg(platform = "aarch64-phytium-pi"{

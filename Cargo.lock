@@ -1010,10 +1010,12 @@ dependencies = [
 name = "driver_net"
 version = "0.1.0"
 dependencies = [
+ "bit_field",
  "driver_common",
  "ixgbe-driver",
  "log",
  "spin 0.9.8",
+ "tock-registers 0.8.1",
 ]
 
 [[package]]

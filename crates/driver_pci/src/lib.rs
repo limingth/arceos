@@ -11,6 +11,7 @@
 
 #[cfg(feature = "bcm2711")]
 mod bcm2711;
+pub mod device_types;
 extern crate alloc;
 pub mod err;
 mod root_complex;
