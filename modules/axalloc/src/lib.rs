@@ -208,8 +208,7 @@ pub fn global_allocator() -> &'static GlobalAllocator {
     &GLOBAL_ALLOCATOR
 }
 lazy_static! {
-    static ref GLOBAL_NO_CACHE_ALLOCATOR: GlobalNoCacheAllocator =
-        { GlobalNoCacheAllocator::new() };
+    static ref GLOBAL_NO_CACHE_ALLOCATOR: GlobalNoCacheAllocator = GlobalNoCacheAllocator::new();
 }
 // static GLOBAL_NO_CACHE_ALLOCATOR: SyncUnsafeCell< GlobalNoCacheAllocator> = LazyCell::new(|| GlobalNoCacheAllocator::new());
 

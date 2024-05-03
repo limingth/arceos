@@ -9,10 +9,8 @@
 #![no_std]
 #![allow(warnings)]
 
-#[cfg(feature = "bcm2711")]
-mod bcm2711;
-pub mod device_types;
 extern crate alloc;
+pub mod device_types;
 pub mod err;
 mod root_complex;
 pub mod types;
@@ -20,6 +18,11 @@ use core::ops::Range;
 
 pub use root_complex::*;
 use types::ConifgPciPciBridge;
+// #[cfg(feature = "bcm2711")]
+mod bcm2711;
+#[cfg(feature = "phytium")]
+mod phytium;
+
 // pub use virtio_drivers::transport::pci::bus::{BarInfo};
 
 #[derive(Clone, Copy)]
@@ -34,8 +37,12 @@ impl core::fmt::Display for PciAddress {
     }
 }
 
-#[cfg(feature = "bcm2711")]
+// #[cfg(platform = "aarch64-raspi4")]
+// #[cfg(feature = "bcm2711")]
 pub type RootComplex = PciRootComplex<bcm2711::BCM2711>;
+
+// #[cfg(feature = "phytium")]
+// pub type RootComplex = PciRootComplex<phytium::Phytium>;
 
 pub type PciRoot = RootComplex;
 pub type DeviceFunction = PciAddress;

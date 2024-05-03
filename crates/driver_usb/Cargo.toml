@@ -15,8 +15,9 @@ documentation = "https://rcore-os.github.io/arceos/driver_usb/index.html"
 
 [features]
 default = []
-vl805 = ["driver_pci"]
-phytium=[]
+vl805 = ["driver_pci","driver_pci/bcm2711"]
+# vl805 = []
+phytium=["driver_pci","driver_pci/phytium"]
 
 
 

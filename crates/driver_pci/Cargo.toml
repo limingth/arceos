@@ -12,6 +12,8 @@ documentation = "https://rcore-os.github.io/arceos/driver_pci/index.html"
 [features]
 bcm2711 = []
 virtio = []
+phytium=[]
+dummy=[]
 
 [dependencies]
 virtio-drivers = { git = "https://github.com/rcore-os/virtio-drivers.git", rev = "4b60f5d" }
