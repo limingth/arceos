@@ -93,13 +93,6 @@ fn is_init_ok() -> bool {
     INITED_CPUS.load(Ordering::Acquire) == axconfig::SMP
 }
 
-unsafe extern "C" fn put_debug_paged3() {
-    let state = (0xFFFF00002800D018 as usize) as *mut u8;
-    let put = (0xFFFF00002800D000 as usize) as *mut u8;
-    while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
-    *put = b'c';
-}
-
 /// The main entry point of the ArceOS runtime.
 ///
 /// It is called from the bootstrapping code in [axhal]. `cpu_id` is the ID of
@@ -112,7 +105,6 @@ unsafe extern "C" fn put_debug_paged3() {
 #[cfg_attr(not(test), no_mangle)]
 pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
     // ax_println!("{}", LOGO);
-    unsafe { put_debug_paged3() }
     ax_println!(
         "\
         arch = {}\n\
@@ -129,17 +121,13 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
         option_env!("AX_MODE").unwrap_or(""),
         option_env!("AX_LOG").unwrap_or(""),
     );
-    unsafe { put_debug_paged3() }
 
     axlog::init();
-    unsafe { put_debug_paged3() }
     axlog::set_max_level(option_env!("AX_LOG").unwrap_or("")); // no effect if set `log-level-*` features
-    unsafe { put_debug_paged3() }
     info!("Logging is enabled.");
     info!("Primary CPU {} started, dtb = {:#x}.", cpu_id, dtb);
 
     info!("Found physcial memory regions:");
-    unsafe { put_debug_paged3() }
     for r in axhal::mem::memory_regions() {
         info!(
             "  [{:x?}, {:x?}) {} ({:?})",
