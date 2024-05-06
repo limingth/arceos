@@ -9,3 +9,4 @@ rusty-tags.vi
 .vscode-ctags
 .gdb_history
 .idea
+bin/

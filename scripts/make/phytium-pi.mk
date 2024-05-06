@@ -4,7 +4,9 @@ phytium: build
 	@echo 'Built the FIT-uImage arceos-phytium-pi.itb'
 
 chainboot:
-	python tools/phytium-pi/uboot_transfer.py /dev/ttyUSB0 115200 $(OUT_BIN)
+	bin/python tools/phytium-pi/yet_another_uboot_transfer.py /dev/ttyUSB0 115200 $(OUT_BIN)
+	minicom -D /dev/ttyUSB0 -b 115200
+# python tools/phytium-pi/uboot_transfer.py /dev/ttyUSB0 115200 $(OUT_BIN)
 #	python tools/phytium-pi/uboot_test_send.py /dev/ttyUSB0 115200 $(OUT_BIN)
 #ruby tools/phytium-pi/uboot_transfer.rb /dev/ttyUSB0 115200 $(OUT_BIN)
 	

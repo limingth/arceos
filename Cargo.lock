@@ -78,6 +78,7 @@ dependencies = [
 name = "arceos-cli"
 version = "0.1.0"
 dependencies = [
+ "axfeat",
  "axstd",
 ]
 
@@ -144,22 +145,6 @@ dependencies = [
 name = "arceos-priority"
 version = "0.1.0"
 dependencies = [
- "axstd",
-]
-
-[[package]]
-name = "arceos-raspi4"
-version = "0.1.0"
-dependencies = [
- "arm_pl011",
- "axstd",
-]
-
-[[package]]
-name = "arceos-raspi4-usb"
-version = "0.1.0"
-dependencies = [
- "axfeat",
  "axstd",
 ]
 

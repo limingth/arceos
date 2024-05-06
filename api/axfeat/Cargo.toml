@@ -49,7 +49,7 @@ display = ["alloc", "paging", "axdriver/virtio-gpu", "dep:axdisplay", "axruntime
 usb-host = ["alloc", "paging", "axdriver/usb_host", "axruntime/usb"]
 
 # Board support package
-bsp-raspi4 = ["axdriver?/bcm2711", "axdriver?/vl805"]
+phytium-pi = ["axdriver?/phytium_xhci", "axdriver?/phytium_pci"]
 
 
 # Device drivers

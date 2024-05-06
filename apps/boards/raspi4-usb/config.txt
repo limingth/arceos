@@ -1,2 +1,0 @@
-arm_64bit=1
-init_uart_clock=48000000

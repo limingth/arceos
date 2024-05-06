@@ -18,9 +18,8 @@ use core::ops::Range;
 
 pub use root_complex::*;
 use types::ConifgPciPciBridge;
-// #[cfg(feature = "bcm2711")]
-mod bcm2711;
-#[cfg(feature = "phytium")]
+// #[cfg(feature = "phytiym_pci")]
+// mod bcm2711;
 mod phytium;
 
 // pub use virtio_drivers::transport::pci::bus::{BarInfo};
@@ -39,7 +38,7 @@ impl core::fmt::Display for PciAddress {
 
 // #[cfg(platform = "aarch64-raspi4")]
 // #[cfg(feature = "bcm2711")]
-pub type RootComplex = PciRootComplex<bcm2711::BCM2711>;
+pub type RootComplex = PciRootComplex<phytium::PhytiumPCIeDummy>;
 
 // #[cfg(feature = "phytium")]
 // pub type RootComplex = PciRootComplex<phytium::Phytium>;
