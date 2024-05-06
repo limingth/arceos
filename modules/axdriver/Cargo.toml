@@ -29,7 +29,6 @@ ramdisk = ["block", "driver_block/ramdisk"]
 bcm2835-sdhci = ["block", "driver_block/bcm2835-sdhci"]
 ixgbe = ["net", "driver_net/ixgbe", "dep:axalloc", "dep:axhal"]
 vl805 = ["usb_host", "bus-pci","driver_usb/vl805","dep:axalloc" ]
-phytium = ["usb_host","bus-pci","driver_pci/phytium","driver_usb/phytium","dep:axalloc"]
 bcm2711 = ["driver_pci/bcm2711"]
 # more devices example: e1000 = ["net", "driver_net/e1000"]
 
