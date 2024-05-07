@@ -38,9 +38,9 @@ impl core::fmt::Display for PciAddress {
 
 // #[cfg(platform = "aarch64-raspi4")]
 // #[cfg(feature = "bcm2711")]
+#[cfg(feature = "phytium-pci")]
 pub type RootComplex = PciRootComplex<phytium::PhytiumPCIeDummy>;
 
-// #[cfg(feature = "phytium")]
 // pub type RootComplex = PciRootComplex<phytium::Phytium>;
 
 pub type PciRoot = RootComplex;
