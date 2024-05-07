@@ -4,6 +4,8 @@ use crate::{prelude::*, AllDevices};
 impl AllDevices {
     pub(crate) fn probe_bus_devices(&mut self) {
         // TODO: parse device tree
+        //don't use cfg_if at here ramdomly!!!! might cause lld error
+        //waste time: 2days
         #[cfg(feature = "virtio")]
         for reg in axconfig::VIRTIO_MMIO_REGIONS {
             for_each_drivers!(type Driver, {
