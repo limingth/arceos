@@ -15,13 +15,13 @@ documentation = "https://rcore-os.github.io/arceos/driver_usb/index.html"
 
 [features]
 default = []
-phytium_xhci = ["driver_pci","driver_pci/phytium_pci"]
+phytium-xhci = []
 
 
 
 [dependencies]
 driver_common = { path = "../driver_common" }
-driver_pci = { path = "../driver_pci" ,optional = true,default-features = false}
+driver_pci = { path = "../driver_pci" }
 xhci = "0.9"
 log="0.4"
 axhal = {path = "../../modules/axhal",features=["irq"]}
@@ -43,9 +43,6 @@ crossbeam-queue = { version = "0.3.8", features = ["alloc"], default-features = 
 num-derive = "0.4.0"
 num-traits = { version = "0.2.16", default-features = false }
 byteorder = { version = "1.4.3", default-features = false }
-# cc = { version = "1.0", features = ["parallel"] }
-# bindgen = "0.69"
-# regex = "1.9"
 
 
 [target.'cfg(target_arch = "aarch64")'.dependencies]

@@ -9,7 +9,7 @@ extern crate alloc;
 pub(crate) mod dma;
 pub mod host;
 use core::alloc::Allocator;
-mod device_types;
+// mod device_types;
 
 #[doc(no_inline)]
 pub use driver_common::{BaseDriverOps, DevError, DevResult, DeviceType};

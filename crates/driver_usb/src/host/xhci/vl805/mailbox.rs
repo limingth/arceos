@@ -138,7 +138,7 @@ pub trait RaspiMsg {
         let tag_len = tag32_len * size_of::<u32>();
         data.push(tag_len as _); // tag value len
         data.push(0); // tag request
-        let last = data.len();
+        let last = data.len() ;
 
         // tag value
         for _ in 0..tag32_len {
@@ -146,8 +146,11 @@ pub trait RaspiMsg {
         }
 
         unsafe {
-            let tag_value =
-                &mut *slice_from_raw_parts_mut((&mut data[last]) as *mut u32 as *mut u8, tag.len());
+
+            let tag_value = &mut *slice_from_raw_parts_mut(
+                (&mut data[last]) as *mut u32 as *mut u8,
+                tag.len(),
+            );
 
             tag_value.copy_from_slice(tag.as_slice());
         }
@@ -206,9 +209,12 @@ pub enum PropertyCode {
 
 fn read32(addr: usize) -> u32 {
     let vaddr = phys_to_virt(addr.into());
-    unsafe { (vaddr.as_mut_ptr() as *const u32).read_volatile() }
+    unsafe {
+        (vaddr.as_mut_ptr() as *const u32).read_volatile()
+    }
 }
 fn write32(addr: usize, data: u32) -> () {
     let vaddr = phys_to_virt(addr.into());
     unsafe { (vaddr.as_mut_ptr() as *mut u32).write_volatile(data) }
 }
+

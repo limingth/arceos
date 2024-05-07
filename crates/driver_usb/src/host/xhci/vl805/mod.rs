@@ -5,13 +5,10 @@ use crate::{
     host::xhci::vl805::mailbox::{Mailbox, MsgNotifyXhciReset},
 };
 use driver_common::*;
-use driver_pci::{
-    device_types::PCI_VENDOR_ID_PHYTIUM,
-    types::{Bar, ConfigCommand, ConfigKind, ConfigSpace},
-};
+use driver_pci::types::{Bar, ConfigCommand, ConfigKind, ConfigSpace};
 use log::debug;
 
-const VL805_VENDOR_ID: usize = 0x1106;
+const VL805_VENDOR_ID: u16 = 0x1106;
 const VL805_DEVICE_ID: u16 = 0x3483;
 
 pub struct VL805<A: Allocator + Clone> {
@@ -33,23 +30,37 @@ impl<A: Allocator + Clone + Sync + Send> BaseDriverOps for VL805<A> {
 
 impl<A: Allocator + Clone> VL805<A> {
     fn new(mmio_base: usize, alloc: A) -> Self {
-        super::xhci_operations::init(mmio_base);
+        // let mapper = MemoryMapper;
+        // let regs: xhci::Registers<MemoryMapper> =
+        //     unsafe { xhci::Registers::new(mmio_base, mapper) };
+        // let version = regs.capability.hciversion.read_volatile();
+        // debug!("xhci version: {:x}", version.get());
+        // let mut o = regs.operational;
+        // debug!("xhci stat: {:?}", o.usbsts.read_volatile());
+
+        // debug!("xhci wait for ready...");
+        // while o.usbsts.read_volatile().controller_not_ready() {}
+        // info!("xhci ok");
+
+        // o.usbcmd.update_volatile(|f| {
+        //     f.set_host_controller_reset();
+        // });
+
+        // while o.usbcmd.read_volatile().host_controller_reset() {}
+
+        // info!("XHCI reset HC");
+        super::init(mmio_base);
         VL805 {
             base_addr: mmio_base,
             alloc,
         }
     }
-
     pub fn probe_pci(config: &ConfigSpace, dma_alloc: A) -> Option<Self> {
         let (vendor_id, device_id) = config.header.vendor_id_and_device_id();
-        let revision_and_class = config.header.revision_and_class();
-        if !((vendor_id as usize) == VL805_VENDOR_ID && device_id == VL805_DEVICE_ID) {
+        if !(vendor_id == VL805_VENDOR_ID && device_id == VL805_DEVICE_ID) {
             return None;
         }
 
-        //THINK: may be we could use pattern match instead of optional compile?
-        // match Some((vendor_id as usize, device_id)) {
-        //     Some((VL805_VENDOR_ID, VL805_DEVICE_ID)) => {
         if let ConfigKind::Endpoint { inner } = &config.kind {
             let bar = inner.bar(0).unwrap();
             if let Bar::Memory64 {
@@ -74,10 +85,7 @@ impl<A: Allocator + Clone> VL805<A> {
                 return Some(vl805);
             }
         }
-        // }
-        // Some(_) => (),
-        // None => (),
-        // }
+
         None
     }
 }

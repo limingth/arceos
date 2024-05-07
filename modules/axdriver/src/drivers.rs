@@ -89,7 +89,7 @@ cfg_if::cfg_if! {
 
 //todo maybe we should re arrange these code
 cfg_if::cfg_if! {
-    if #[cfg(usb_host_dev = "vl805")] {
+    if #[cfg(usb_host_dev = "phytium-xhci")] {
         use axalloc::GlobalNoCacheAllocator;
         pub struct VL805Driver;
         register_usb_host_driver!(VL805Driver, driver_usb::host::xhci::vl805::VL805<GlobalNoCacheAllocator>);
@@ -107,24 +107,6 @@ cfg_if::cfg_if! {
             }
         }
     }
-    else if #[cfg(usb_host_dev = "phytium")] {
-        use axalloc::GlobalNoCacheAllocator;
-        pub struct PhytiumUSBDriver;
-        use driver_usb::host::xhci::phytium::PhytiymXHCIController;
-        register_usb_host_driver!(PhytiumUSBDriver, PhytiymXHCIController<GlobalNoCacheAllocator>);
-
-        impl DriverProbe for PhytiumUSBDriver {
-            fn probe_pci(
-                    root: &mut PciRoot,
-                    bdf: DeviceFunction,
-                    dev_info: &DeviceFunctionInfo,
-                    cfg: &ConfigSpace,
-                ) -> Option<AxDeviceEnum> {
-
-                PhytiymXHCIController::probe_pci(cfg, global_no_cache_allocator()).map(|d| AxDeviceEnum::from_usb_host(d))
-            }
-        }
-    }
 }
 
 cfg_if::cfg_if! {
@@ -134,19 +116,6 @@ cfg_if::cfg_if! {
         pub struct IxgbeDriver;
         register_net_driver!(IxgbeDriver, driver_net::ixgbe::IxgbeNic<IxgbeHalImpl, 1024, 1>);
         impl DriverProbe for IxgbeDriver {
-
-    cfg_if::cfg_if! {
-            if #[cfg(bus = "mmio")]{
-            fn probe_mmio(mmio_base: usize, mmio_size: usize) -> Option<AxDeviceEnum> {
-                    debug!("probed: {:x}",mmio_base);
-                    None
-                }
-            }
-    }
-
-
-cfg_if::cfg_if! {
-            if #[cfg(bus = "pci")]{
             fn probe_pci(
                     root: &mut driver_pci::PciRoot,
                     bdf: driver_pci::DeviceFunction,
@@ -155,8 +124,7 @@ cfg_if::cfg_if! {
                 ) -> Option<crate::AxDeviceEnum> {
                     use crate::ixgbe::IxgbeHalImpl;
                     use driver_net::ixgbe::{INTEL_82599, INTEL_VEND, IxgbeNic};
-                    debug!("suspecious_device:(vendor-{:x}|device-{:x})",dev_info.vendor_id,dev_info.device_id);
-                    if (dev_info.vendor_id, dev_info.device_id) == (INTEL_VEND,INTEL_82599) || dev_info.header_type == PCI_CLASS_NETWORK_ETHERNET{
+                    if dev_info.vendor_id == INTEL_VEND && dev_info.device_id == INTEL_82599 {
                         // Intel 10Gb Network
                         info!("ixgbe PCI device found at {:?}", bdf);
 
@@ -199,9 +167,5 @@ cfg_if::cfg_if! {
                     None
             }
         }
-}
-
-        }
-
     }
 }
