@@ -23,7 +23,7 @@ mmio-regions = [
   # ["0xFE00_B000", "0x1000"],      # mailbox
   # ["0xFE20_1000", "0x1000"],      # PL011 UART
   # ["0xFF84_1000", "0x8000"],      # GICv2    
-  ["0x40000000", "0xfff_ffff"],      # pcie ecam
+  #["0x40000000", "0xfff_ffff"],      # pcie ecam
 
 
   # ["0x6_0000_0000", "0x4000_0000"] # pcie control

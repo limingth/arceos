@@ -93,6 +93,7 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
     type Item = (PciAddress, DeviceFunctionInfo, ConfigSpace);
 
     fn next(&mut self) -> Option<Self::Item> {
+        debug!("into next!");
         loop {
             if self.next.function >= MAX_FUNCTIONS {
                 self.next.function = 0;
@@ -186,6 +187,7 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
                     }
                 }
                 _ => {
+                    debug!("no_header");
                     if current.function == 0 && !multi {
                         self.next.device += 1;
                     } else {
@@ -199,6 +201,7 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
             return Some(out);
         }
 
+        debug!("isnone...");
         None
     }
 }
