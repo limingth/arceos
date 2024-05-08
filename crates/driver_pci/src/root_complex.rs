@@ -95,7 +95,9 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
     fn next(&mut self) -> Option<Self::Item> {
         debug!("into next!");
         loop {
+            debug!("looped");
             if self.next.function >= MAX_FUNCTIONS {
+                debug!("added");
                 self.next.function = 0;
                 self.next.device += 1;
             }
@@ -111,6 +113,7 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
                     trace!("Bridge {} set subordinate: {:X}", parent, sub);
                     bridge.set_subordinate_bus_number(sub as _);
                 } else {
+                    debug!("none!");
                     return None;
                 }
             }
@@ -120,6 +123,7 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
             let cfg_addr = match A::map_conf(self.root.mmio_base, current.clone()) {
                 Some(c) => c,
                 None => {
+                    debug!("no conf");
                     if current.function == 0 {
                         self.next.device += 1;
                     } else {
@@ -155,6 +159,7 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
             info.header_type = header_type;
             info.prog_if = interface;
             let config_space;
+            debug!("header_type:{:?}", header_type);
             match header_type {
                 HeaderType::PciPciBridge => {
                     let bridge = ConifgPciPciBridge::new(cfg_addr);

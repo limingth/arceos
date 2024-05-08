@@ -27,7 +27,7 @@ log="0.4"
 axhal = {path = "../../modules/axhal",features=["irq"]}
 axtask = {path = "../../modules/axtask",features = ["multitask","sched_rr"]}
 axconfig = {path = "../../modules/axconfig"}
-# page_table = {path = "../page_table"}
+page_table = {path = "../page_table"}
 page_box = {path = "../page_box"}
 page_table_entry = {path = "../page_table_entry"}
 spinlock = { path = "../../crates/spinlock" }

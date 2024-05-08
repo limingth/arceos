@@ -102,6 +102,7 @@ cfg_if::cfg_if! {
                     dev_info: &DeviceFunctionInfo,
                     cfg: &ConfigSpace,
                 ) -> Option<AxDeviceEnum> {
+                debug!("probing!");
 
                 VL805::probe_pci(cfg, global_no_cache_allocator()).map(|d| AxDeviceEnum::from_usb_host(d))
             }

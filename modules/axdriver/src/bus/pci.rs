@@ -11,6 +11,8 @@ impl AllDevices {
             pci_range.0 as u64..pci_range.1 as u64,
         );
 
+        debug!("probing in pci.rs!");
+
         for (bdf, dev_info, cfg) in root.enumerate_bus() {
             debug!("PCI {}: {}", bdf, dev_info);
             for_each_drivers!(type Driver,{

@@ -55,7 +55,7 @@ gicd-paddr = "0xFF84_1000"
 # Base physical address of the PCIe ECAM space.
 pci-ecam-base = "0x40000000"
 # End PCI bus number.
-pci-bus-end = "0x1"
+pci-bus-end = "0x2"
 # PCI device memory ranges.
 pci-ranges = [["0x58000000", "0x7fffffff"], ["0x6_0000_0000", "0x6_3fff_ffff"]]
 

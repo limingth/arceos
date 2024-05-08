@@ -1,11 +1,15 @@
 use core::alloc::Allocator;
 mod mailbox;
 use crate::{
+    device_types::PCI_DEVICE_ID_PHYTIUM_XHCI,
     dma::DMAVec,
     host::xhci::vl805::mailbox::{Mailbox, MsgNotifyXhciReset},
 };
 use driver_common::*;
-use driver_pci::types::{Bar, ConfigCommand, ConfigKind, ConfigSpace};
+use driver_pci::{
+    device_types::{self, PCI_VENDOR_ID_PHYTIUM},
+    types::{Bar, ConfigCommand, ConfigKind, ConfigSpace},
+};
 use log::debug;
 
 const VL805_VENDOR_ID: u16 = 0x1106;
@@ -57,7 +61,8 @@ impl<A: Allocator + Clone> VL805<A> {
     }
     pub fn probe_pci(config: &ConfigSpace, dma_alloc: A) -> Option<Self> {
         let (vendor_id, device_id) = config.header.vendor_id_and_device_id();
-        if !(vendor_id == VL805_VENDOR_ID && device_id == VL805_DEVICE_ID) {
+        if !(vendor_id as usize == PCI_VENDOR_ID_PHYTIUM && device_id == PCI_DEVICE_ID_PHYTIUM_XHCI)
+        {
             return None;
         }
 

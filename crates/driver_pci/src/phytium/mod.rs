@@ -43,10 +43,10 @@ impl Access for PhytiumPCIeDummy {
     }
 
     fn map_conf(mmio_base: usize, addr: crate::PciAddress) -> Option<usize> {
-        // bus 0 bus 1 只有一个Device
-        if addr.bus <= 2 && addr.device > 0 {
-            return None;
-        }
+        // // bus 0 bus 1 只有一个Device
+        // if addr.bus <= 2 && addr.device > 0 {
+        //     return None;
+        // }
 
         if addr.bus == 0 {
             return Some(mmio_base);

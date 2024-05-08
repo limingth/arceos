@@ -1023,6 +1023,7 @@ dependencies = [
  "num-derive 0.4.2",
  "num-traits",
  "page_box",
+ "page_table",
  "page_table_entry",
  "spinlock",
  "spinning_top",
