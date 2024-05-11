@@ -14,12 +14,15 @@ use super::{
 
 pub struct CmdRing {
     ring: PageBox<[[u32; 4]]>,
-    enque_index: usize,
-    deque_index: usize,
-    cycle_state: u32,
+    enque_index: usize,     // 入队索引
+    deque_index: usize,     // 出队索引
+    cycle_state: u32,       // 循环状态
 }
 
 impl CmdRing {
+    /// 初始化命令环
+    /// <br> 1. 初始化命令环，分配内存并设置初始化状态
+    /// <br> 2. 配置Link TRB，设置环大小和循环状态
     pub fn new() -> Self {
         super::registers::handle(|r| {
             let mut command_ring = CmdRing {
