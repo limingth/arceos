@@ -29,9 +29,10 @@ pub struct MemoryMapper;
 
 impl Mapper for MemoryMapper {
     unsafe fn map(&mut self, phys_base: usize, bytes: usize) -> NonZeroUsize {
-        let virt = phys_to_virt(phys_base.into());
+        // let virt = phys_to_virt(phys_base.into());
         // info!("mapping: [{:x}]->[{:x}]", phys_base, virt.as_usize());
-        return NonZeroUsize::new_unchecked(virt.as_usize());
+        // return NonZeroUsize::new_unchecked(virt.as_usize());
+        return NonZeroUsize::new_unchecked(phys_base);
     }
 
     fn unmap(&mut self, virt_base: usize, bytes: usize) {}
@@ -112,22 +113,22 @@ fn reset_xhci_controller() {
             || r.operational.usbsts.read_volatile().controller_not_ready()
         {}
 
-        debug!("get bios ownership");
-        for c in extended_capabilities::iter()
-            .unwrap()
-            .filter_map(Result::ok)
-        {
-            if let ExtendedCapability::UsbLegacySupport(mut u) = c {
-                let l = &mut u.usblegsup;
-                l.update_volatile(|s| {
-                    s.set_hc_os_owned_semaphore();
-                });
+        // debug!("get bios ownership");
+        // for c in extended_capabilities::iter()
+        //     .unwrap()
+        //     .filter_map(Result::ok)
+        // {
+        //     if let ExtendedCapability::UsbLegacySupport(mut u) = c {
+        //         let l = &mut u.usblegsup;
+        //         l.update_volatile(|s| {
+        //             s.set_hc_os_owned_semaphore();
+        //         });
 
-                while l.read_volatile().hc_bios_owned_semaphore()
-                    || !l.read_volatile().hc_os_owned_semaphore()
-                {}
-            }
-        }
+        //         while l.read_volatile().hc_bios_owned_semaphore()
+        //             || !l.read_volatile().hc_os_owned_semaphore()
+        //         {}
+        //     }
+        // }
 
         debug!("Reset xHCI Controller Globally");
     });

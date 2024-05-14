@@ -1,5 +1,7 @@
 use std::io::{self};
 
+use driver_usb::host::xhci::MemoryMapper;
+
 #[cfg(all(not(feature = "axstd"), unix))]
 
 macro_rules! print_err {
@@ -19,7 +21,13 @@ const CMD_TABLE: &[(&str, CmdHandler)] = &[
     ("uname", do_uname),
     ("ldr", do_ldr),
     ("str", do_str),
+    ("test_xhci", test_xhci),
 ];
+
+fn test_xhci(_args: &str) {
+    driver_usb::try_init(0x31a08000 as usize)
+    // unsafe { xhci::Registers::new(0xffff_0000_31a0_8000 as usize, MemoryMapper {}) };
+}
 
 fn do_uname(_args: &str) {
     let arch = option_env!("AX_ARCH").unwrap_or("");

@@ -80,6 +80,8 @@ version = "0.1.0"
 dependencies = [
  "axfeat",
  "axstd",
+ "driver_usb",
+ "xhci",
 ]
 
 [[package]]
