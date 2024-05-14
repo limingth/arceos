@@ -6,7 +6,7 @@ use core::num::NonZeroUsize;
 use log::{debug, error, info};
 use xhci::{
     accessor::Mapper,
-    extended_capabilities::debug::EventRingDequeuePointer,
+    extended_capabilities::debug::{self, EventRingDequeuePointer},
     registers::operational::{ConfigureRegister, DeviceNotificationControl},
     ExtendedCapability,
 };
@@ -21,7 +21,8 @@ use crate::host::structures::{
 
 use super::structures::registers;
 
-const ARM_IRQ_PCIE_HOST_INTA: usize = 143 + 32;
+// const ARM_IRQ_PCIE_HOST_INTA: usize = 143 + 32; //todo figure out it's interrupt num
+const ARM_IRQ_PCIE_HOST_INTA: usize = 48; //todo figure out it's interrupt num
 const XHCI_CONFIG_MAX_EVENTS_PER_INTR: usize = 16;
 
 #[derive(Clone, Copy)]
@@ -45,6 +46,10 @@ pub(crate) fn init(mmio_base: usize) {
     };
 
     debug!("resetting xhci controller");
+    debug!(
+        "before reset:{:?}",
+        registers::handle(|r| r.operational.usbsts.read_volatile())
+    );
     reset_xhci_controller();
 
     xhci_slot_manager::new();
@@ -55,6 +60,11 @@ pub(crate) fn init(mmio_base: usize) {
     roothub::new();
 
     axhal::irq::register_handler(ARM_IRQ_PCIE_HOST_INTA, interrupt_handler);
+    axhal::irq::register_handler(ARM_IRQ_PCIE_HOST_INTA + 1, interrupt_handler);
+    debug!(
+        "before start:{:?}",
+        registers::handle(|r| r.operational.usbsts.read_volatile())
+    );
     registers::handle(|r| {
         r.operational.usbcmd.update_volatile(|r| {
             r.interrupter_enable();

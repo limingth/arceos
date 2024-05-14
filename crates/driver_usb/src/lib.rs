@@ -25,5 +25,5 @@ use host::xhci::init;
 pub fn try_init(mmio_base_paddr: usize) {
     // let vaddr = axhal::mem::phys_to_virt(PhysAddr::from(mmio_base_paddr));
     // init(vaddr.as_usize())
-    init(0xffff_0000_31a0_8000 as usize)
+    init(0xffff_0000_31a2_8000 as usize)
 }
