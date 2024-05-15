@@ -1,7 +1,7 @@
 use alloc::sync::Arc;
 use spinning_top::Spinlock;
 
-use super::{roothub::RootPort, USBSpeed};
+use super::{xhci_roothub::RootPort, USBSpeed};
 
 pub struct XHCIUSBDevice {}
 

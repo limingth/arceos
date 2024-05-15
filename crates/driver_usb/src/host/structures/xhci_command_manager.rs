@@ -1,10 +1,11 @@
-use core::f32::consts::E;
+use core::{f32::consts::E, usize};
 
 use aarch64_cpu::asm::barrier::{self, SY};
 use axhal::mem::VirtAddr;
 use conquer_once::spin::OnceCell;
 use log::debug;
 use spinning_top::Spinlock;
+use xhci::ring::trb::command::Allowed;
 
 use super::{command_ring::CmdRing, registers};
 use crate::dma::DMAVec;
@@ -15,6 +16,17 @@ pub(crate) struct CommandManager {
     current_trb: VirtAddr,
     uch_complete_code: u8,
     uch_slot_id: u8,
+}
+
+impl CommandManager {
+    pub fn enable_slot(index: usize) -> bool {}
+
+    pub fn do_command(&mut self, trb: Allowed, slot: usize) {
+        let selfTrb = self.command_ring.get_enque_trb();
+        if let Some(selfTrb) = selfTrb {
+            selfTrb
+        }
+    }
 }
 
 pub(crate) static COMMAND_MANAGER: OnceCell<Spinlock<CommandManager>> = OnceCell::uninit();

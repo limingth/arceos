@@ -14,9 +14,9 @@ use xhci::{
 use aarch64_cpu::asm::barrier;
 
 use crate::host::structures::{
-    extended_capabilities,
-    roothub::{self, Roothub},
-    scratchpad, xhci_command_manager, xhci_event_manager, xhci_slot_manager,
+    extended_capabilities, scratchpad, xhci_command_manager, xhci_event_manager,
+    xhci_roothub::{self, Roothub},
+    xhci_slot_manager,
 };
 
 use super::structures::registers;
@@ -57,7 +57,7 @@ pub(crate) fn init(mmio_base: usize) {
     xhci_command_manager::new();
     scratchpad::new();
     scratchpad::assign_scratchpad_into_dcbaa();
-    roothub::new();
+    xhci_roothub::new();
 
     axhal::irq::register_handler(ARM_IRQ_PCIE_HOST_INTA, interrupt_handler);
     axhal::irq::register_handler(ARM_IRQ_PCIE_HOST_INTA + 1, interrupt_handler);

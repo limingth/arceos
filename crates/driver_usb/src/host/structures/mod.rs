@@ -2,9 +2,9 @@ mod xhci_usb_device;
 // 命令管理器、事件管理器和插槽管理器等模块。
 pub(super) mod extended_capabilities;
 pub(super) mod registers;
-pub(super) mod roothub;
 pub(super) mod xhci_command_manager;
 pub(super) mod xhci_event_manager;
+pub(super) mod xhci_roothub;
 pub(super) mod xhci_slot_manager;
 
 // 定义了命令环、事件环和暂存区等内部使用的模块。

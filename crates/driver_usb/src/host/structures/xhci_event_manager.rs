@@ -1,7 +1,7 @@
 use crate::{
     dma,
     host::structures::{
-        event_ring, roothub::status_changed, xhci_command_manager::command_completed,
+        event_ring, xhci_command_manager::command_completed, xhci_roothub::status_changed,
         XHCI_CMD_COMPLETION_EVENT_TRB_CONTROL_SLOTID_SHIFT,
         XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT,
         XHCI_PORT_STATUS_EVENT_TRB_PARAMETER1_PORTID_SHIFT,

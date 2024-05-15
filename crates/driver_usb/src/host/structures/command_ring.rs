@@ -14,9 +14,9 @@ use super::{
 
 pub struct CmdRing {
     ring: PageBox<[[u32; 4]]>,
-    enque_index: usize,     // 入队索引
-    deque_index: usize,     // 出队索引
-    cycle_state: u32,       // 循环状态
+    enque_index: usize, // 入队索引
+    deque_index: usize, // 出队索引
+    cycle_state: u32,   // 循环状态
 }
 
 impl CmdRing {
@@ -63,14 +63,14 @@ impl CmdRing {
         Allowed::try_from(xhci_trb).ok()
     }
 
-    pub fn get_enque_trb(&self) -> Option<Allowed> {
+    pub fn get_enque_trb(&self) -> Option<&Allowed> {
         assert!(self.enque_index < self.get_trb_count());
         let xhci_trb = self.ring[self.enque_index];
         if (xhci_trb[3] & XHCI_TRB_CONTROL_C as u32) == self.cycle_state {
             return None;
         }
 
-        Allowed::try_from(xhci_trb).ok()
+        &Allowed::try_from(xhci_trb).ok()
     }
 
     pub fn inc_enque(&mut self) {

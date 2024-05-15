@@ -15,12 +15,12 @@
 * ~~scratchpad~~
 * xhciendpoint
 ## 链接部分:
-* xhciusbdevice
+* xhciusbdevice 注：xhci crate中有，但是没有对应的方法，详见
 
 
 # USB 部分
 * usbconfigparser
-* usbdevice
+* usbdevice 
 * usbdevicefactory
 * usbendpoint
 * usbfunction
