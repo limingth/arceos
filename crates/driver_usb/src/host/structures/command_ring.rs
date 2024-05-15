@@ -63,14 +63,15 @@ impl CmdRing {
         Allowed::try_from(xhci_trb).ok()
     }
 
-    pub fn get_enque_trb(&self) -> Option<&Allowed> {
+    pub fn get_enque_trb(&mut self) -> Option<&mut [u32; 4]> {
         assert!(self.enque_index < self.get_trb_count());
-        let xhci_trb = self.ring[self.enque_index];
+        let xhci_trb = &mut self.ring[self.enque_index];
         if (xhci_trb[3] & XHCI_TRB_CONTROL_C as u32) == self.cycle_state {
             return None;
         }
 
-        &Allowed::try_from(xhci_trb).ok()
+        Some(xhci_trb)
+        // Allowed::try_from(xhci_trb).ok().as_mut()
     }
 
     pub fn inc_enque(&mut self) {

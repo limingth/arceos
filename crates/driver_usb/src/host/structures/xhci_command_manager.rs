@@ -19,12 +19,25 @@ pub(crate) struct CommandManager {
 }
 
 impl CommandManager {
-    pub fn enable_slot(index: usize) -> bool {}
+    pub fn enable_slot(index: usize) -> bool {
+        false
+    }
 
-    pub fn do_command(&mut self, trb: Allowed, slot: usize) {
-        let selfTrb = self.command_ring.get_enque_trb();
-        if let Some(selfTrb) = selfTrb {
-            selfTrb
+    pub fn do_command(&mut self, trb: Allowed, slot: &mut usize) -> u8 {
+        //todo check
+        assert!(self.command_complete);
+        let trb1 = trb.into_raw();
+        let mut self_trb = self.command_ring.get_enque_trb();
+        if let Some(selfTrb) = self_trb {
+            let raw = selfTrb; //TODO: ensure later
+            *raw = trb1;
+            self.command_complete = false;
+            self.command_ring.inc_enque();
+
+            registers::handle(|r| r.doorbell.write_volatile_at(0, 0.into()));
+            while (!self.command_complete) {}
+            slot = self.uch_slot_id;
+            self.uch_complete_code
         }
     }
 }
