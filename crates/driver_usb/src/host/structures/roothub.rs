@@ -3,7 +3,7 @@ use core::{num, option, panic, result};
 use aarch64_cpu::registers::VTCR_EL2::SH0::Non;
 use alloc::sync::Arc;
 use conquer_once::spin::OnceCell;
-use log::debug;
+use log::{debug, error, info};
 use page_box::PageBox;
 use spinning_top::{lock_api::Mutex, Spinlock};
 use xhci::context::Device64Byte;
@@ -11,7 +11,7 @@ use xhci::{context::Device, registers::PortRegisterSet};
 
 use crate::{dma::DMAVec, host::structures::XHCI_CONFIG_MAX_PORTS};
 
-use super::registers;
+use super::{registers, USBSpeed};
 
 // 定义静态变量ROOT_HUB，用于存储根集线器的实例
 pub(crate) static ROOT_HUB: OnceCell<Spinlock<Roothub>> = OnceCell::uninit();
@@ -24,14 +24,6 @@ pub struct RootPort {
 pub struct Roothub {
     ports: usize,
     root_ports: PageBox<[Option<Arc<Spinlock<RootPort>>>]>,
-}
-
-enum USBSpeed {
-    USBSpeedLow = 2,
-    USBSpeedFull = 1,
-    USBSpeedHigh = 3,
-    USBSpeedSuper = 4,
-    USBSpeedUnknown = 0,
 }
 
 impl RootPort {
@@ -54,8 +46,8 @@ impl RootPort {
         }
 
         registers::handle(|r| {
-            // r.port_register_set.read_volatile_at(self.index).portsc.port_link_state() // usb 3
-            //usb 2
+            // r.port_register_set.read_volatile_at(self.index).portsc.port_link_state() // usb 3, not complete code
+            //lets just use usb 2 job sequence? should be compaible
             r.port_register_set.update_volatile_at(self.index, |prs| {
                 prs.portsc.port_reset();
 
@@ -66,36 +58,24 @@ impl RootPort {
                 debug!("waiting for port reset!");
                 while !prs.portsc.port_reset() {}
             })
-        })
+        });
+
+        let get_speed = self.get_speed();
+        if get_speed == USBSpeed::USBSpeedUnknown {
+            error!("unknown speed, index:{}", self.index);
+            return;
+        }
+        info!("port speed: {:?}", get_speed);
     }
 
     fn get_speed(&self) -> USBSpeed {
-        registers::handle(|r| -> ! {
-            let port_speed = r
-                .port_register_set
+        registers::handle(|r| {
+            r.port_register_set
                 .read_volatile_at(self.index)
                 .portsc
-                .port_speed();
-
-            let result = port_speed >= USBSpeed::USBSpeedFull && result <= USBSpeed::USBSpeedSuper;
-            if port_speed == USBSpeed::USBSpeedUnknown || !result {
-                return USBSpeed::USBSpeedUnknown;
-            }
-            //let result = port_speed < USBSpeed::USBSpeedHigh ? (port_speed - 1)1 : port_speed -1;
-            let result = if port_speed < 3 {
-                (port_speed - 1) ^ 1
-            } else {
-                port_speed - 1
-            };
-
-            return match Some(port_speed) {
-                Some(1) => USBSpeed::USBSpeedFull,
-                Some(2) => USBSpeed::USBSpeedLow,
-                Some(3) => USBSpeed::USBSpeedHigh,
-                Some(4) => USBSpeed::USBSpeedSuper,
-                Some(0) => USBSpeed::USBSpeedUnknown,
-            };
+                .port_speed()
         })
+        .into()
     }
 
     pub fn connected(&self) -> bool {

@@ -1,3 +1,4 @@
+mod xhci_usb_device;
 // 命令管理器、事件管理器和插槽管理器等模块。
 pub(super) mod extended_capabilities;
 pub(super) mod registers;
@@ -10,6 +11,28 @@ pub(super) mod xhci_slot_manager;
 pub(crate) mod command_ring;
 pub(crate) mod event_ring;
 pub(super) mod scratchpad;
+
+#[derive(Debug, PartialEq)]
+enum USBSpeed {
+    USBSpeedLow,
+    USBSpeedFull,
+    USBSpeedHigh,
+    USBSpeedSuper,
+    USBSpeedUnknown,
+}
+
+impl From<u8> for USBSpeed {
+    fn from(value: u8) -> Self {
+        match Some(value) {
+            Some(1) => USBSpeed::USBSpeedFull,
+            Some(2) => USBSpeed::USBSpeedLow,
+            Some(3) => USBSpeed::USBSpeedHigh,
+            Some(4) => USBSpeed::USBSpeedSuper,
+            Some(_) => USBSpeed::USBSpeedUnknown,
+            None => USBSpeed::USBSpeedUnknown,
+        }
+    }
+}
 
 // XHCI配置事件环大小为256个TRB(Transfer Request Block)。
 const XHCI_CONFIG_EVENT_RING_SIZE: usize = 256;
@@ -49,7 +72,7 @@ const XHCI_CONFIG_MAX_PORTS: usize = 5;
 const XHCI_CONFIG_MAX_SLOTS: usize = 64;
 
 // TODO: 确定DMA地址。
-//const DMA_ADDRESS: usize = 0xfd50_0000; 
+//const DMA_ADDRESS: usize = 0xfd50_0000;
 
 // TODO: 修正虚拟地址。
 //TODO FIX VIRTUAL ADDRESS
