@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 #↑兄啊你不知道uboot可以保存启动配置的嘛？设置为默认等待从串口传入内核就好了啊?
 import sys
 import time
