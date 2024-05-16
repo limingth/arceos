@@ -20,8 +20,11 @@ impl SlotManager {
             self.device
                 .as_ptr()
                 .offset((valid_slot_id as usize - 1) as isize)
+                .addr()
+                .into()
         }
         //TODO 需要考虑内存同步问题
+        //TODO 内存位置可能不对
     }
 }
 

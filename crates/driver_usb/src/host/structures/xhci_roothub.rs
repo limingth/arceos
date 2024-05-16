@@ -1,6 +1,5 @@
 use core::{num, option, panic, result};
 
-use aarch64_cpu::registers::VTCR_EL2::SH0::Non;
 use alloc::string::String;
 use alloc::sync::Arc;
 use conquer_once::spin::OnceCell;
@@ -14,6 +13,7 @@ use crate::host::structures::xhci_command_manager::{CommandResult, COMMAND_MANAG
 use crate::host::structures::xhci_slot_manager::{SlotManager, SLOT_MANAGER};
 use crate::{dma::DMAVec, host::structures::XHCI_CONFIG_MAX_PORTS};
 
+use super::xhci_usb_device::XHCIUSBDevice;
 use super::{registers, USBSpeed};
 
 // 定义静态变量ROOT_HUB，用于存储根集线器的实例
@@ -21,7 +21,7 @@ pub(crate) static ROOT_HUB: OnceCell<Spinlock<Roothub>> = OnceCell::uninit();
 
 pub struct RootPort {
     index: usize,
-    device: Option<Device64Byte>,
+    device: Option<XHCIUSBDevice>,
 }
 
 pub struct Roothub {
