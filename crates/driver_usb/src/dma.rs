@@ -7,6 +7,10 @@ use core::{
 
 use log::debug;
 
+
+pub trait DMAAllocator: Allocator + Clone {}
+
+
 pub struct DMAVec<A: Allocator, T> {
     layout: Layout,
     ptr: NonNull<[T]>,

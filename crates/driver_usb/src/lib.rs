@@ -7,6 +7,8 @@
 
 extern crate alloc;
 pub(crate) mod dma;
+pub(crate) mod addr;
+pub mod err;
 pub mod host;
 use core::alloc::Allocator;
 mod device_types;

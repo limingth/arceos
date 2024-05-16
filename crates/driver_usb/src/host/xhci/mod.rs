@@ -1,25 +1,31 @@
 #[cfg(feature = "phytium-xhci")]
 pub mod vl805;
 
+use alloc::borrow::ToOwned;
 use axhal::{irq::IrqHandler, mem::phys_to_virt};
-use core::num::NonZeroUsize;
-use log::{debug, error, info};
+use core::{alloc::Allocator, num::NonZeroUsize};
+use log::*;
 use xhci::{
-    accessor::Mapper,
     extended_capabilities::debug::EventRingDequeuePointer,
     registers::operational::{ConfigureRegister, DeviceNotificationControl},
     ExtendedCapability,
+    Registers, 
+    accessor::Mapper,
 };
-
 use aarch64_cpu::asm::barrier;
 
-use crate::host::structures::{
-    extended_capabilities,
-    roothub::{self, Roothub},
-    scratchpad, xhci_command_manager, xhci_event_manager, xhci_slot_manager,
+use crate::{
+    addr::VirtAddr,
+    dma::DMAAllocator,
+    err::*,
+    host::structures::{
+        extended_capabilities,
+        roothub::{self, Roothub},
+        scratchpad, xhci_command_manager, xhci_event_manager, xhci_slot_manager,
+    },
 };
 
-use super::structures::registers;
+use super::{structures::registers, USBHostConfig, USBHostImp};
 
 const ARM_IRQ_PCIE_HOST_INTA: usize = 143 + 32;
 const XHCI_CONFIG_MAX_EVENTS_PER_INTR: usize = 16;
@@ -132,4 +138,68 @@ fn reset_xhci_controller() {
 
         debug!("Reset xHCI Controller Globally");
     });
+}
+
+const TAG: &str = "[XHCI]";
+
+pub struct Xhci {
+    config: USBHostConfig,
+    regs: xhci::Registers<MemoryMapper>,
+}
+
+impl USBHostImp for Xhci {
+    fn new(config: USBHostConfig) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        let mmio_base = config.base_addr.as_usize();
+        debug!("{TAG} base addr: {:X}", mmio_base);
+        let regs = unsafe { xhci::Registers::new(mmio_base, MemoryMapper) };
+        let mut s = Self { config, regs };
+        s.init()?;
+        Ok(s)
+    }
+}
+
+impl Xhci {
+    fn init(&mut self) -> Result {
+        self.reset()?;
+        let version = self.regs.capability.hciversion.read_volatile();
+        info!("xhci version: {:x}", version.get());
+        Ok(())
+    }
+
+    fn reset(&mut self)->Result{
+        debug!("{TAG} reset begin");        
+        debug!("{TAG} stop");
+        self.regs.operational.usbcmd.update_volatile(|c| {
+            c.clear_run_stop();
+        });
+        debug!("{TAG} until halt");
+        while !self.regs.operational.usbsts.read_volatile().hc_halted() {}
+        debug!("{TAG} halted");
+
+
+        let mut o = &mut self.regs.operational;
+        // debug!("xhci stat: {:?}", o.usbsts.read_volatile());
+
+        debug!("{TAG} wait for ready...");
+        while o.usbsts.read_volatile().controller_not_ready() {}
+        debug!("{TAG} ready");
+
+        o.usbcmd.update_volatile(|f| {
+            f.set_host_controller_reset();
+        });
+
+        while o.usbcmd.read_volatile().host_controller_reset() {}
+
+        debug!("{TAG} reset HC");
+
+        while self.regs.operational.usbcmd.read_volatile().host_controller_reset()
+            || self.regs.operational.usbsts.read_volatile().controller_not_ready()
+        {}
+
+        info!("{TAG} XCHI reset ok");
+        Ok(())
+    }
 }

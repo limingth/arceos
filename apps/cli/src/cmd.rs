@@ -1,6 +1,6 @@
 use std::io::{self};
 
-use driver_usb::host::xhci::MemoryMapper;
+use driver_usb::host::{xhci::MemoryMapper, USBHost, USBHostConfig, Xhci};
 
 #[cfg(all(not(feature = "axstd"), unix))]
 
@@ -25,8 +25,16 @@ const CMD_TABLE: &[(&str, CmdHandler)] = &[
 ];
 
 fn test_xhci(_args: &str) {
-    driver_usb::try_init(0x31a08000 as usize)
+    // driver_usb::try_init(0x31a08000 as usize);
     // unsafe { xhci::Registers::new(0xffff_0000_31a0_8000 as usize, MemoryMapper {}) };
+
+    let phytium_cfg_id_0 = (0xffff_0000_31a0_8000, 48, 0);
+
+
+    let config = USBHostConfig::new(
+        phytium_cfg_id_0.0, phytium_cfg_id_0.1, phytium_cfg_id_0.2);
+    let usb = USBHost::<Xhci>::new(config).unwrap();
+
 }
 
 fn do_uname(_args: &str) {
