@@ -14,7 +14,13 @@ use super::registers;
 const XHCI_CONFIG_MAX_SLOTS: usize = 64;
 pub(crate) struct SlotManager {
     dcbaa: PageBox<[VirtAddr]>,
-    device: PageBox<[xhci::context::Device64Byte]>,
+    device: PageBox<[Device64Byte]>,
+}
+
+impl SlotManager {
+    pub fn assign_device(&mut self, valid_slot_id: u8, device: Device64Byte) {
+        self.device[valid_slot_id - 1] = device;
+    }
 }
 
 pub(crate) static SLOT_MANAGER: OnceCell<Spinlock<SlotManager>> = OnceCell::uninit();

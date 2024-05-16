@@ -1,15 +1,17 @@
 use core::{num, option, panic, result};
 
 use aarch64_cpu::registers::VTCR_EL2::SH0::Non;
+use alloc::string::String;
 use alloc::sync::Arc;
 use conquer_once::spin::OnceCell;
 use log::{debug, error, info};
 use page_box::PageBox;
 use spinning_top::{lock_api::Mutex, Spinlock};
-use xhci::context::Device64Byte;
+use xhci::context::{Device64Byte, DeviceHandler};
 use xhci::{context::Device, registers::PortRegisterSet};
 
-use crate::host::structures::xhci_command_manager::COMMAND_MANAGER;
+use crate::host::structures::xhci_command_manager::{CommandResult, COMMAND_MANAGER};
+use crate::host::structures::xhci_slot_manager::{SlotManager, SLOT_MANAGER};
 use crate::{dma::DMAVec, host::structures::XHCI_CONFIG_MAX_PORTS};
 
 use super::{registers, USBSpeed};
@@ -41,9 +43,9 @@ impl RootPort {
         })
     }
 
-    pub fn initialize(&mut self) {
-        if self.connected() {
-            return;
+    pub fn initialize(&mut self) -> Result<(), &str> {
+        if !self.connected() {
+            return Err("not connected");
         }
 
         registers::handle(|r| {
@@ -64,7 +66,7 @@ impl RootPort {
         let get_speed = self.get_speed();
         if get_speed == USBSpeed::USBSpeedUnknown {
             error!("unknown speed, index:{}", self.index);
-            return;
+            return Err("unknow index");
         }
         info!("port speed: {:?}", get_speed);
 
@@ -72,7 +74,18 @@ impl RootPort {
 
         debug!("initializing device 64!");
 
-        // COMMAND_MANAGER.get_unchecked().
+        if let Some(manager) = COMMAND_MANAGER.get() {
+            match manager.lock().enable_slot() {
+                CommandResult::Success(code, Some(asserted_slot_id)) => {
+                    SLOT_MANAGER.get().unwrap().lock().
+                }
+                _ => {
+                    error!("failed to enable slot!");
+                    return Err("error on enable slot");
+                }
+            }
+        }
+        Ok(())
     }
 
     fn get_speed(&self) -> USBSpeed {

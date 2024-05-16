@@ -5,9 +5,12 @@ use axhal::mem::VirtAddr;
 use conquer_once::spin::OnceCell;
 use log::debug;
 use spinning_top::Spinlock;
-use xhci::ring::trb::command::Allowed;
+use xhci::{
+    context::Slot,
+    ring::trb::command::{Allowed, DisableSlot, EnableSlot},
+};
 
-use super::{command_ring::CmdRing, registers};
+use super::{command_ring::CmdRing, registers, XHCI_CONFIG_MAX_SLOTS};
 use crate::dma::DMAVec;
 
 pub(crate) struct CommandManager {
@@ -18,26 +21,55 @@ pub(crate) struct CommandManager {
     uch_slot_id: u8,
 }
 
+type SlotID = u8;
+pub(crate) enum CommandResult {
+    Success(u8, Option<SlotID>),
+    NoSlotsAvailableError,
+    ShortPacket,
+    RingUnderrun,
+    RingOverrun,
+    EventRingFullError,
+    MissedServiceError,
+}
+
 impl CommandManager {
-    pub fn enable_slot(index: usize) -> bool {
-        false
+    fn slot_id_in_valid_range(slotid: u8) {
+        (1..=XHCI_CONFIG_MAX_SLOTS).contains(&(slotid as usize))
     }
 
-    pub fn do_command(&mut self, trb: Allowed, slot: &mut usize) -> u8 {
+    pub fn disable_slot(&mut self, slotid: SlotID) -> CommandResult {
+        if Self::slot_id_in_valid_range(slotid) {
+            let disable_slot = Allowed::DisableSlot(DisableSlot::new().set_slot_id(slotid));
+            self.do_command(disable_slot)
+        }
+        CommandResult::NoSlotsAvailableError
+    }
+
+    pub fn enable_slot(&mut self) -> CommandResult {
+        self.do_command(Allowed::EnableSlot(EnableSlot::new()))
+    }
+
+    pub fn do_command(&mut self, trb: Allowed) -> CommandResult {
         //todo check
         assert!(self.command_complete);
         let trb1 = trb.into_raw();
-        let mut self_trb = self.command_ring.get_enque_trb();
-        if let Some(selfTrb) = self_trb {
-            let raw = selfTrb; //TODO: ensure later
+        if let Some(poped) = self.command_ring.get_enque_trb() {
+            let raw = poped; //TODO: ensure later
             *raw = trb1;
             self.command_complete = false;
             self.command_ring.inc_enque();
 
-            registers::handle(|r| r.doorbell.write_volatile_at(0, 0.into()));
+            registers::handle(|r| {
+                r.doorbell.write_volatile_at(0, 0u32.into());
+            });
             while (!self.command_complete) {}
-            slot = self.uch_slot_id;
-            self.uch_complete_code
+            if Self::slot_id_in_valid_range(self.uch_slot_id) {
+                return CommandResult::Success(self.uch_complete_code, Some(self.uch_slot_id));
+            } else {
+                return CommandResult::NoSlotsAvailableError;
+            }
+        } else {
+            return CommandResult::RingOverrun;
         }
     }
 }
