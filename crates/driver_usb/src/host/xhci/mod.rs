@@ -147,7 +147,7 @@ pub struct Xhci {
     regs: xhci::Registers<MemoryMapper>,
     max_slots: u8,
     max_ports: u8,
-    max_irqs: u8,
+    max_irqs: u16,
 }
 
 impl USBHostImp for Xhci {
@@ -225,5 +225,5 @@ impl Xhci {
         Ok(())
     }
 
-    
+
 }
