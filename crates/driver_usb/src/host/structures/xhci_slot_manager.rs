@@ -1,13 +1,9 @@
-use alloc::{sync::Arc, vec};
 use axhal::mem::VirtAddr;
 use conquer_once::spin::OnceCell;
 use log::debug;
 use page_box::PageBox;
 use spinning_top::Spinlock;
-use xhci::{
-    context::{Device, Device64Byte, DeviceHandler, EndpointHandler},
-    extended_capabilities::debug,
-};
+use xhci::context::{Device, Device64Byte, DeviceHandler};
 
 use super::registers;
 
@@ -20,6 +16,12 @@ pub(crate) struct SlotManager {
 impl SlotManager {
     pub fn assign_device(&mut self, valid_slot_id: u8, device: Device64Byte) {
         self.device[valid_slot_id as usize - 1] = device;
+        self.dcbaa[valid_slot_id as usize] = unsafe {
+            self.device
+                .as_ptr()
+                .offset((valid_slot_id as usize - 1) as isize)
+        }
+        //TODO 需要考虑内存同步问题
     }
 }
 

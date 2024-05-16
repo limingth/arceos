@@ -76,9 +76,12 @@ impl RootPort {
 
         if let Some(manager) = COMMAND_MANAGER.get() {
             match manager.lock().enable_slot() {
-                CommandResult::Success(code, Some(asserted_slot_id)) => {
-                    SLOT_MANAGER.get().unwrap().lock();
-                }
+                CommandResult::Success(code, Some(asserted_slot_id)) => SLOT_MANAGER
+                    .get()
+                    .unwrap()
+                    .lock()
+                    .assign_device(asserted_slot_id, device),
+                //需要让device分配在指定的内存空间中
                 _ => {
                     error!("failed to enable slot!");
                     return Err("error on enable slot");
