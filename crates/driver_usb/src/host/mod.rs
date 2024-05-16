@@ -1,17 +1,5 @@
-mod structures;
 pub mod xhci;
 use crate::{addr::VirtAddr, dma::DMAAllocator, err::*};
-use axhal::mem::PhysAddr;
-use core::alloc::Allocator;
-use driver_common::BaseDriverOps;
-pub use xhci::Xhci;
-
-/// The information of the graphics device.
-#[derive(Debug, Clone, Copy)]
-pub struct USBHostInfo {}
-
-/// Operations that require a graphics device driver to implement.
-pub trait USBHostDriverOps: BaseDriverOps {}
 
 #[derive(Clone)]
 pub struct USBHostConfig
