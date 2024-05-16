@@ -33,14 +33,18 @@ pub(crate) enum CommandResult {
 }
 
 impl CommandManager {
-    fn slot_id_in_valid_range(slotid: u8) {
+    fn slot_id_in_valid_range(slotid: u8) -> bool {
         (1..=XHCI_CONFIG_MAX_SLOTS).contains(&(slotid as usize))
     }
 
     pub fn disable_slot(&mut self, slotid: SlotID) -> CommandResult {
         if Self::slot_id_in_valid_range(slotid) {
-            let disable_slot = Allowed::DisableSlot(DisableSlot::new().set_slot_id(slotid));
-            self.do_command(disable_slot)
+            let disable_slot = Allowed::DisableSlot({
+                let mut disable_slot = DisableSlot::new();
+                disable_slot.set_slot_id(slotid);
+                disable_slot
+            });
+            return self.do_command(disable_slot);
         }
         CommandResult::NoSlotsAvailableError
     }
@@ -52,15 +56,19 @@ impl CommandManager {
     pub fn do_command(&mut self, trb: Allowed) -> CommandResult {
         //todo check
         assert!(self.command_complete);
-        let trb1 = trb.into_raw();
+        let mut trb1 = trb.into_raw();
+        trb1[3] |= self.command_ring.cycle_state(); //weird
         if let Some(poped) = self.command_ring.get_enque_trb() {
-            let raw = poped; //TODO: ensure later
-            *raw = trb1;
+            *poped = trb1;
             self.command_complete = false;
             self.command_ring.inc_enque();
 
             registers::handle(|r| {
-                r.doorbell.write_volatile_at(0, 0u32.into());
+                r.doorbell.update_volatile_at(0, |d| {
+                    d.set_doorbell_stream_id(0);
+                    d.set_doorbell_target(0);
+                });
+                //TODO: suspect, view
             });
             while (!self.command_complete) {}
             if Self::slot_id_in_valid_range(self.uch_slot_id) {

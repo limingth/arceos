@@ -19,7 +19,7 @@ pub(crate) struct SlotManager {
 
 impl SlotManager {
     pub fn assign_device(&mut self, valid_slot_id: u8, device: Device64Byte) {
-        self.device[valid_slot_id - 1] = device;
+        self.device[valid_slot_id as usize - 1] = device;
     }
 }
 

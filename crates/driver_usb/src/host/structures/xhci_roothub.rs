@@ -77,7 +77,7 @@ impl RootPort {
         if let Some(manager) = COMMAND_MANAGER.get() {
             match manager.lock().enable_slot() {
                 CommandResult::Success(code, Some(asserted_slot_id)) => {
-                    SLOT_MANAGER.get().unwrap().lock().
+                    SLOT_MANAGER.get().unwrap().lock();
                 }
                 _ => {
                     error!("failed to enable slot!");
