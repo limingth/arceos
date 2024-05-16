@@ -1,7 +1,7 @@
 #[cfg(feature = "phytium-xhci")]
 pub mod vl805;
 
-use alloc::borrow::ToOwned;
+use alloc::{borrow::ToOwned, format};
 use axhal::{irq::IrqHandler, mem::phys_to_virt};
 use core::{alloc::Allocator, num::NonZeroUsize};
 use log::*;
@@ -145,6 +145,9 @@ const TAG: &str = "[XHCI]";
 pub struct Xhci {
     config: USBHostConfig,
     regs: xhci::Registers<MemoryMapper>,
+    max_slots: u8,
+    max_ports: u8,
+    max_irqs: u8,
 }
 
 impl USBHostImp for Xhci {
@@ -155,8 +158,10 @@ impl USBHostImp for Xhci {
         let mmio_base = config.base_addr.as_usize();
         debug!("{TAG} base addr: {:X}", mmio_base);
         let regs = unsafe { xhci::Registers::new(mmio_base, MemoryMapper) };
-        let mut s = Self { config, regs };
+        let mut s = Self { config, regs, max_slots:0,max_irqs:0, max_ports:0 };
         s.init()?;
+
+        info!("{TAG} init success");
         Ok(s)
     }
 }
@@ -164,8 +169,18 @@ impl USBHostImp for Xhci {
 impl Xhci {
     fn init(&mut self) -> Result {
         self.reset()?;
-        let version = self.regs.capability.hciversion.read_volatile();
-        info!("xhci version: {:x}", version.get());
+        // TODO: pcie 未配置，读不出来 
+        // let version = self.regs.capability.hciversion.read_volatile();
+        // info!("xhci version: {:x}", version.get());
+        let hcsp1 = self.regs.capability.hcsparams1.read_volatile();
+        let max_slots = hcsp1.number_of_device_slots();
+        let max_ports = hcsp1.number_of_ports();
+        let max_irqs = hcsp1.number_of_interrupts();
+        debug!("{TAG} max_slots: {}, max_ports: {}, max_irqs: {}", max_slots, max_ports, max_irqs);
+        self.max_slots = max_slots;
+        self.max_ports = max_ports;
+        self.max_irqs = max_irqs;
+
         Ok(())
     }
 
@@ -202,4 +217,13 @@ impl Xhci {
         info!("{TAG} XCHI reset ok");
         Ok(())
     }
+
+    fn check_slot(&self, slot: u8)->Result{
+        if slot > self.max_slots{
+            return Err(Error::Param(format!("slot {} > max {}", slot, self.max_slots)));
+        }
+        Ok(())
+    }
+
+    
 }

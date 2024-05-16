@@ -50,4 +50,8 @@ where
         let usb = U::new(config.clone())?;
         Ok(Self { config, usb })
     }
+
+    // fn init_dev_entry(&self, slot_id : i32)->Result{
+
+    // }
 }
