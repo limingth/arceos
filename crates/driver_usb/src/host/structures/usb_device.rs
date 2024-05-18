@@ -1,9 +1,10 @@
-pub(crate) mod sub{
-    pub(crate) const USBDEV_MAX_FUNCTIONS:u16 = 10;
-    pub(crate) enum TDeviceNameSelector{
+pub(crate) mod sub {
+
+    pub(crate) const USBDEV_MAX_FUNCTIONS: u16 = 10;
+    pub(crate) enum TDeviceNameSelector {
         DeviceNameVendor,
         DeviceNameDevice,
-        DeviceNameUnknown
+        DeviceNameUnknown,
     }
 
     impl TDeviceNameSelector {
@@ -17,15 +18,16 @@ pub(crate) mod sub{
         }
     }
 
-    pub(crate) struct CUSBHostController;
-    pub(crate) struct CUSBHCIRootPort;
-    pub(crate) struct CUSBStandardHub;
-    pub(crate) struct CUSBEndpoint;
+    pub(crate) struct USBHostController;
+    pub(crate) struct USBHCIRootPort;
+    pub(crate) struct USBStandardHub;
+    pub(crate) struct USBEndpoint;
 
-    pub(crate) struct CUSBDevice{
-        p_host: CUSBHostController,
-        p_root_port: CUSBHCIRootPort,
-        p_hub: CUSBStandardHub,
+    pub(crate) struct USBDevice {
+        //todo use xhci::context::Device64Byte;
+        p_host: USBHostController,
+        p_root_port: USBHCIRootPort,
+        p_hub: USBStandardHub,
         p_hub_port_index: u16,
         uc_address: u8,
         //todo

@@ -1,3 +1,5 @@
+mod descriptor;
+mod context;
 mod xhci_usb_device;
 // 命令管理器、事件管理器和插槽管理器等模块。
 pub(super) mod extended_capabilities;
@@ -11,9 +13,9 @@ pub(super) mod xhci_slot_manager;
 pub(crate) mod command_ring;
 pub(crate) mod event_ring;
 pub(super) mod scratchpad;
-mod usb_device;
-mod usb_audio;
 mod usb;
+mod usb_audio;
+mod usb_device;
 
 #[derive(Debug, PartialEq)]
 enum USBSpeed {

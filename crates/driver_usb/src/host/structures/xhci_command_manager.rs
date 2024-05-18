@@ -7,7 +7,7 @@ use log::debug;
 use spinning_top::Spinlock;
 use xhci::{
     context::Slot,
-    ring::trb::command::{Allowed, DisableSlot, EnableSlot},
+    ring::trb::command::{AddressDevice, Allowed, DisableSlot, EnableSlot},
 };
 
 use super::{command_ring::CmdRing, registers, XHCI_CONFIG_MAX_SLOTS};
@@ -53,6 +53,22 @@ impl CommandManager {
         self.do_command(Allowed::EnableSlot(EnableSlot::new()))
     }
 
+    pub fn address_device(&mut self, addr: VirtAddr, slot_id: u8) -> CommandResult {
+        self.do_command(Allowed::AddressDevice({
+            let mut address_device = AddressDevice::default();
+            address_device
+                .set_input_context_pointer(addr.as_usize() as u64)
+                .set_slot_id(slot_id);
+            address_device
+        }))
+    }
+
+    pub fn do_commands(&mut self, trb: &[Allowed]) {
+        trb.iter().for_each(|trb| {
+            self.do_command(*trb);
+        })
+    }
+
     pub fn do_command(&mut self, trb: Allowed) -> CommandResult {
         //todo check
         assert!(self.command_complete);
@@ -79,6 +95,10 @@ impl CommandManager {
         } else {
             return CommandResult::RingOverrun;
         }
+    }
+
+    pub fn command_ring_ptr(&self) -> VirtAddr {
+        self.command_ring.get_ring_addr()
     }
 }
 

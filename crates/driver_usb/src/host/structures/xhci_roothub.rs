@@ -22,7 +22,7 @@ use super::{registers, USBSpeed};
 pub(crate) static ROOT_HUB: OnceCell<Spinlock<Roothub>> = OnceCell::uninit();
 
 pub struct RootPort {
-    index: usize,
+    root_port_id: usize,
     device: Arc<MaybeUninit<XHCIUSBDevice>, GlobalNoCacheAllocator>,
 }
 
@@ -31,45 +31,56 @@ impl RootPort {
 
     pub fn initialize(&mut self) {
         if !self.connected() {
-            error!("not connected");
+            error!("port {} not connected", self.root_port_id);
+            return;
         }
 
         registers::handle(|r| {
             // r.port_register_set.read_volatile_at(self.index).portsc.port_link_state() // usb 3, not complete code
             //DEBUG lets just use usb 2 job sequence? should be compaible? might stuck at here
-            r.port_register_set.update_volatile_at(self.index, |prs| {
-                prs.portsc.port_reset();
+            r.port_register_set
+                .update_volatile_at(self.root_port_id, |prs| {
+                    prs.portsc.set_port_reset();
 
-                prs.portsc.set_port_reset();
+                    // prs.portsc.set_0_port_enabled_disabled();
 
-                prs.portsc.set_0_port_enabled_disabled();
-
-                debug!("waiting for port reset!");
-                while !prs.portsc.port_reset() {}
-            })
+                    // debug!("waiting for port reset!");
+                    // while !prs.portsc.port_reset() {}
+                })
         });
+
+        //waiting for reset
+        while !registers::handle(|r| {
+            r.port_register_set
+                .read_volatile_at(self.root_port_id)
+                .portsc
+                .port_reset_change()
+        }) {}
 
         let get_speed = self.get_speed();
         if get_speed == USBSpeed::USBSpeedUnknown {
-            error!("unknown speed, index:{}", self.index);
+            error!("unknown speed, index:{}", self.root_port_id);
         }
         info!("port speed: {:?}", get_speed);
 
         info!("initializing device: {:?}", get_speed);
 
-        unsafe {
-            Arc::get_mut(&mut self.device)
-                .unwrap()
-                .write(XHCIUSBDevice::initialize())
-        };
+        if let Ok(device) = XHCIUSBDevice::new(self.root_port_id as u8) {
+            unsafe {
+                Arc::get_mut(&mut self.device)
+                    .unwrap()
+                    .write(device)
+                    .initialize()
+            };
+        }
     }
 
     pub fn status_changed(&self) {
         // 检查MMIO（内存映射I/O），确保索引在有效范围内
-        assert!(self.index < XHCI_CONFIG_MAX_PORTS);
+        assert!(self.root_port_id < XHCI_CONFIG_MAX_PORTS);
         registers::handle(|r| {
             r.port_register_set
-                .update_volatile_at(self.index, |port_register_set| {
+                .update_volatile_at(self.root_port_id, |port_register_set| {
                     // TODO: check here
                     port_register_set.portsc.clear_port_enabled_disabled();
                 })
@@ -80,7 +91,7 @@ impl RootPort {
     fn get_speed(&self) -> USBSpeed {
         registers::handle(|r| {
             r.port_register_set
-                .read_volatile_at(self.index)
+                .read_volatile_at(self.root_port_id)
                 .portsc
                 .port_speed()
         })
@@ -90,7 +101,7 @@ impl RootPort {
     pub fn connected(&self) -> bool {
         registers::handle(|r| {
             r.port_register_set
-                .read_volatile_at(self.index)
+                .read_volatile_at(self.root_port_id)
                 .portsc
                 .current_connect_status()
         })
@@ -99,7 +110,7 @@ impl RootPort {
 
 pub struct Roothub {
     ports: usize,
-    root_ports: PageBox<[Arc<MaybeUninit<Spinlock<RootPort>>, GlobalNoCacheAllocator>]>,
+    root_ports: PageBox<[Arc<MaybeUninit<Spinlock<RootPort>>>]>,
 }
 
 impl Roothub {
@@ -142,10 +153,7 @@ pub(crate) fn new() {
     // 通过MMIO读取根集线器支持的端口数量
     registers::handle(|r| {
         let number_of_ports = r.capability.hcsparams1.read_volatile().number_of_ports() as usize;
-        let mut root_ports = PageBox::new_slice(
-            Arc::new_uninit_in(axalloc::global_no_cache_allocator()),
-            number_of_ports,
-        ); //DEBUG: using nocache allocator
+        let mut root_ports = PageBox::new_slice(Arc::new_uninit(), number_of_ports); //DEBUG: using nocache allocator
         debug!("number of ports:{}", number_of_ports);
         root_ports
             .iter_mut()
@@ -154,7 +162,7 @@ pub(crate) fn new() {
                 Arc::get_mut(port_uninit)
                     .unwrap()
                     .write(Spinlock::new(RootPort {
-                        index: i,
+                        root_port_id: i,
                         device: Arc::new_uninit_in(axalloc::global_no_cache_allocator()),
                     }));
             });

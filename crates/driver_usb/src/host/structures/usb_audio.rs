@@ -123,7 +123,6 @@ impl SubHeaderV100 {
     pub(crate) const USB_AUDIO_CTL_IFACE_BCDADC_100: u16 = 0x100;
 }
 
-
 #[repr(C, packed)]
 pub(crate) struct SubInputTerminalV100 {
     b_terminal_id: u8,
@@ -294,6 +293,7 @@ impl TUSBAudioStreamingInterfaceDescriptor {
 }
 
 #[repr(C, packed)]
+#[derive(Clone, Copy)]
 pub(crate) struct SubTUSBAudioStreamingInterfaceDescriptorVer100 {
     b_terminal_link: u8,
     b_delay: u8,
@@ -301,6 +301,7 @@ pub(crate) struct SubTUSBAudioStreamingInterfaceDescriptorVer100 {
 }
 
 #[repr(C, packed)]
+#[derive(Clone, Copy)]
 pub(crate) struct SubTUSBAudioStreamingInterfaceDescriptorVer200 {
     b_terminal_link: u8,
     b_delay: u8,
@@ -348,7 +349,6 @@ pub(crate) union SubFormatTypeDescriptorVerUnion {
     ver100: SubTUSBAudioTypeIFormatTypeDescriptorVer100,
     ver200: SubTUSBAudioTypeIFormatTypeDescriptorV200,
 }
-
 
 // Audio class control requests
 pub(crate) const USB_AUDIO_REQ_SET_CUR: u8 = 0x01;

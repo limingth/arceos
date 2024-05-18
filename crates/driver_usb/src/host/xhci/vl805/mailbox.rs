@@ -1,6 +1,7 @@
 use alloc::vec::{self, Vec};
 use axhal::mem::phys_to_virt;
 use axhal::time;
+use bit_field::BitField;
 use core::time::Duration;
 use core::{
     mem::size_of,
