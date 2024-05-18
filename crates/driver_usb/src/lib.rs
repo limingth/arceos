@@ -3,6 +3,7 @@
 #![no_std]
 #![feature(allocator_api)]
 #![feature(strict_provenance)]
+#![feature(new_uninit)]
 #![allow(warnings)]
 
 extern crate alloc;

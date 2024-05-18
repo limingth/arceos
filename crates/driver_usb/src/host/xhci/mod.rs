@@ -11,8 +11,6 @@ use xhci::{
     ExtendedCapability,
 };
 
-use aarch64_cpu::asm::barrier;
-
 use crate::host::structures::{
     extended_capabilities, scratchpad, xhci_command_manager, xhci_event_manager,
     xhci_roothub::{self, Roothub},

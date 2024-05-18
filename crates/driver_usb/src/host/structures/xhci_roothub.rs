@@ -1,7 +1,9 @@
+use core::mem::MaybeUninit;
 use core::{num, option, panic, result};
 
 use alloc::string::String;
 use alloc::sync::Arc;
+use axalloc::GlobalNoCacheAllocator;
 use conquer_once::spin::OnceCell;
 use log::{debug, error, info};
 use page_box::PageBox;
@@ -21,36 +23,20 @@ pub(crate) static ROOT_HUB: OnceCell<Spinlock<Roothub>> = OnceCell::uninit();
 
 pub struct RootPort {
     index: usize,
-    device: Option<XHCIUSBDevice>,
-}
-
-pub struct Roothub {
-    ports: usize,
-    root_ports: PageBox<[Option<Arc<Spinlock<RootPort>>>]>,
+    device: Arc<MaybeUninit<XHCIUSBDevice>, GlobalNoCacheAllocator>,
 }
 
 impl RootPort {
-    pub fn status_changed(&self) {
-        // 检查MMIO（内存映射I/O），确保索引在有效范围内
-        assert!(self.index < XHCI_CONFIG_MAX_PORTS);
-        registers::handle(|r| {
-            r.port_register_set
-                .update_volatile_at(self.index, |port_register_set| {
-                    // TODO: check here
-                    port_register_set.portsc.clear_port_enabled_disabled();
-                })
-            // TODO: is plug and play support
-        })
-    }
+    pub fn configure(&mut self) {}
 
-    pub fn initialize(&mut self) -> Result<(), &str> {
+    pub fn initialize(&mut self) {
         if !self.connected() {
-            return Err("not connected");
+            error!("not connected");
         }
 
         registers::handle(|r| {
             // r.port_register_set.read_volatile_at(self.index).portsc.port_link_state() // usb 3, not complete code
-            //lets just use usb 2 job sequence? should be compaible
+            //DEBUG lets just use usb 2 job sequence? should be compaible? might stuck at here
             r.port_register_set.update_volatile_at(self.index, |prs| {
                 prs.portsc.port_reset();
 
@@ -66,33 +52,29 @@ impl RootPort {
         let get_speed = self.get_speed();
         if get_speed == USBSpeed::USBSpeedUnknown {
             error!("unknown speed, index:{}", self.index);
-            return Err("unknow index");
         }
         info!("port speed: {:?}", get_speed);
 
-        let mut device = Device::new_64byte();
+        info!("initializing device: {:?}", get_speed);
 
-        debug!("initializing device 64!");
+        unsafe {
+            Arc::get_mut(&mut self.device)
+                .unwrap()
+                .write(XHCIUSBDevice::initialize())
+        };
+    }
 
-        if let Some(manager) = COMMAND_MANAGER.get() {
-            match manager.lock().enable_slot() {
-                CommandResult::Success(code, Some(asserted_slot_id)) => {
-                    SLOT_MANAGER
-                        .get()
-                        .unwrap()
-                        .lock()
-                        .assign_device(asserted_slot_id, device);
-
-                    {}
-                }
-                //需要让device分配在指定的内存空间中
-                _ => {
-                    error!("failed to enable slot!");
-                    return Err("error on enable slot");
-                }
-            }
-        }
-        Ok(())
+    pub fn status_changed(&self) {
+        // 检查MMIO（内存映射I/O），确保索引在有效范围内
+        assert!(self.index < XHCI_CONFIG_MAX_PORTS);
+        registers::handle(|r| {
+            r.port_register_set
+                .update_volatile_at(self.index, |port_register_set| {
+                    // TODO: check here
+                    port_register_set.portsc.clear_port_enabled_disabled();
+                })
+            // TODO: is plug and play support
+        })
     }
 
     fn get_speed(&self) -> USBSpeed {
@@ -115,6 +97,27 @@ impl RootPort {
     }
 }
 
+pub struct Roothub {
+    ports: usize,
+    root_ports: PageBox<[Arc<MaybeUninit<Spinlock<RootPort>>, GlobalNoCacheAllocator>]>,
+}
+
+impl Roothub {
+    pub fn initialize(&mut self) {
+        //todo delay?
+
+        self.root_ports
+            .iter_mut()
+            .map(|a| unsafe { a.clone().assume_init() })
+            .for_each(|arc| arc.lock().initialize());
+
+        self.root_ports
+            .iter_mut()
+            .map(|a| unsafe { a.clone().assume_init() })
+            .for_each(|arc| arc.lock().configure());
+    }
+}
+
 // 当接收到根端口状态变化的通知时调用
 pub(crate) fn status_changed(uch_port_id: u8) {
     // 将UCH端口ID转换为索引，并确保索引在有效范围内
@@ -126,8 +129,9 @@ pub(crate) fn status_changed(uch_port_id: u8) {
     assert!(n_port < root_hub.ports, "Port index out of bounds");
 
     // 如果端口存在，则更新其状态
-    if let Some(arc_root_port) = &root_hub.root_ports[n_port] {
+    if let arc_root_port = unsafe { root_hub.root_ports[n_port].clone().assume_init() } {
         let mut root_port = arc_root_port.lock();
+        //check: does clone affect value?
         root_port.status_changed();
     } else {
         panic!("Root port doesn't exist");
@@ -138,14 +142,22 @@ pub(crate) fn new() {
     // 通过MMIO读取根集线器支持的端口数量
     registers::handle(|r| {
         let number_of_ports = r.capability.hcsparams1.read_volatile().number_of_ports() as usize;
-        let mut root_ports = PageBox::new_slice(Option::None, number_of_ports);
+        let mut root_ports = PageBox::new_slice(
+            Arc::new_uninit_in(axalloc::global_no_cache_allocator()),
+            number_of_ports,
+        ); //DEBUG: using nocache allocator
         debug!("number of ports:{}", number_of_ports);
-        for i in 0..number_of_ports {
-            root_ports[i] = Some(Arc::new(Spinlock::new(RootPort {
-                index: i as usize,
-                device: Option::None,
-            })))
-        }
+        root_ports
+            .iter_mut()
+            .enumerate()
+            .for_each(|(i, port_uninit)| {
+                Arc::get_mut(port_uninit)
+                    .unwrap()
+                    .write(Spinlock::new(RootPort {
+                        index: i,
+                        device: Arc::new_uninit_in(axalloc::global_no_cache_allocator()),
+                    }));
+            });
         // 初始化ROOT_HUB静态变量
         ROOT_HUB.init_once(move || {
             Roothub {
