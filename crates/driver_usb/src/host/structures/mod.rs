@@ -11,6 +11,9 @@ pub(super) mod xhci_slot_manager;
 pub(crate) mod command_ring;
 pub(crate) mod event_ring;
 pub(super) mod scratchpad;
+mod usb_device;
+mod usb_audio;
+mod usb;
 
 #[derive(Debug, PartialEq)]
 enum USBSpeed {
