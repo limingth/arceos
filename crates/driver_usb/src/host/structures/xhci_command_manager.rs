@@ -70,6 +70,7 @@ impl CommandManager {
     }
 
     pub fn do_command(&mut self, trb: Allowed) -> CommandResult {
+        debug!("do command {:?} !", trb);
         //todo check
         assert!(self.command_complete);
         let mut trb1 = trb.into_raw();
@@ -86,7 +87,9 @@ impl CommandManager {
                 });
                 //TODO: suspect, view
             });
+            debug!("waiting for interrupt handler complete!");
             while (!self.command_complete) {}
+            debug!("interrupt handler complete!");
             if Self::slot_id_in_valid_range(self.uch_slot_id) {
                 return CommandResult::Success(self.uch_complete_code, Some(self.uch_slot_id));
             } else {

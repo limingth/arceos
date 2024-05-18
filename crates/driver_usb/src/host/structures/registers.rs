@@ -27,7 +27,6 @@ pub(crate) fn handle<T, U>(f: T) -> U
 where
     T: FnOnce(&mut Registers<MemoryMapper>) -> U,
 {
-    info!("handleing!");
     let mut r = REGISTERS.try_get().unwrap().lock();
     f(&mut r)
 }

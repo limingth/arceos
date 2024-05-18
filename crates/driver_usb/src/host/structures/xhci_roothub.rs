@@ -34,6 +34,7 @@ impl RootPort {
             error!("port {} not connected", self.root_port_id);
             return;
         }
+        debug!("port {} connected, continue", self.root_port_id);
 
         registers::handle(|r| {
             // r.port_register_set.read_volatile_at(self.index).portsc.port_link_state() // usb 3, not complete code
@@ -42,28 +43,30 @@ impl RootPort {
                 .update_volatile_at(self.root_port_id, |prs| {
                     prs.portsc.set_port_reset();
 
-                    // prs.portsc.set_0_port_enabled_disabled();
+                    prs.portsc.set_0_port_enabled_disabled();
 
-                    // debug!("waiting for port reset!");
-                    // while !prs.portsc.port_reset() {}
+                    debug!("waiting for port reset!");
+                    while !prs.portsc.port_reset() {}
                 })
         });
 
-        //waiting for reset
-        while !registers::handle(|r| {
-            r.port_register_set
-                .read_volatile_at(self.root_port_id)
-                .portsc
-                .port_reset_change()
-        }) {}
+        // //waiting for reset
+        // while !registers::handle(|r| {
+        //     r.port_register_set
+        //         .read_volatile_at(self.root_port_id)
+        //         .portsc
+        //         .port_reset_change()
+        // }) {}
+
+        debug!("port {} reset!", self.root_port_id);
 
         let get_speed = self.get_speed();
         if get_speed == USBSpeed::USBSpeedUnknown {
             error!("unknown speed, index:{}", self.root_port_id);
         }
-        info!("port speed: {:?}", get_speed);
+        debug!("port speed: {:?}", get_speed);
 
-        info!("initializing device: {:?}", get_speed);
+        debug!("initializing device: {:?}", get_speed);
 
         if let Ok(device) = XHCIUSBDevice::new(self.root_port_id as u8) {
             unsafe {
@@ -116,16 +119,21 @@ pub struct Roothub {
 impl Roothub {
     pub fn initialize(&mut self) {
         //todo delay?
-
+        debug!("initializing root ports");
         self.root_ports
             .iter_mut()
             .map(|a| unsafe { a.clone().assume_init() })
-            .for_each(|arc| arc.lock().initialize());
+            .for_each(|arc| {
+                arc.lock().initialize();
+            });
 
+        debug!("configuring root ports");
         self.root_ports
             .iter_mut()
             .map(|a| unsafe { a.clone().assume_init() })
-            .for_each(|arc| arc.lock().configure());
+            .for_each(|arc| {
+                arc.lock().configure();
+            });
     }
 }
 
@@ -159,12 +167,14 @@ pub(crate) fn new() {
             .iter_mut()
             .enumerate()
             .for_each(|(i, port_uninit)| {
-                Arc::get_mut(port_uninit)
-                    .unwrap()
-                    .write(Spinlock::new(RootPort {
-                        root_port_id: i,
-                        device: Arc::new_uninit_in(axalloc::global_no_cache_allocator()),
-                    }));
+                debug!("allocating port {i}");
+                unsafe { Arc::get_mut_unchecked(port_uninit) }.write(Spinlock::new(RootPort {
+                    root_port_id: i,
+                    device: Arc::new_uninit_in(axalloc::global_no_cache_allocator()),
+                }));
+                debug!("assert:{} == {i}", unsafe {
+                    port_uninit.clone().assume_init().lock().root_port_id
+                })
             });
         // 初始化ROOT_HUB静态变量
         ROOT_HUB.init_once(move || {

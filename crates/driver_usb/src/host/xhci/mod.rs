@@ -7,13 +7,16 @@ use log::{debug, error, info};
 use xhci::{
     accessor::Mapper,
     extended_capabilities::debug::{self, EventRingDequeuePointer},
-    registers::operational::{ConfigureRegister, DeviceNotificationControl},
+    registers::{
+        doorbell::Register,
+        operational::{ConfigureRegister, DeviceNotificationControl},
+    },
     ExtendedCapability,
 };
 
 use crate::host::structures::{
     extended_capabilities, scratchpad, xhci_command_manager, xhci_event_manager,
-    xhci_roothub::{self, Roothub},
+    xhci_roothub::{self, Roothub, ROOT_HUB},
     xhci_slot_manager,
 };
 
@@ -29,7 +32,7 @@ pub struct MemoryMapper;
 impl Mapper for MemoryMapper {
     unsafe fn map(&mut self, phys_base: usize, bytes: usize) -> NonZeroUsize {
         // let virt = phys_to_virt(phys_base.into());
-        // info!("mapping: [{:x}]->[{:x}]", phys_base, virt.as_usize());
+        // debug!("mapping: [{:x}]->[{:x}]", phys_base, virt.as_usize());
         // return NonZeroUsize::new_unchecked(virt.as_usize());
         return NonZeroUsize::new_unchecked(phys_base);
     }
@@ -74,6 +77,23 @@ pub(crate) fn init(mmio_base: usize) {
         "init completed!, coltroller state:{:?}",
         registers::handle(|r| r.operational.usbsts.read_volatile())
     );
+
+    let number_of_ports =
+        registers::handle(|r| r.capability.hcsparams1.read_volatile().number_of_ports() as usize);
+
+    for i in 0..number_of_ports {
+        debug!(
+            "port{i} : {}",
+            registers::handle(|r| r
+                .port_register_set
+                .read_volatile_at(i)
+                .portsc
+                .current_connect_status())
+        )
+    }
+
+    debug!("initializing roothub");
+    ROOT_HUB.get().unwrap().lock().initialize();
 }
 
 fn interrupt_handler() {

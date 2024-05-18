@@ -44,7 +44,7 @@ impl<A: Allocator + Clone> VL805<A> {
 
         // debug!("xhci wait for ready...");
         // while o.usbsts.read_volatile().controller_not_ready() {}
-        // info!("xhci ok");
+        // debug!("xhci ok");
 
         // o.usbcmd.update_volatile(|f| {
         //     f.set_host_controller_reset();
@@ -52,7 +52,7 @@ impl<A: Allocator + Clone> VL805<A> {
 
         // while o.usbcmd.read_volatile().host_controller_reset() {}
 
-        // info!("XHCI reset HC");
+        // debug!("XHCI reset HC");
         super::init(mmio_base);
         VL805 {
             base_addr: mmio_base,

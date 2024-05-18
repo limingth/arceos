@@ -124,6 +124,11 @@ impl XHCIUSBDevice {
             CommandResult::Success(_, _) => debug!("addressed device at slot id {}", self.slot_id),
             err => error!("error while address device at slot id {}", self.slot_id),
         }
+
+        debug!(
+            "device (port-{}:slot-{}) initialize complete!",
+            self.port_id, self.slot_id
+        );
     }
     pub(crate) fn get_max_packet_size_from_device_descriptor(&mut self) -> u16 {
         let b = PageBox::from(descriptor::Device::default());

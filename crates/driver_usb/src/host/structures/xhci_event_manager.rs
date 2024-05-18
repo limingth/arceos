@@ -99,13 +99,13 @@ pub(crate) fn new() {
 }
 
 pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
-    info!("start to handle event...\n");
+    debug!("start to handle event...\n");
     if let Some(manager) = EVENT_MANAGER.get().unwrap().try_lock() {
         if let Some(trb) = manager.event_ring.get_deque_trb() {
             match trb {
                 EventAllowed::TransferEvent(evt) => {
-                    info!("event = {:?}", evt);
-                    info!("step into transfer event\n");
+                    debug!("event = {:?}", evt);
+                    debug!("step into transfer event\n");
                     // let trb_array = trb.into_raw();
                     // TODO: transfer_event
                     // transfer_event(
@@ -116,7 +116,7 @@ pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
                     // )
                 }
                 EventAllowed::CommandCompletion(_) => {
-                    info!("step into command completion.\n");
+                    debug!("step into command completion.\n");
                     let trb_array = trb.into_raw();
                     command_completed(
                         (((trb_array[0] as usize) << 32) | ((trb_array[1] as usize) << 32)).into(),
@@ -129,7 +129,7 @@ pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
                     )
                 }
                 EventAllowed::PortStatusChange(_) => {
-                    info!("step into port status change.\n");
+                    debug!("step into port status change.\n");
                     let trb_array = trb.into_raw();
                     assert!(
                         trb_array[2] >> XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT
@@ -144,7 +144,7 @@ pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
                 EventAllowed::BandwidthRequest(_) => todo!(),
                 EventAllowed::Doorbell(_) => todo!(),
                 EventAllowed::HostController(_) => {
-                    info!("step into host controller.\n");
+                    debug!("step into host controller.\n");
                     let trb_array = trb.into_raw();
                     let uch_completion_code =
                         trb_array[2] >> XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT;
@@ -155,7 +155,7 @@ pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
                         }
                         _ => todo!(),
                     }
-                    info!("Host controller event completion")
+                    debug!("Host controller event completion")
                 }
                 EventAllowed::DeviceNotification(_) => todo!(),
                 EventAllowed::MfindexWrap(_) => todo!(),

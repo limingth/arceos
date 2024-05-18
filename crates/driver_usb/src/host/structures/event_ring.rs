@@ -3,7 +3,7 @@ use core::{char::REPLACEMENT_CHARACTER, marker::PhantomData, mem};
 use alloc::vec::Vec;
 use axhal::mem::VirtAddr;
 use futures_util::stream::All;
-use log::info;
+use log::{debug, info};
 use page_box::PageBox;
 use xhci::ring::trb::{self, event::Allowed, Link};
 
@@ -30,7 +30,7 @@ impl EvtRing {
                 cycle_state: XHCI_TRB_CONTROL_C as u32,
             };
 
-            info!("created!");
+            debug!("created!");
 
             event_ring
         })
