@@ -34,6 +34,7 @@ pub(crate) enum CommandResult {
 
 impl CommandManager {
     fn slot_id_in_valid_range(slotid: u8) -> bool {
+        debug!("uch_slot_id:{slotid}");
         (1..=XHCI_CONFIG_MAX_SLOTS).contains(&(slotid as usize))
     }
 
@@ -97,6 +98,7 @@ impl CommandManager {
             }
 
             if Self::slot_id_in_valid_range(self.uch_slot_id) {
+                debug!("slot id valid!");
                 return CommandResult::Success(self.uch_complete_code, Some(self.uch_slot_id));
             } else {
                 return CommandResult::NoSlotsAvailableError;
@@ -114,7 +116,9 @@ impl CommandManager {
 pub(crate) static COMMAND_MANAGER: OnceCell<Spinlock<CommandManager>> = OnceCell::uninit();
 
 pub(crate) fn command_completed(trb: VirtAddr, uch_complete_code: u8, uch_slot_id: u8) {
-    let mut command_manager = COMMAND_MANAGER.try_get().unwrap().lock();
+    debug!("command_complete: trying to lock!");
+    let mut command_manager = unsafe { &mut (*COMMAND_MANAGER.try_get().unwrap().data_ptr()) };
+    debug!("command_complete: locked!");
     if command_manager.command_complete || command_manager.current_trb != trb {
         debug!(
             "equal! return ! {},0x{:x}",

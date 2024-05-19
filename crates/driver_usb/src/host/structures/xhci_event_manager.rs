@@ -100,7 +100,8 @@ pub(crate) fn new() {
 
 pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
     debug!("start to handle event...\n");
-    if let Some(manager) = EVENT_MANAGER.get().unwrap().try_lock() {
+    //TODO 事件环返回的TRB应当被入队，需要修改
+    if let Some(mut manager) = EVENT_MANAGER.get().unwrap().try_lock() {
         if let Some(trb) = manager.event_ring.get_deque_trb() {
             match trb {
                 EventAllowed::TransferEvent(evt) => {
@@ -162,7 +163,8 @@ pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
                 EventAllowed::DeviceNotification(_) => todo!(),
                 EventAllowed::MfindexWrap(_) => todo!(),
             }
-        }
+        };
+        manager.event_ring.inc_deque();
     }
     return Err(());
 }
