@@ -126,7 +126,8 @@ pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
                         (trb_array[3] >> XHCI_CMD_COMPLETION_EVENT_TRB_CONTROL_SLOTID_SHIFT)
                             .try_into()
                             .unwrap(),
-                    )
+                    );
+                    return Ok(TypeXhciTrb::default());
                 }
                 EventAllowed::PortStatusChange(_) => {
                     debug!("step into port status change.\n");
@@ -135,11 +136,12 @@ pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
                         trb_array[2] >> XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT
                             == CompletionCode::Success as u32
                     );
+                    debug!("exec handler!");
                     status_changed(
                         (trb_array[0] >> XHCI_PORT_STATUS_EVENT_TRB_PARAMETER1_PORTID_SHIFT)
                             .try_into()
                             .unwrap(),
-                    )
+                    );
                 }
                 EventAllowed::BandwidthRequest(_) => todo!(),
                 EventAllowed::Doorbell(_) => todo!(),

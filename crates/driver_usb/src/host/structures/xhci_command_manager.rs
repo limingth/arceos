@@ -11,7 +11,7 @@ use xhci::{
 };
 
 use super::{command_ring::CmdRing, registers, XHCI_CONFIG_MAX_SLOTS};
-use crate::dma::DMAVec;
+use crate::{dma::DMAVec, host::structures::xhci_event_manager};
 
 pub(crate) struct CommandManager {
     command_ring: CmdRing,
@@ -88,8 +88,14 @@ impl CommandManager {
                 //TODO: suspect, view
             });
             debug!("waiting for interrupt handler complete!");
-            while (!self.command_complete) {}
-            debug!("interrupt handler complete!");
+            // while (!self.command_complete) {}
+            while let handle_event = xhci_event_manager::handle_event() {
+                if handle_event.is_ok() {
+                    debug!("interrupt handler complete! result = {:?}", handle_event);
+                    break;
+                }
+            }
+
             if Self::slot_id_in_valid_range(self.uch_slot_id) {
                 return CommandResult::Success(self.uch_complete_code, Some(self.uch_slot_id));
             } else {
@@ -110,7 +116,12 @@ pub(crate) static COMMAND_MANAGER: OnceCell<Spinlock<CommandManager>> = OnceCell
 pub(crate) fn command_completed(trb: VirtAddr, uch_complete_code: u8, uch_slot_id: u8) {
     let mut command_manager = COMMAND_MANAGER.try_get().unwrap().lock();
     if command_manager.command_complete || command_manager.current_trb != trb {
-        return;
+        debug!(
+            "equal! return ! {},0x{:x}",
+            command_manager.command_complete,
+            command_manager.current_trb.as_usize()
+        );
+        // return;
     }
     command_manager.current_trb = 0.into();
     command_manager.uch_complete_code = uch_complete_code;

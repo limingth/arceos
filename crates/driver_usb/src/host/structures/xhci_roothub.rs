@@ -138,23 +138,32 @@ impl Roothub {
 }
 
 // 当接收到根端口状态变化的通知时调用
+// 这里似乎产生了无限循环
 pub(crate) fn status_changed(uch_port_id: u8) {
     // 将UCH端口ID转换为索引，并确保索引在有效范围内
     let n_port = uch_port_id as usize - 1;
+    debug!("try to lock!");
     let mut root_hub = ROOT_HUB
         .try_get()
         .expect("ROOT_HUB is not initialized")
-        .lock();
-    assert!(n_port < root_hub.ports, "Port index out of bounds");
+        .data_ptr();
+    debug!("locked!");
+    assert!(
+        n_port < unsafe { (*root_hub).ports },
+        "Port index out of bounds"
+    );
 
     // 如果端口存在，则更新其状态
-    if let arc_root_port = unsafe { root_hub.root_ports[n_port].clone().assume_init() } {
-        let mut root_port = arc_root_port.lock();
-        //check: does clone affect value?
-        root_port.status_changed();
-    } else {
-        panic!("Root port doesn't exist");
-    }
+    //丑陋，临时解决策略
+    unsafe { (*(*(*root_hub).root_ports[n_port].as_ptr()).data_ptr()).status_changed() }
+    // if let arc_root_port =
+    //     unsafe { (*(*(*root_hub).root_ports[n_port].as_mut_ptr()).data_ptr()).status_changed() }
+    // {
+    //     //check: does clone affect value?
+    //     let mut root_port = unsafe { arc_root_port.status_changed() };
+    // } else {
+    //     panic!("Root port doesn't exist");
+    // }
 }
 
 pub(crate) fn new() {

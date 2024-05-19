@@ -24,7 +24,7 @@ driver_common = { path = "../driver_common" }
 driver_pci = { path = "../driver_pci" }
 xhci = "0.9"
 log="0.4"
-axhal = {path = "../../modules/axhal",features=["irq"]}
+axhal = {path = "../../modules/axhal"}
 axtask = {path = "../../modules/axtask",features = ["multitask","sched_fifo"]}
 axsync = {path="../../modules/axsync",features = ["multitask"]}
 axconfig = {path = "../../modules/axconfig"}

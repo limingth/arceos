@@ -1,8 +1,8 @@
 #[cfg(feature = "phytium-xhci")]
 pub mod vl805;
 
-use axhal::{irq::IrqHandler, mem::phys_to_virt};
-use core::num::NonZeroUsize;
+use axtask::{sleep, spawn, spawn_raw, yield_now};
+use core::{num::NonZeroUsize, task, time::Duration};
 use log::{debug, error, info};
 use xhci::{
     accessor::Mapper,
@@ -60,8 +60,9 @@ pub(crate) fn init(mmio_base: usize) {
     scratchpad::assign_scratchpad_into_dcbaa();
     xhci_roothub::new();
 
-    axhal::irq::register_handler(ARM_IRQ_PCIE_HOST_INTA, interrupt_handler);
-    axhal::irq::register_handler(ARM_IRQ_PCIE_HOST_INTA + 1, interrupt_handler);
+    // axhal::irq::register_handler(ARM_IRQ_PCIE_HOST_INTA, interrupt_handler);
+    // axhal::irq::register_handler(ARM_IRQ_PCIE_HOST_INTA + 1, interrupt_handler);
+
     debug!(
         "before start:{:?}",
         registers::handle(|r| r.operational.usbsts.read_volatile())
@@ -91,6 +92,23 @@ pub(crate) fn init(mmio_base: usize) {
                 .current_connect_status())
         )
     }
+    // spawn(|| loop {
+    //     if registers::handle(|r| r.operational.usbsts.read_volatile().event_interrupt()) {
+    //         // interrupt_handler()
+    //         xhci_event_manager::handle_event();
+    //     }
+    //     // yield_now()
+    // })
+    // .join();
+
+    // spawn(|| loop {
+    //     debug!("handle event...");
+    //     if registers::handle(|r| r.operational.usbsts.read_volatile().event_interrupt()) {
+    //         // interrupt_handler()
+    //         xhci_event_manager::handle_event();
+    //     }
+    //     // yield_now()
+    // });
 
     debug!("initializing roothub");
     ROOT_HUB.get().unwrap().lock().initialize();
