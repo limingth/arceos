@@ -69,13 +69,16 @@ impl RootPort {
         debug!("initializing device: {:?}", get_speed);
 
         if let Ok(device) = XHCIUSBDevice::new(self.root_port_id as u8) {
+            debug!("writing ...");
             unsafe {
-                Arc::get_mut(&mut self.device)
+                Arc::get_mut(&mut self.device) //TODO assert device allocated
                     .unwrap()
                     .write(device)
                     .initialize()
             };
+            debug!("writing complete");
         }
+        debug!("initialize complete");
     }
 
     pub fn status_changed(&self) {

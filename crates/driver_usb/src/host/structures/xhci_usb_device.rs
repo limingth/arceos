@@ -40,6 +40,7 @@ impl XHCIUSBDevice {
         if let Some(manager) = COMMAND_MANAGER.get() {
             match manager.lock().enable_slot() {
                 CommandResult::Success(code, Some(asserted_slot_id)) => {
+                    debug!("enable slot success!");
                     Ok({
                         let xhciusbdevice = Self {
                             context: Context::default(),
@@ -47,6 +48,7 @@ impl XHCIUSBDevice {
                             slot_id: asserted_slot_id,
                         };
 
+                        debug!("return...");
                         xhciusbdevice
                     })
                     // SLOT_MANAGER

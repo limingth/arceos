@@ -116,6 +116,11 @@ impl CommandManager {
 pub(crate) static COMMAND_MANAGER: OnceCell<Spinlock<CommandManager>> = OnceCell::uninit();
 
 pub(crate) fn command_completed(trb: VirtAddr, uch_complete_code: u8, uch_slot_id: u8) {
+    debug!(
+        "handleing command complete:(code:{},slod_id:{})",
+        uch_complete_code, uch_slot_id
+    );
+    let slotid = uch_slot_id + 1;
     debug!("command_complete: trying to lock!");
     let mut command_manager = unsafe { &mut (*COMMAND_MANAGER.try_get().unwrap().data_ptr()) };
     debug!("command_complete: locked!");
@@ -129,7 +134,7 @@ pub(crate) fn command_completed(trb: VirtAddr, uch_complete_code: u8, uch_slot_i
     }
     command_manager.current_trb = 0.into();
     command_manager.uch_complete_code = uch_complete_code;
-    command_manager.uch_slot_id = uch_slot_id;
+    command_manager.uch_slot_id = slotid;
 
     barrier::dmb(SY);
 
