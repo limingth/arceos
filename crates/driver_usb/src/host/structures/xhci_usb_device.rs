@@ -68,6 +68,7 @@ impl XHCIUSBDevice {
         }
     }
     pub fn initialize(&mut self) {
+        debug!("device initializing...");
         let input_control = self.context.input.control_mut();
         input_control.set_add_context_flag(0);
         input_control.set_add_context_flag(1);
