@@ -1011,6 +1011,7 @@ dependencies = [
  "axalloc",
  "axconfig",
  "axhal",
+ "axsync",
  "axtask",
  "bit_field",
  "byteorder",

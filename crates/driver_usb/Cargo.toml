@@ -25,7 +25,8 @@ driver_pci = { path = "../driver_pci" }
 xhci = "0.9"
 log="0.4"
 axhal = {path = "../../modules/axhal",features=["irq"]}
-axtask = {path = "../../modules/axtask",features = ["multitask","sched_rr"]}
+axtask = {path = "../../modules/axtask",features = ["multitask","sched_fifo"]}
+axsync = {path="../../modules/axsync",features = ["multitask"]}
 axconfig = {path = "../../modules/axconfig"}
 page_table = {path = "../page_table"}
 page_box = {path = "../page_box"}

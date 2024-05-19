@@ -46,7 +46,7 @@ net = ["alloc", "paging", "axdriver/virtio-net", "dep:axnet", "axruntime/net"]
 display = ["alloc", "paging", "axdriver/virtio-gpu", "dep:axdisplay", "axruntime/display"]
 
 # USB Host
-usb-host = ["alloc", "paging", "axdriver/usb_host", "axruntime/usb"]
+usb-host = ["alloc", "paging", "axdriver/usb_host", "axruntime/usb","multitask"]
 
 # Board support package
 phytium-pi = ["axdriver?/phytium-xhci", "axdriver?/phytium-pci"]
