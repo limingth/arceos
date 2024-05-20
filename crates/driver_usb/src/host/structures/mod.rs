@@ -1,5 +1,5 @@
-mod descriptor;
 mod context;
+mod descriptor;
 mod xhci_usb_device;
 // 命令管理器、事件管理器和插槽管理器等模块。
 pub(super) mod extended_capabilities;
@@ -13,6 +13,7 @@ pub(super) mod xhci_slot_manager;
 pub(crate) mod command_ring;
 pub(crate) mod event_ring;
 pub(super) mod scratchpad;
+pub(crate) mod transfer_ring;
 mod usb;
 mod usb_audio;
 mod usb_device;
@@ -40,7 +41,7 @@ impl From<u8> for USBSpeed {
 }
 
 // XHCI配置事件环大小为256个TRB(Transfer Request Block)。
-const XHCI_CONFIG_EVENT_RING_SIZE: usize = 256;
+const XHCI_CONFIG_RING_SIZE: usize = 256;
 
 // 控制TRB的位掩码定义。
 const XHCI_TRB_CONTROL_C: usize = 1 << 0; // 表示TRB的完成控制位。

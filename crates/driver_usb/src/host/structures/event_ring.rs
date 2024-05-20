@@ -9,7 +9,7 @@ use xhci::ring::trb::{self, event::Allowed, Link};
 
 use crate::host::structures::XHCI_LINK_TRB_CONTROL_TC;
 
-use super::{registers, XHCI_CONFIG_EVENT_RING_SIZE, XHCI_TRB_CONTROL_C};
+use super::{registers, XHCI_CONFIG_RING_SIZE, XHCI_TRB_CONTROL_C};
 
 pub type TypeXhciTrb = [u32; 4];
 
@@ -24,7 +24,7 @@ impl EvtRing {
     pub fn new() -> Self {
         super::registers::handle(|r| {
             let event_ring = EvtRing {
-                ring: PageBox::new_slice([0 as u32; 4], XHCI_CONFIG_EVENT_RING_SIZE), //TODO 此处写死256，后续可更改
+                ring: PageBox::new_slice([0 as u32; 4], XHCI_CONFIG_RING_SIZE), //TODO 此处写死256，后续可更改
                 enque_index: 0,
                 deque_index: 0,
                 cycle_state: XHCI_TRB_CONTROL_C as u32,
