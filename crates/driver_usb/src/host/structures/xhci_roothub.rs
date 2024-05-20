@@ -23,7 +23,7 @@ pub(crate) static ROOT_HUB: OnceCell<Spinlock<Roothub>> = OnceCell::uninit();
 
 pub struct RootPort {
     root_port_id: usize,
-    device: Arc<MaybeUninit<XHCIUSBDevice>, GlobalNoCacheAllocator>,
+    device: Arc<MaybeUninit<XHCIUSBDevice>>,
 }
 
 impl RootPort {
@@ -182,7 +182,7 @@ pub(crate) fn new() {
                 debug!("allocating port {i}");
                 unsafe { Arc::get_mut_unchecked(port_uninit) }.write(Spinlock::new(RootPort {
                     root_port_id: i,
-                    device: Arc::new_uninit_in(axalloc::global_no_cache_allocator()),
+                    device: Arc::new_uninit(),
                 }));
                 debug!("assert:{} == {i}", unsafe {
                     port_uninit.clone().assume_init().lock().root_port_id
