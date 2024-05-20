@@ -9,9 +9,11 @@ extern crate alloc;
 pub(crate) mod dma;
 pub(crate) mod addr;
 pub(crate) mod device_types;
-pub(crate) mod host;
+pub mod host;
 pub mod err;
 
 #[cfg(feature="arceos")]
 pub mod ax;
+
+
 
