@@ -143,7 +143,7 @@ impl XHCIUSBDevice {
         }
     }
 
-    fn enque_trb_to_transfer(&mut self, trb: transfer::Allowed) -> Result<[u32; 4], ()> {
+    fn enqueue_trb_to_transfer(&mut self, trb: transfer::Allowed) -> Result<[u32; 4], ()> {
         self.transfer_ring.enqueue(trb);
         barrier::dmb(SY);
         debug!("doorbell ing");
@@ -178,14 +178,19 @@ impl XHCIUSBDevice {
                 .set_request(6)
                 .set_value(0x0100)
                 .set_length(8);
+            debug!("setup stage!");
             setup_stage
         }))
-        .and_then(|trb| self.enque_trb_to_transfer(trb))
+        .and_then(|trb| self.enqueue_trb_to_transfer(trb))
         .map(|arg0: [u32; 4]| TransferEvent::try_from(arg0).unwrap())
         .and_then(|trb| {
+            debug!(
+                "optional data stage! transfer len: {}",
+                trb.trb_transfer_length()
+            );
             if trb.trb_transfer_length() > 0 {
                 has_data_stage = true;
-                self.enque_trb_to_transfer(transfer::Allowed::DataStage(
+                self.enqueue_trb_to_transfer(transfer::Allowed::DataStage(
                     *DataStage::default()
                         .set_direction(Direction::In)
                         .clear_interrupt_on_completion()
@@ -199,7 +204,8 @@ impl XHCIUSBDevice {
         })
         .map(|arg0: [u32; 4]| TransferEvent::try_from(arg0).unwrap())
         .and_then(|_| {
-            self.enque_trb_to_transfer(transfer::Allowed::StatusStage(
+            debug!("status stage for check state!");
+            self.enqueue_trb_to_transfer(transfer::Allowed::StatusStage(
                 *StatusStage::default().set_interrupt_on_completion(),
             ))
         })
