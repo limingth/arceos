@@ -21,7 +21,7 @@ where O: OsDep
         for _ in 0..max_slots{
             let a = os.dma_alloc();
             let context = Box::new_in(Device::new_64byte(), a);
-        
+            
             dcbaa.push(context.as_ref() as *const _ as usize as u64);
             context_list.push(context);
         }

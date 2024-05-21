@@ -7,7 +7,9 @@ use spinlock::SpinNoIrq;
 mod registers;
 use registers::Registers;
 mod context;
-use self::context::DeviceContextList;
+mod ring;
+use self::{context::DeviceContextList, ring::Ring};
+use core::mem;
 
 use super::{Controller, USBHostConfig};
 
@@ -24,7 +26,8 @@ where
     max_slots: u8,
     max_ports: u8,
     max_irqs: u16,
-    devicelist: DeviceContextList<O>
+    devicelist: DeviceContextList<O>,
+    ring: SpinNoIrq<Ring<O>>,
 }
 
 impl<O> Controller<O> for Xhci<O>
@@ -54,6 +57,11 @@ where
 
         let devicelist = DeviceContextList::new(max_slots, config.os.clone());
 
+        // Create the command ring with 4096 / 16 (TRB size) entries, so that it uses all of the
+        // DMA allocation (which is at least a 4k page).
+        let entries_per_page = 4096 / mem::size_of::<ring::Trb>();
+        let ring = Ring::new(config.os.clone(), entries_per_page, true)?;
+
         let mut s = Self {
             config,
             regs,
@@ -61,6 +69,7 @@ where
             max_irqs,
             max_ports,
             devicelist,
+            ring: SpinNoIrq::new(ring),
         };
         s.init()?;
 
@@ -68,8 +77,6 @@ where
         Ok(s)
     }
 }
-
-
 
 impl<O> Xhci<O>
 where
