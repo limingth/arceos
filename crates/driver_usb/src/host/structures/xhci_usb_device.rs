@@ -54,7 +54,7 @@ impl XHCIUSBDevice {
                                 TransferRing::new(),
                                 global_no_cache_allocator(),
                             ),
-                            port_id: port_id,
+                            port_id,
                             slot_id: asserted_slot_id,
                         };
 
@@ -168,9 +168,6 @@ impl XHCIUSBDevice {
     }
 
     fn issue_trbs(&mut self, ts: &[transfer::Allowed]) {
-        for ele in ts.iter() {
-            let allowed = self.transfer_ring.get_enque_trb().unwrap();
-            // allowed =
-        }
+        self.transfer_ring.enqueue_trbs(ts);
     }
 }
