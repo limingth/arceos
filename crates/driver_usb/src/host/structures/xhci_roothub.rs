@@ -24,6 +24,7 @@ pub(crate) static ROOT_HUB: OnceCell<Spinlock<Roothub>> = OnceCell::uninit();
 pub struct RootPort {
     root_port_id: usize,
     device: Arc<MaybeUninit<XHCIUSBDevice>>,
+    device_inited: bool,
 }
 
 impl RootPort {
@@ -70,6 +71,7 @@ impl RootPort {
 
         if let Ok(device) = XHCIUSBDevice::new(self.root_port_id as u8) {
             debug!("writing ...");
+            self.device_inited = true;
             unsafe {
                 Arc::get_mut(&mut self.device) //TODO assert device allocated
                     .unwrap()
@@ -89,8 +91,14 @@ impl RootPort {
                 .update_volatile_at(self.root_port_id, |port_register_set| {
                     // TODO: check here
                     port_register_set.portsc.clear_port_enabled_disabled();
-                })
+                });
             // TODO: is plug and play support
+            if self.device_inited
+            /* and if is plug and play? assume is! */
+            && r.port_register_set.read_volatile_at(self.root_port_id).portsc.current_connect_status()
+            {
+                unsafe { self.device.assume_init_mut().status_changed() };
+            }
         })
     }
 
@@ -183,6 +191,7 @@ pub(crate) fn new() {
                 unsafe { Arc::get_mut_unchecked(port_uninit) }.write(Spinlock::new(RootPort {
                     root_port_id: i,
                     device: Arc::new_uninit(),
+                    device_inited: false,
                 }));
                 debug!("assert:{} == {i}", unsafe {
                     port_uninit.clone().assume_init().lock().root_port_id

@@ -10,7 +10,7 @@ use xhci::{
     context::{Device, Device64Byte, DeviceHandler, EndpointType, Slot, SlotHandler},
     extended_capabilities::debug::ContextPointer,
     ring::trb::{
-        command::{self, EvaluateContext},
+        command::{self, ConfigureEndpoint, EvaluateContext},
         event::TransferEvent,
         transfer::{self, Allowed, DataStage, Direction, SetupStage, StatusStage, TransferType},
     },
@@ -64,15 +64,16 @@ impl XHCIUSBDevice {
     }
 
     pub fn initialize(&mut self) {
-        self.complete_alloc();
+        self.config_endpoint_0();
         self.assign_address_device();
         let get_descriptor = self.get_descriptor();
         debug!("get desc: {:?}", get_descriptor)
     }
 
-    fn complete_alloc(&mut self) {
+    fn config_endpoint_0(&mut self) {
+        debug!("begin config endpoint 0!");
         let input_control = self.context.input.control_mut();
-        input_control.set_add_context_flag(0);
+        // input_control.set_add_context_flag(0);
         input_control.set_add_context_flag(1);
         let slot = self.context.input.device_mut().slot_mut();
         slot.set_context_entries(1);
@@ -100,6 +101,20 @@ impl XHCIUSBDevice {
         ep_0.set_tr_dequeue_pointer(self.transfer_ring.get_ring_addr().as_usize() as u64);
         ep_0.set_dequeue_cycle_state();
         ep_0.set_error_count(3);
+
+        debug!("config ep0: command!");
+        match COMMAND_MANAGER
+            .get()
+            .unwrap()
+            .lock()
+            .do_command(command::Allowed::ConfigureEndpoint(
+                *ConfigureEndpoint::default()
+                    .set_input_context_pointer(self.context.input.virt_addr().as_usize() as u64)
+                    .set_slot_id(self.slot_id),
+            )) {
+            CommandResult::Success(_, _) => debug!("endpoint config succeed!"),
+            err => debug!("failed to config endpoint:{:?}", err),
+        }
     }
 
     fn assign_address_device(&mut self) {
@@ -192,4 +207,6 @@ impl XHCIUSBDevice {
 
         *buffer
     }
+
+    pub(crate) fn status_changed(&self) {}
 }

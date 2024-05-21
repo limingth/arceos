@@ -22,6 +22,7 @@ pub(crate) struct CommandManager {
 }
 
 type SlotID = u8;
+#[derive(Debug)]
 pub(crate) enum CommandResult {
     Success(u8, Option<SlotID>),
     NoSlotsAvailableError,

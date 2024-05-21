@@ -108,6 +108,7 @@ pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
     if let Some(mut manager) = EVENT_MANAGER.get().unwrap().try_lock() {
         if let Some(trb) = manager.event_ring.get_deque_trb() {
             manager.event_ring.inc_deque();
+            debug!("event handler has a trb:{:?}", trb);
             match trb {
                 EventAllowed::TransferEvent(evt) => {
                     debug!("event = {:?}", evt);
