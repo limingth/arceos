@@ -6,6 +6,8 @@ use log::*;
 use spinlock::SpinNoIrq;
 mod registers;
 use registers::Registers;
+mod context;
+use self::context::DeviceContextList;
 
 use super::{Controller, USBHostConfig};
 
@@ -22,7 +24,7 @@ where
     max_slots: u8,
     max_ports: u8,
     max_irqs: u16,
-    // dcbaa: Vec<u64, A>,
+    devicelist: DeviceContextList<O>
 }
 
 impl<O> Controller<O> for Xhci<O>
@@ -37,13 +39,28 @@ where
         debug!("{TAG} base addr: {:?}", mmio_base);
         let mut regs = registers::new_registers(mmio_base);
 
+        // TODO: pcie 未配置，读不出来
+        // let version = self.regs.capability.hciversion.read_volatile();
+        // info!("xhci version: {:x}", version.get());
+        let hcsp1 = regs.capability.hcsparams1.read_volatile();
+        let max_slots = hcsp1.number_of_device_slots();
+        let max_ports = hcsp1.number_of_ports();
+        let max_irqs = hcsp1.number_of_interrupts();
+        let page_size = regs.operational.pagesize.read_volatile().get();
+        debug!(
+            "{TAG} max_slots: {}, max_ports: {}, max_irqs: {}, page size: {}",
+            max_slots, max_ports, max_irqs, page_size
+        );
+
+        let devicelist = DeviceContextList::new(max_slots, config.os.clone());
 
         let mut s = Self {
             config,
             regs,
-            max_slots: 0,
-            max_irqs: 0,
-            max_ports: 0,
+            max_slots,
+            max_irqs,
+            max_ports,
+            devicelist,
         };
         s.init()?;
 
@@ -60,24 +77,9 @@ where
 {
     fn init(&mut self) -> Result {
         self.reset()?;
-        // TODO: pcie 未配置，读不出来
-        // let version = self.regs.capability.hciversion.read_volatile();
-        // info!("xhci version: {:x}", version.get());
-        let hcsp1 = self.regs.capability.hcsparams1.read_volatile();
-        let max_slots = hcsp1.number_of_device_slots();
-        let max_ports = hcsp1.number_of_ports();
-        let max_irqs = hcsp1.number_of_interrupts();
-        let page_size = self.regs.operational.pagesize.read_volatile().get();
-        debug!(
-            "{TAG} max_slots: {}, max_ports: {}, max_irqs: {}, page size: {}",
-            max_slots, max_ports, max_irqs, page_size
-        );
-        self.max_slots = max_slots;
-        self.max_ports = max_ports;
-        self.max_irqs = max_irqs;
 
         self.regs.operational.config.update_volatile(|r| {
-            r.set_max_device_slots_enabled(max_slots);
+            r.set_max_device_slots_enabled(self.max_slots);
         });
 
         self.start()?;
