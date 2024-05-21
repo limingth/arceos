@@ -4,7 +4,11 @@ use alloc::vec::Vec;
 use axhal::mem::VirtAddr;
 use futures_util::stream::All;
 use page_box::PageBox;
-use xhci::ring::trb::{self, transfer::Allowed, Link};
+use xhci::ring::trb::{
+    self,
+    transfer::{self, Allowed},
+    Link,
+};
 
 use crate::host::structures::XHCI_LINK_TRB_CONTROL_TC;
 
@@ -36,7 +40,25 @@ impl TransferRing {
         })
     }
 
-    pub fn enqueue_trbs(&mut self, ts: &[Allowed]) {}
+    pub fn enqueue_trbs(&mut self, ts: &[Allowed]) {
+        ts.iter().for_each(|trb| self.enqueue(*trb));
+    }
+
+    pub fn enqueue(&mut self, mut trb: transfer::Allowed) {
+        self.set_cyclebit(&mut trb);
+        if let Some(enque_trb) = self.get_enque_trb() {
+            *enque_trb = trb.into_raw();
+            self.inc_enque();
+        }
+    }
+
+    fn set_cyclebit(&self, trb: &mut Allowed) {
+        if self.cycle_state != 0 {
+            trb.set_cycle_bit();
+        } else {
+            trb.clear_cycle_bit();
+        }
+    }
 
     pub fn get_trb_count(&self) -> usize {
         self.ring.len()

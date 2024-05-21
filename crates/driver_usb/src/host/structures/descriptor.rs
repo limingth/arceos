@@ -39,20 +39,20 @@ impl Descriptor {
 #[derive(Copy, Clone, Default, Debug)]
 #[repr(C, packed)]
 pub(crate) struct Device {
-    len: u8,
-    descriptor_type: u8,
-    cd_usb: u16,
-    class: u8,
-    subclass: u8,
-    protocol: u8,
-    max_packet_size0: u8,
-    vendor: u16,
-    product_id: u16,
-    device: u16,
-    manufacture: u8,
-    product: u8,
-    serial_number: u8,
-    num_configurations: u8,
+    pub len: u8,
+    pub descriptor_type: u8,
+    pub cd_usb: u16,
+    pub class: u8,
+    pub subclass: u8,
+    pub protocol: u8,
+    pub max_packet_size0: u8,
+    pub vendor: u16,
+    pub product_id: u16,
+    pub device: u16,
+    pub manufacture: u8,
+    pub product: u8,
+    pub serial_number: u8,
+    pub num_configurations: u8,
 }
 impl Device {
     pub(crate) fn max_packet_size(&self) -> u16 {

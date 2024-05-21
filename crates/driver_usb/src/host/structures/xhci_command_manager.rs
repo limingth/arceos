@@ -55,6 +55,7 @@ impl CommandManager {
     }
 
     pub fn address_device(&mut self, addr: VirtAddr, slot_id: u8) -> CommandResult {
+        debug!("addressing device!");
         self.do_command(Allowed::AddressDevice({
             let mut address_device = AddressDevice::default();
             address_device
