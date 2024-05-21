@@ -90,15 +90,18 @@ impl RootPort {
             r.port_register_set
                 .update_volatile_at(self.root_port_id, |port_register_set| {
                     // TODO: check here
-                    port_register_set.portsc.clear_port_enabled_disabled();
+                    if port_register_set.portsc.port_enabled_disabled() {
+                        port_register_set.portsc.clear_port_enabled_disabled(); //TODO high or low?
+                    }
                 });
             // TODO: is plug and play support
-            if self.device_inited
-            /* and if is plug and play? assume is! */
-            && r.port_register_set.read_volatile_at(self.root_port_id).portsc.current_connect_status()
-            {
-                unsafe { self.device.assume_init_mut().status_changed() };
-            }
+            //
+            //if self.device_inited
+            //* and if is plug and play? assume is! */
+            //&& r.port_register_set.read_volatile_at(self.root_port_id).portsc.current_connect_status()
+            //{
+            //    unsafe { self.device.assume_init().status_changed() };
+            //}
         })
     }
 
