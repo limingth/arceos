@@ -136,7 +136,7 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
             // debug!("begin: {} @ 0x{:X}", current, cfg_addr);
             let header = PciHeader::new(cfg_addr);
             let (vid, did) = header.vendor_id_and_device_id();
-            // debug!("vid {:X}, did {:X}", vid, did);
+            debug!("vid {:X}, did {:X}", vid, did);
 
             if vid == 0xffff {
                 if current.function == 0 {

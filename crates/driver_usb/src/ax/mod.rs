@@ -1,5 +1,5 @@
 use driver_common::*;
-use crate::host::USBHostImp;
+use crate::host::Controller;
 use crate::host::{xhci::Xhci, USBHost};
 
 /// The information of the graphics device.
@@ -10,8 +10,7 @@ pub struct USBHostInfo {}
 pub trait USBHostDriverOps: BaseDriverOps {}
 
 
-
-impl <U: USBHostImp + Sync + Send>BaseDriverOps for USBHost<U> {
+impl BaseDriverOps for USBHost {
     fn device_name(&self) -> &str {
         "USB 3.0 Host Controller"
     }

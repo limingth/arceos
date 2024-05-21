@@ -1,15 +1,15 @@
 use alloc::{borrow::ToOwned, format};
 use axhal::irq::IrqHandler;
+use spinlock::SpinNoIrq;
 use core::{alloc::Allocator, num::NonZeroUsize};
 use log::*;
 use crate::{
     addr::VirtAddr,
-    dma::DMAAllocator,
     err::*,
 };
 mod registers;
 use registers::Registers;
-use super::{USBHostConfig, USBHostImp};
+use super::{USBHostConfig, Controller};
 
 
 
@@ -27,7 +27,7 @@ pub struct Xhci {
     max_irqs: u16,
 }
 
-impl USBHostImp for Xhci {
+impl Controller for Xhci {
     fn new(config: USBHostConfig) -> Result<Self>
     where
         Self: Sized,
@@ -53,11 +53,20 @@ impl Xhci {
         let max_slots = hcsp1.number_of_device_slots();
         let max_ports = hcsp1.number_of_ports();
         let max_irqs = hcsp1.number_of_interrupts();
-        debug!("{TAG} max_slots: {}, max_ports: {}, max_irqs: {}", max_slots, max_ports, max_irqs);
+        let page_size = self.regs.operational.pagesize.read_volatile().get();
+        debug!("{TAG} max_slots: {}, max_ports: {}, max_irqs: {}, page size: {}", max_slots, max_ports, max_irqs, page_size);
         self.max_slots = max_slots;
         self.max_ports = max_ports;
         self.max_irqs = max_irqs;
 
+        self.regs.operational.config.update_volatile(|r|{
+            r.set_max_device_slots_enabled(max_slots);
+        });
+
+
+
+
+        self.start()?;
         Ok(())
     }
 
@@ -102,5 +111,18 @@ impl Xhci {
         Ok(())
     }
 
+
+    fn start(&mut self)->Result{
+        debug!("{TAG} start");
+
+        self.regs.operational.usbcmd.update_volatile(|r|{
+            r.set_run_stop();
+        });
+
+        while self.regs.operational.usbsts.read_volatile().hc_halted() {}
+
+        info!("{TAG} is running");
+        Ok(())
+    }
 
 }

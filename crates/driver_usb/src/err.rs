@@ -5,6 +5,7 @@ use alloc::string::String;
 pub enum Error{
     Unknown(String),
     Param(String),
+    TimeOut,
 }
 
 impl Display for Error {
@@ -12,6 +13,7 @@ impl Display for Error {
         match self {
             Error::Unknown(msg) => write!(f, "unknown usb err: {}", msg),
             Error::Param(msg) => write!(f, "param err: {}", msg),
+            Error::TimeOut => write!(f, "timeout"),
         }
     }
 }
