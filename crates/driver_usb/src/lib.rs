@@ -5,6 +5,8 @@
 #![feature(strict_provenance)]
 #![allow(warnings)]
 
+use core::alloc::Allocator;
+
 extern crate alloc;
 pub(crate) mod dma;
 pub(crate) mod addr;
@@ -17,4 +19,7 @@ pub mod ax;
 
 
 
-
+pub trait OsDep: Clone + Send + Sync {
+    type DMA: Allocator + Send + Sync;
+    fn dma_alloc(&self)->Self::DMA;
+}

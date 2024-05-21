@@ -5,6 +5,7 @@ use core::{
     ptr::{slice_from_raw_parts, NonNull},
 };
 
+use alloc::vec::Vec;
 use log::debug;
 
 
@@ -23,6 +24,7 @@ impl<A: Allocator, T> DMAVec<A, T> {
     /// <br> allocator: 用于数组内存分配和释放的分配器实例。
     /// <br> 返回一个初始化好的DMAVec实例。
     pub fn new(size: usize, align: usize, allocator: A) -> Self {
+
         //计算所需内存大小
         let buff_size = size * size_of::<T>();
         // 根据元素数量和对其要求创建内存布局
@@ -68,3 +70,7 @@ impl<A: Allocator, T> Drop for DMAVec<A, T> {
         }
     }
 }
+
+
+
+

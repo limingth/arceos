@@ -7,6 +7,7 @@ use axalloc::{global_allocator, global_no_cache_allocator};
 use cfg_if::cfg_if;
 use driver_common::DeviceType;
 use driver_pci::device_types::{self, PCI_CLASS_NETWORK_ETHERNET};
+use driver_usb::OsDep;
 
 #[cfg(feature = "virtio")]
 use crate::virtio::{self, VirtIoDevMeta};
@@ -95,7 +96,18 @@ cfg_if::cfg_if! {
         use driver_usb::host::USBHost;
         use driver_usb::host::xhci::Xhci;
         pub struct VL805Driver;
-        register_usb_host_driver!(VL805Driver, USBHost);
+
+        #[derive(Clone)]
+        pub struct OsDepImp;
+
+        impl OsDep for OsDepImp{
+            type DMA = GlobalNoCacheAllocator;
+            fn dma_alloc(&self)->Self::DMA {
+                axalloc::global_no_cache_allocator()
+            }
+        }
+
+        register_usb_host_driver!(VL805Driver, USBHost<OsDepImp>);
         // use driver_usb::host::xhci::vl805::VL805;
 
         impl DriverProbe for VL805Driver {
