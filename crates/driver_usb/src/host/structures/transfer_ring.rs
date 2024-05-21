@@ -13,26 +13,26 @@ use super::{registers, XHCI_CONFIG_RING_SIZE, XHCI_TRB_CONTROL_C};
 
 pub type TypeXhciTrb = [u32; 4];
 
-pub struct EvtRing {
+pub struct TransferRing {
     ring: PageBox<[[u32; 4]]>,
     enque_index: usize,
     deque_index: usize,
     cycle_state: u32,
 }
 
-impl EvtRing {
+impl TransferRing {
     pub fn new() -> Self {
         super::registers::handle(|r| {
-            let event_ring = EvtRing {
+            let transfer_ring = TransferRing {
                 ring: PageBox::new_slice([0 as u32; 4], XHCI_CONFIG_RING_SIZE), //TODO 此处写死256，后续可更改
                 enque_index: 0,
                 deque_index: 0,
                 cycle_state: XHCI_TRB_CONTROL_C as u32,
             };
 
-            debug!("created!");
+            debug!("created transfer ring!");
 
-            event_ring
+            transfer_ring
         })
     }
 

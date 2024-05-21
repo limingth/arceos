@@ -1,15 +1,20 @@
 use core::borrow::BorrowMut;
 
+use alloc::{borrow::ToOwned, boxed::Box, sync::Arc};
+use axalloc::{global_no_cache_allocator, GlobalNoCacheAllocator};
 use log::{debug, error};
 use page_box::PageBox;
+use spinning_top::Spinlock;
 use xhci::{
     context::{Device, Device64Byte, DeviceHandler, EndpointType, Slot, SlotHandler},
     extended_capabilities::debug::ContextPointer,
     ring::trb::{
         command::EvaluateContext,
-        transfer::{Allowed, DataStage, Direction, SetupStage, StatusStage, TransferType},
+        transfer::{self, Allowed, DataStage, Direction, SetupStage, StatusStage, TransferType},
     },
 };
+
+use crate::host::structures::transfer_ring::TransferRing;
 
 use super::{
     context::Context,
@@ -20,6 +25,7 @@ use super::{
 
 pub struct XHCIUSBDevice {
     context: Context,
+    transfer_ring: Box<TransferRing, GlobalNoCacheAllocator>,
     slot_id: u8,
     port_id: u8,
 }
@@ -44,6 +50,10 @@ impl XHCIUSBDevice {
                     Ok({
                         let xhciusbdevice = Self {
                             context: Context::default(),
+                            transfer_ring: Box::new_in(
+                                TransferRing::new(),
+                                global_no_cache_allocator(),
+                            ),
                             port_id: port_id,
                             slot_id: asserted_slot_id,
                         };
@@ -69,6 +79,7 @@ impl XHCIUSBDevice {
     }
     pub fn initialize(&mut self) {
         debug!("device initializing...");
+
         let input_control = self.context.input.control_mut();
         input_control.set_add_context_flag(0);
         input_control.set_add_context_flag(1);
@@ -92,17 +103,9 @@ impl XHCIUSBDevice {
             }
         };
         let ep_0 = self.context.input.device_mut().endpoint_mut(1);
-
         ep_0.set_endpoint_type(EndpointType::Control);
         ep_0.set_max_packet_size(s);
-        ep_0.set_tr_dequeue_pointer(
-            COMMAND_MANAGER
-                .get()
-                .unwrap()
-                .lock()
-                .command_ring_ptr()
-                .as_usize() as u64,
-        );
+        ep_0.set_tr_dequeue_pointer(self.transfer_ring.get_ring_addr().as_usize() as u64);
         ep_0.set_dequeue_cycle_state();
         ep_0.set_error_count(3);
 
@@ -117,16 +120,16 @@ impl XHCIUSBDevice {
             _ => {}
         }
 
-        let virt_addr = self.context.input.virt_addr();
-        match COMMAND_MANAGER
-            .get()
-            .unwrap()
-            .lock()
-            .address_device(virt_addr, self.slot_id)
-        {
-            CommandResult::Success(_, _) => debug!("addressed device at slot id {}", self.slot_id),
-            err => error!("error while address device at slot id {}", self.slot_id),
-        }
+        // let virt_addr = self.context.input.virt_addr();
+        // match COMMAND_MANAGER
+        //     .get()
+        //     .unwrap()
+        //     .lock()
+        //     .address_device(virt_addr, self.slot_id)
+        // {
+        //     CommandResult::Success(_, _) => debug!("addressed device at slot id {}", self.slot_id),
+        //     err => error!("error while address device at slot id {}", self.slot_id),
+        // }
 
         debug!(
             "device (port-{}:slot-{}) initialize complete!",
@@ -148,17 +151,26 @@ impl XHCIUSBDevice {
             setup_stage
         });
 
-        let data = DataStage::default()
-            .set_direction(Direction::In)
-            .set_trb_transfer_length(8)
-            .clear_interrupt_on_completion()
-            .set_data_buffer_pointer(b.virt_addr().as_usize() as u64);
+        let data = transfer::Allowed::DataStage(
+            *DataStage::default()
+                .set_direction(Direction::In)
+                .set_trb_transfer_length(8)
+                .clear_interrupt_on_completion()
+                .set_data_buffer_pointer(b.virt_addr().as_usize() as u64),
+        );
 
-        let status = StatusStage::default().set_interrupt_on_completion();
+        let status =
+            transfer::Allowed::StatusStage(*StatusStage::default().set_interrupt_on_completion());
 
-        // self.issue_trbs(&[setup.into(), data.into(), status.into()])
-        //     .await;
+        self.issue_trbs(&[setup.into(), data.into(), status.into()]);
 
         b.max_packet_size()
+    }
+
+    fn issue_trbs(&mut self, ts: &[transfer::Allowed]) {
+        for ele in ts.iter() {
+            let allowed = self.transfer_ring.get_enque_trb().unwrap();
+            // allowed =
+        }
     }
 }
