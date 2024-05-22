@@ -1,8 +1,9 @@
-use core::borrow::BorrowMut;
+use core::{borrow::BorrowMut, time::Duration};
 
 use aarch64_cpu::asm::barrier::{self, SY};
 use alloc::{borrow::ToOwned, boxed::Box, sync::Arc};
 use axalloc::{global_no_cache_allocator, GlobalNoCacheAllocator};
+use axtask::sleep;
 use log::{debug, error};
 use page_box::PageBox;
 use spinning_top::Spinlock;
@@ -66,6 +67,7 @@ impl XHCIUSBDevice {
     pub fn initialize(&mut self) {
         self.config_endpoint_0_assign_dev();
         self.address_device();
+        sleep(Duration::from_millis(2));
         let get_descriptor = self.get_descriptor();
         debug!("get desc: {:?}", get_descriptor)
     }
@@ -75,6 +77,7 @@ impl XHCIUSBDevice {
         let input_control = self.context.input.control_mut();
         input_control.set_add_context_flag(0);
         input_control.set_add_context_flag(1);
+
         let slot = self.context.input.device_mut().slot_mut();
         slot.set_context_entries(1);
         slot.set_root_hub_port_number(self.port_id);
@@ -104,21 +107,6 @@ impl XHCIUSBDevice {
         ep_0.set_tr_dequeue_pointer(self.transfer_ring.get_ring_addr().as_usize() as u64);
         ep_0.set_dequeue_cycle_state();
         ep_0.set_error_count(3);
-        ep_0.set_average_trb_length(8);
-
-        // debug!("reset device");
-        // match COMMAND_MANAGER
-        //     .get()
-        //     .unwrap()
-        //     .lock()
-        //     .reset_device(self.slot_id)
-        // {
-        //     CommandResult::Success(trb) => Ok(()),
-        //     other => {
-        //         // debug!("reset device failed! {:?}", other);
-        //         Err(())
-        //     }
-        // };
 
         debug!("assigning device into dcbaa");
         match &(*self.context.output) {
@@ -134,30 +122,17 @@ impl XHCIUSBDevice {
 
         //confitional compile needed
         barrier::dmb(SY);
-
-        debug!("config ep0: command!");
-        match COMMAND_MANAGER
-            .get()
-            .unwrap()
-            .lock()
-            .do_command(command::Allowed::ConfigureEndpoint(
-                *ConfigureEndpoint::default()
-                    .set_input_context_pointer(self.context.input.virt_addr().as_usize() as u64)
-                    .set_slot_id(self.slot_id), // -1?
-            )) {
-            CommandResult::Success(trb) => debug!("endpoint config succeed!\n {:?}", trb),
-            err => debug!("failed to config endpoint:{:?}", err),
-        }
     }
 
     fn address_device(&mut self) {
         debug!("addressing device");
-        let virt_addr = self.context.input.virt_addr();
+        // let ring_addr = self.context.input.virt_addr();
+        let ring_addr = self.transfer_ring.get_ring_addr();
         match COMMAND_MANAGER
             .get()
             .unwrap()
             .lock()
-            .address_device(virt_addr, self.slot_id)
+            .address_device(ring_addr, self.slot_id)
         {
             CommandResult::Success(trb) => {
                 debug!("addressed device at slot id {}", self.slot_id);
@@ -170,6 +145,7 @@ impl XHCIUSBDevice {
     fn enqueue_trb_to_transfer(&mut self, trb: transfer::Allowed) -> Result<[u32; 4], ()> {
         self.transfer_ring.enqueue(trb);
         barrier::dmb(SY);
+
         debug!("doorbell ing");
         registers::handle(|r| {
             r.doorbell
@@ -177,6 +153,8 @@ impl XHCIUSBDevice {
                     doorbell.set_doorbell_target(1u8); //assume 1
                 })
         });
+
+        sleep(Duration::from_micros(10));
 
         while let handle_event = xhci_event_manager::handle_event() {
             if handle_event.is_ok() {
