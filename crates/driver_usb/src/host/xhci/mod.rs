@@ -58,7 +58,7 @@ where
 
         // Create the command ring with 4096 / 16 (TRB size) entries, so that it uses all of the
         // DMA allocation (which is at least a 4k page).
-        let entries_per_page = 4096 / mem::size_of::<ring::Trb>();
+        let entries_per_page = 4096 / mem::size_of::<ring::TrbData>();
         let ring = Ring::new(config.os.clone(), entries_per_page, true)?;
 
         let mut s = Self {
@@ -169,6 +169,13 @@ where
         while regs.operational.usbsts.read_volatile().hc_halted() {}
 
         info!("{TAG} is running");
+        Ok(())
+    }
+
+
+
+    fn cmd(&self)->Result{
+
         Ok(())
     }
 }
