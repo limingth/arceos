@@ -11,7 +11,7 @@ use xhci::{
     extended_capabilities::debug::ContextPointer,
     ring::trb::{
         command::{self, ConfigureEndpoint, EvaluateContext},
-        event::TransferEvent,
+        event::{CompletionCode, TransferEvent},
         transfer::{self, Allowed, DataStage, Direction, SetupStage, StatusStage, TransferType},
     },
 };
@@ -97,6 +97,8 @@ impl XHCIUSBDevice {
 
         debug!("config ep0");
         let ep_0 = self.context.input.device_mut().endpoint_mut(1);
+        let endpoint_state = ep_0.endpoint_state();
+        debug!("endpoint 0 state: {:?}", endpoint_state);
         ep_0.set_endpoint_type(EndpointType::Control);
         ep_0.set_max_packet_size(s);
         ep_0.set_tr_dequeue_pointer(self.transfer_ring.get_ring_addr().as_usize() as u64);
@@ -104,19 +106,19 @@ impl XHCIUSBDevice {
         ep_0.set_error_count(3);
         ep_0.set_average_trb_length(8);
 
-        debug!("reset device");
-        match COMMAND_MANAGER
-            .get()
-            .unwrap()
-            .lock()
-            .reset_device(self.slot_id)
-        {
-            CommandResult::Success(trb) => Ok(()),
-            other => {
-                // debug!("reset device failed! {:?}", other);
-                Err(())
-            }
-        };
+        // debug!("reset device");
+        // match COMMAND_MANAGER
+        //     .get()
+        //     .unwrap()
+        //     .lock()
+        //     .reset_device(self.slot_id)
+        // {
+        //     CommandResult::Success(trb) => Ok(()),
+        //     other => {
+        //         // debug!("reset device failed! {:?}", other);
+        //         Err(())
+        //     }
+        // };
 
         debug!("assigning device into dcbaa");
         match &(*self.context.output) {
