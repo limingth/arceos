@@ -122,7 +122,7 @@ impl XHCIUSBDevice {
         match &(*self.context.output) {
             super::context::Device::Byte64(device) => {
                 SLOT_MANAGER.get().unwrap().lock().assign_device(
-                    self.port_id,
+                    self.slot_id,
                     (&**device as *const Device64Byte).addr().into(),
                 );
             }

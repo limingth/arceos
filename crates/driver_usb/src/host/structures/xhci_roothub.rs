@@ -155,7 +155,7 @@ impl Roothub {
 // 这里似乎产生了无限循环
 pub(crate) fn status_changed(uch_port_id: u8) {
     // 将UCH端口ID转换为索引，并确保索引在有效范围内
-    let n_port = uch_port_id as usize - 1;
+    let n_port = uch_port_id as usize - 1; //TODO 真的是-1吗？
     debug!("try to lock!,port:{}", n_port);
     let mut root_hub = ROOT_HUB
         .try_get()
