@@ -1,6 +1,7 @@
 use crate::{addr::VirtAddr, err::*, OsDep};
 use alloc::{borrow::ToOwned, format};
 use axhal::irq::IrqHandler;
+use xhci::ring::trb::command::{Allowed, Noop};
 use core::{alloc::Allocator, num::NonZeroUsize};
 use log::*;
 use spinlock::SpinNoIrq;
@@ -71,7 +72,6 @@ where
             ring: SpinNoIrq::new(ring),
         };
         s.init()?;
-
         info!("{TAG} init success");
         Ok(s)
     }
@@ -84,6 +84,7 @@ where
     fn init(&mut self) -> Result {
         self.reset()?;
         self.start()?;
+        self.test_cmd()?;
         Ok(())
     }
 
@@ -142,13 +143,8 @@ where
     }
 
     fn start(&mut self) -> Result {
-        debug!("{TAG} start");
         let mut regs = self.regs.lock();
 
-        debug!("{TAG} Setting enabled slots to {}.", self.max_slots);
-        regs.operational.config.update_volatile(|r| {
-            r.set_max_device_slots_enabled(self.max_slots);
-        });
 
         let dcbaap = self.dev_ctx.dcbaap();
         debug!("Writing DCBAAP: {:X}", dcbaap);
@@ -162,6 +158,19 @@ where
             r.set_command_ring_pointer(crcr);
         });
 
+        debug!("{TAG} Setting enabled slots to {}.", self.max_slots);
+        regs.operational.config.update_volatile(|r| {
+            r.set_max_device_slots_enabled(self.max_slots);
+        });
+
+
+        debug!("{TAG} disable interrupts");
+
+        regs.operational.usbcmd.update_volatile(|r|{
+            r.clear_interrupter_enable();
+        });
+
+        debug!("{TAG} start run");
         regs.operational.usbcmd.update_volatile(|r| {
             r.set_run_stop();
         });
@@ -169,13 +178,33 @@ where
         while regs.operational.usbsts.read_volatile().hc_halted() {}
 
         info!("{TAG} is running");
+
         Ok(())
     }
 
 
 
-    fn cmd(&self)->Result{
+    fn post_cmd(&self, trb: Allowed)->Result{
+        let mut cr = self.ring.lock();
+        let (buff, cycle) = cr.next();
 
+        let mut regs = self.regs.lock();
+
+        regs.doorbell.update_volatile_at(0, |r|{
+            r.set_doorbell_stream_id(0);
+            r.set_doorbell_target(0);
+        });
+
+
+        Ok(())
+    }
+
+    fn test_cmd(&self)->Result{
+        debug!("{TAG} test command ring");
+        for _ in 0..3{
+            self.post_cmd(Allowed::Noop(Noop::new()))?;
+        }
+        debug!("{TAG} command ring ok");
         Ok(())
     }
 }
