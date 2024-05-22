@@ -95,7 +95,7 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
     fn next(&mut self) -> Option<Self::Item> {
         debug!("into next!");
         loop {
-            debug!("looped");
+            // debug!("looped");
             if self.next.function >= MAX_FUNCTIONS {
                 debug!("added");
                 self.next.function = 0;
