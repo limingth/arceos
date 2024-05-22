@@ -10,9 +10,8 @@ mod context;
 mod ring;
 use self::{context::DeviceContextList, ring::Ring};
 use core::mem;
-
 use super::{Controller, USBHostConfig};
-
+use alloc::sync::Arc;
 const ARM_IRQ_PCIE_HOST_INTA: usize = 143 + 32;
 const XHCI_CONFIG_MAX_EVENTS_PER_INTR: usize = 16;
 const TAG: &str = "[XHCI]";
@@ -26,7 +25,7 @@ where
     max_slots: u8,
     max_ports: u8,
     max_irqs: u16,
-    devicelist: DeviceContextList<O>,
+    dev_ctx: DeviceContextList<O>,
     ring: SpinNoIrq<Ring<O>>,
 }
 
@@ -55,7 +54,7 @@ where
             max_slots, max_ports, max_irqs, page_size
         );
 
-        let devicelist = DeviceContextList::new(max_slots, config.os.clone());
+        let dev_ctx = DeviceContextList::new(max_slots, config.os.clone());
 
         // Create the command ring with 4096 / 16 (TRB size) entries, so that it uses all of the
         // DMA allocation (which is at least a 4k page).
@@ -68,7 +67,7 @@ where
             max_slots,
             max_irqs,
             max_ports,
-            devicelist,
+            dev_ctx,
             ring: SpinNoIrq::new(ring),
         };
         s.init()?;
@@ -85,9 +84,23 @@ where
     fn init(&mut self) -> Result {
         self.reset()?;
 
+        debug!("{TAG} Setting enabled slots to {}.", self.max_slots);
         self.regs.operational.config.update_volatile(|r| {
             r.set_max_device_slots_enabled(self.max_slots);
         });
+
+        let dcbaap = self.dev_ctx.dcbaap();
+        debug!("Writing DCBAAP: {:X}", dcbaap);
+        self.regs.operational.dcbaap.update_volatile(|r|{
+            r.set(dcbaap as u64);
+        });
+
+        let crcr = self.ring.get_mut().register();
+        debug!("Writing CRCR: {:X}", crcr);
+        self.regs.operational.crcr.update_volatile(|r|{
+            r.set_command_ring_pointer(crcr);
+        });
+
 
         self.start()?;
         Ok(())
