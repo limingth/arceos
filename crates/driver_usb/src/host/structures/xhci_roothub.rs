@@ -37,19 +37,35 @@ impl RootPort {
         }
         debug!("port {} connected, continue", self.root_port_id);
 
+        // registers::handle(|r| {
+        //     // r.port_register_set.read_volatile_at(self.index).portsc.port_link_state() // usb 3, not complete code
+        //     //DEBUG lets just use usb 2 job sequence? should be compaible? might stuck at here
+        //     r.port_register_set
+        //         .update_volatile_at(self.root_port_id, |prs| {
+        //             prs.portsc.set_port_reset();
+
+        //             // prs.portsc.set_0_port_enabled_disabled();
+
+        //             debug!("waiting for port reset!");
+        //             while !prs.portsc.port_reset_change() {}
+        //         })
+        // });
+
+        debug!("restart port!");
         registers::handle(|r| {
-            // r.port_register_set.read_volatile_at(self.index).portsc.port_link_state() // usb 3, not complete code
-            //DEBUG lets just use usb 2 job sequence? should be compaible? might stuck at here
             r.port_register_set
-                .update_volatile_at(self.root_port_id, |prs| {
-                    prs.portsc.set_port_reset();
+                .update_volatile_at(self.root_port_id, |port| {
+                    port.portsc.set_port_reset();
+                });
 
-                    prs.portsc.set_0_port_enabled_disabled();
-
-                    debug!("waiting for port reset!");
-                    while !prs.portsc.port_reset() {}
-                })
+            while !r
+                .port_register_set
+                .read_volatile_at(self.root_port_id)
+                .portsc
+                .port_reset_change()
+            {}
         });
+        debug!("port {} reset!", self.root_port_id);
 
         // //waiting for reset
         // while !registers::handle(|r| {
@@ -58,8 +74,6 @@ impl RootPort {
         //         .portsc
         //         .port_reset_change()
         // }) {}
-
-        debug!("port {} reset!", self.root_port_id);
 
         let get_speed = self.get_speed();
         if get_speed == USBSpeed::USBSpeedUnknown {
@@ -87,21 +101,24 @@ impl RootPort {
         // 检查MMIO（内存映射I/O），确保索引在有效范围内
         assert!(self.root_port_id < XHCI_CONFIG_MAX_PORTS);
         debug!("port {} status changed", self.root_port_id);
-        registers::handle(|r| {
-            r.port_register_set
-                .update_volatile_at(self.root_port_id, |port_register_set| {
-                    // TODO: check here
-                    port_register_set.portsc.clear_port_enabled_disabled(); //TODO high or low?
-                });
-            //     // TODO: is plug and play support
-            //     //
-            //     //if self.device_inited
-            //     //* and if is plug and play? assume is! */
-            //     //&& r.port_register_set.read_volatile_at(self.root_port_id).portsc.current_connect_status()
-            //     //{
-            //     //    unsafe { self.device.assume_init().status_changed() };
-            //     //}
-        })
+        //LETS JUST DO NOTHING?
+        // registers::handle(|r| {
+        //     r.port_register_set
+        //         .update_volatile_at(self.root_port_id, |port_register_set| {
+        //             // TODO: check here
+        //             if port_register_set.portsc.port_enabled_disabled() {
+        //                 port_register_set.portsc.clear_port_enabled_disabled(); //TODO high or low?
+        //             }
+        //         });
+        //     // TODO: is plug and play support
+        //     //
+        //     //if self.device_inited
+        //     //* and if is plug and play? assume is! */
+        //     //&& r.port_register_set.read_volatile_at(self.root_port_id).portsc.current_connect_status()
+        //     //{
+        //     //    unsafe { self.device.assume_init().status_changed() };
+        //     //}
+        // })
     }
 
     fn get_speed(&self) -> USBSpeed {

@@ -75,8 +75,11 @@ pub(crate) fn new() {
             .read_volatile()
             .max_device_slots_enabled();
 
+        debug!("max slot: {}", max_device_slots_enabled); // return 0, not good!
+
         r.operational.config.update_volatile(|cfg| {
-            cfg.set_max_device_slots_enabled(max_device_slots_enabled);
+            // cfg.set_max_device_slots_enabled(max_device_slots_enabled);
+            cfg.set_max_device_slots_enabled(2); // lets just hard code: 2
         });
 
         SLOT_MANAGER

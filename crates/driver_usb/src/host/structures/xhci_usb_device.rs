@@ -64,25 +64,25 @@ impl XHCIUSBDevice {
     }
 
     pub fn initialize(&mut self) {
-        self.config_endpoint_0();
-        self.assign_address_device();
+        self.config_endpoint_0_assign_dev();
+        self.address_device();
         let get_descriptor = self.get_descriptor();
         debug!("get desc: {:?}", get_descriptor)
     }
 
-    fn config_endpoint_0(&mut self) {
-        debug!("begin config endpoint 0!");
+    fn config_endpoint_0_assign_dev(&mut self) {
+        debug!("begin config endpoint 0 and assign dev!");
         let input_control = self.context.input.control_mut();
-        // input_control.set_add_context_flag(0);
+        input_control.set_add_context_flag(0);
         input_control.set_add_context_flag(1);
         let slot = self.context.input.device_mut().slot_mut();
         slot.set_context_entries(1);
         slot.set_root_hub_port_number(self.port_id);
 
-        let s = {
+        let mut s = {
             let psi = registers::handle(|r| {
                 r.port_register_set
-                    .read_volatile_at((self.port_id - 1).into())
+                    .read_volatile_at((self.port_id).into())
                     .portsc
                     .port_speed()
             });
@@ -95,12 +95,29 @@ impl XHCIUSBDevice {
             }
         };
 
+        debug!("config ep0");
         let ep_0 = self.context.input.device_mut().endpoint_mut(1);
         ep_0.set_endpoint_type(EndpointType::Control);
         ep_0.set_max_packet_size(s);
         ep_0.set_tr_dequeue_pointer(self.transfer_ring.get_ring_addr().as_usize() as u64);
         ep_0.set_dequeue_cycle_state();
         ep_0.set_error_count(3);
+        ep_0.set_average_trb_length(8);
+
+        debug!("assigning device into dcbaa");
+        match &(*self.context.output) {
+            super::context::Device::Byte64(device) => {
+                SLOT_MANAGER.get().unwrap().lock().assign_device(
+                    self.slot_id,
+                    (&**device as *const Device64Byte).addr().into(),
+                );
+            }
+            //ugly,should reform code as soon as possible
+            _ => {}
+        }
+
+        //confitional compile needed
+        barrier::dmb(SY);
 
         debug!("config ep0: command!");
         match COMMAND_MANAGER
@@ -117,19 +134,7 @@ impl XHCIUSBDevice {
         }
     }
 
-    fn assign_address_device(&mut self) {
-        debug!("assigning device into dcbaa");
-        match &(*self.context.output) {
-            super::context::Device::Byte64(device) => {
-                SLOT_MANAGER.get().unwrap().lock().assign_device(
-                    self.slot_id,
-                    (&**device as *const Device64Byte).addr().into(),
-                );
-            }
-            //ugly,should reform code as soon as possible
-            _ => {}
-        }
-
+    fn address_device(&mut self) {
         debug!("addressing device");
         let virt_addr = self.context.input.virt_addr();
         match COMMAND_MANAGER
@@ -216,6 +221,4 @@ impl XHCIUSBDevice {
 
         *buffer
     }
-
-    pub(crate) fn status_changed(&self) {}
 }
