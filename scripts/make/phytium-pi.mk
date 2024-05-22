@@ -5,7 +5,7 @@ phytium: build
 
 chainboot: build
 	python tools/phytium-pi/yet_another_uboot_transfer.py /dev/ttyUSB0 115200 $(OUT_BIN)
-	minicom -D /dev/ttyUSB0 -b 115200
+	minicom -D /dev/ttyUSB0 -b 115200 -C minicom_output.log
 # python tools/phytium-pi/uboot_transfer.py /dev/ttyUSB0 115200 $(OUT_BIN)
 #	python tools/phytium-pi/uboot_test_send.py /dev/ttyUSB0 115200 $(OUT_BIN)
 #ruby tools/phytium-pi/uboot_transfer.rb /dev/ttyUSB0 115200 $(OUT_BIN)

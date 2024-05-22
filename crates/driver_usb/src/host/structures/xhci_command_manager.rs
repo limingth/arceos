@@ -3,11 +3,16 @@ use core::{f32::consts::E, usize};
 use aarch64_cpu::asm::barrier::{self, SY};
 use axhal::mem::VirtAddr;
 use conquer_once::spin::OnceCell;
+use futures_util::future::ok;
 use log::debug;
 use spinning_top::Spinlock;
 use xhci::{
     context::Slot,
-    ring::trb::command::{AddressDevice, Allowed, DisableSlot, EnableSlot},
+    extended_capabilities::debug::Debug,
+    ring::trb::{
+        command::{self, AddressDevice, Allowed, DisableSlot, EnableSlot},
+        event::{self, CommandCompletion, CompletionCode},
+    },
 };
 
 use super::{command_ring::CmdRing, registers, XHCI_CONFIG_MAX_SLOTS};
@@ -15,22 +20,17 @@ use crate::{dma::DMAVec, host::structures::xhci_event_manager};
 
 pub(crate) struct CommandManager {
     command_ring: CmdRing,
-    command_complete: bool,
     current_trb: VirtAddr,
-    uch_complete_code: u8,
-    uch_slot_id: u8,
 }
 
 type SlotID = u8;
 #[derive(Debug)]
 pub(crate) enum CommandResult {
-    Success(u8, Option<SlotID>),
-    NoSlotsAvailableError,
-    ShortPacket,
-    RingUnderrun,
-    RingOverrun,
-    EventRingFullError,
-    MissedServiceError,
+    Success(CommandCompletion),
+    OtherButSuccess(CommandCompletion),
+    ERROR(u8),
+    InvalidSlot,
+    ImpossibleAvailable,
 }
 
 impl CommandManager {
@@ -41,14 +41,13 @@ impl CommandManager {
 
     pub fn disable_slot(&mut self, slotid: SlotID) -> CommandResult {
         if Self::slot_id_in_valid_range(slotid) {
-            let disable_slot = Allowed::DisableSlot({
+            return self.do_command(Allowed::DisableSlot({
                 let mut disable_slot = DisableSlot::new();
                 disable_slot.set_slot_id(slotid);
                 disable_slot
-            });
-            return self.do_command(disable_slot);
+            }));
         }
-        CommandResult::NoSlotsAvailableError
+        return CommandResult::InvalidSlot;
     }
 
     pub fn enable_slot(&mut self) -> CommandResult {
@@ -75,12 +74,10 @@ impl CommandManager {
     pub fn do_command(&mut self, trb: Allowed) -> CommandResult {
         debug!("do command {:?} !", trb);
         //todo check
-        assert!(self.command_complete);
         let mut trb1 = trb.into_raw();
         trb1[3] |= self.command_ring.cycle_state(); //weird
         if let Some(poped) = self.command_ring.get_enque_trb() {
             *poped = trb1;
-            self.command_complete = false;
             self.command_ring.inc_enque();
 
             registers::handle(|r| {
@@ -91,23 +88,49 @@ impl CommandManager {
                 //TODO: suspect, view
             });
             debug!("waiting for interrupt handler complete!");
-            // while (!self.command_complete) {}
             while let handle_event = xhci_event_manager::handle_event() {
-                if handle_event.is_ok() {
-                    debug!("interrupt handler complete! result = {:?}", handle_event);
-                    break;
+                match handle_event {
+                    Ok(trb) if let Ok(complete) = CommandCompletion::try_from(trb) => {
+                        match complete.completion_code() {
+                            Ok(code) if code == CompletionCode::Success => {
+                                debug!("t o t a l success!");
+                                return CommandResult::Success(complete);
+                            }
+                            Ok(other) => {
+                                debug!("ok, but: {:?}\n full trb: {:?}", other, complete);
+                                return CommandResult::OtherButSuccess(complete);
+                            }
+                            Err(err) => {
+                                debug!("command complete error {err} !");
+                                return CommandResult::ERROR(err);
+                            }
+                        }
+                    }
+                    _ => {}
                 }
             }
 
-            if Self::slot_id_in_valid_range(self.uch_slot_id) {
-                debug!("slot id valid!");
-                return CommandResult::Success(self.uch_complete_code, Some(self.uch_slot_id));
-            } else {
-                return CommandResult::NoSlotsAvailableError;
-            }
-        } else {
-            return CommandResult::RingOverrun;
+            // while let handle_event = xhci_event_manager::handle_event() {
+            //     if handle_event.is_ok() {
+            //         debug!("interrupt handler complete! result = {:?}", handle_event);
+            //         let command_result =
+            //             CommandCompletion::try_from(handle_event.unwrap()).unwrap();
+            //         let slot_id = command_result.slot_id();
+
+            //         if Self::slot_id_in_valid_range(self.uch_slot_id) {
+            //             debug!("slot id valid!");
+            //             return CommandResult::Success(
+            //                 self.uch_complete_code,
+            //                 Some(self.uch_slot_id),
+            //                 command_result,
+            //             );
+            //         } else {
+            //             return CommandResult::NoSlotsAvailableError;
+            //         }
+            //     }
+            // }
         }
+        CommandResult::ImpossibleAvailable
     }
 
     pub fn command_ring_ptr(&self) -> VirtAddr {
@@ -117,39 +140,33 @@ impl CommandManager {
 
 pub(crate) static COMMAND_MANAGER: OnceCell<Spinlock<CommandManager>> = OnceCell::uninit();
 
-pub(crate) fn command_completed(trb: VirtAddr, uch_complete_code: u8, uch_slot_id: u8) {
-    debug!(
-        "handleing command complete:(code:{},slod_id:{})",
-        uch_complete_code, uch_slot_id
-    );
-    let slotid = uch_slot_id + 1;
-    debug!("command_complete: trying to lock!");
-    let mut command_manager = unsafe { &mut (*COMMAND_MANAGER.try_get().unwrap().data_ptr()) };
-    debug!("command_complete: locked!");
-    if command_manager.command_complete || command_manager.current_trb != trb {
-        debug!(
-            "equal! return ! {},0x{:x}",
-            command_manager.command_complete,
-            command_manager.current_trb.as_usize()
-        );
-        // return;
-    }
-    command_manager.current_trb = 0.into();
-    command_manager.uch_complete_code = uch_complete_code;
-    command_manager.uch_slot_id = slotid;
+pub(crate) fn command_completed(trb: CommandCompletion) -> Result<[u32; 4], ()> {
+    debug!("handleing command complete:{:?}", trb);
+    Ok(trb.into_raw())
 
-    barrier::dmb(SY);
+    // let slotid = uch_slot_id + 1;
+    // debug!("command_complete: trying to lock!");
+    // let mut command_manager = unsafe { &mut (*COMMAND_MANAGER.try_get().unwrap().data_ptr()) };
+    // debug!("command_complete: locked!");
+    // if command_manager.command_complete || command_manager.current_trb != trb {
+    //     debug!(
+    //         "equal! return ! {},0x{:x}",
+    //         command_manager.command_complete,
+    //         command_manager.current_trb.as_usize()
+    //     );
+    //     // return;
+    // }
+    // command_manager.current_trb = 0.into();
 
-    command_manager.command_complete = true;
+    // barrier::dmb(SY);
+
+    // command_manager.command_complete = true;
 }
 
 pub(crate) fn new() {
     let cmd_manager = CommandManager {
         command_ring: CmdRing::new(),
-        command_complete: true,
         current_trb: VirtAddr::from(0),
-        uch_complete_code: 0,
-        uch_slot_id: 0,
     };
     registers::handle(|r| {
         r.operational.crcr.update_volatile(|c| {

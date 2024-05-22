@@ -18,7 +18,7 @@ pub(crate) struct SlotManager {
 
 impl SlotManager {
     pub fn assign_device(&mut self, valid_slot_id: u8, device: VirtAddr) {
-        debug!("assign device: {:?} to {}", device, valid_slot_id);
+        debug!("assign device: {:?} to dcbaa {}", device, valid_slot_id);
 
         // self.device[valid_slot_id as usize - 1] = device;
         self.dcbaa[valid_slot_id as usize] = device
@@ -68,6 +68,16 @@ pub(crate) fn new() {
         r.operational
             .dcbaap
             .update_volatile(|d| d.set(slot_manager.dcbaa.virt_addr().as_usize() as u64));
+
+        let max_device_slots_enabled = r
+            .operational
+            .config
+            .read_volatile()
+            .max_device_slots_enabled();
+
+        r.operational.config.update_volatile(|cfg| {
+            cfg.set_max_device_slots_enabled(max_device_slots_enabled);
+        });
 
         SLOT_MANAGER
             .try_init_once(move || Spinlock::new(slot_manager))

@@ -86,22 +86,21 @@ impl RootPort {
     pub fn status_changed(&self) {
         // 检查MMIO（内存映射I/O），确保索引在有效范围内
         assert!(self.root_port_id < XHCI_CONFIG_MAX_PORTS);
+        debug!("port {} status changed", self.root_port_id);
         registers::handle(|r| {
             r.port_register_set
                 .update_volatile_at(self.root_port_id, |port_register_set| {
                     // TODO: check here
-                    if port_register_set.portsc.port_enabled_disabled() {
-                        port_register_set.portsc.clear_port_enabled_disabled(); //TODO high or low?
-                    }
+                    port_register_set.portsc.clear_port_enabled_disabled(); //TODO high or low?
                 });
-            // TODO: is plug and play support
-            //
-            //if self.device_inited
-            //* and if is plug and play? assume is! */
-            //&& r.port_register_set.read_volatile_at(self.root_port_id).portsc.current_connect_status()
-            //{
-            //    unsafe { self.device.assume_init().status_changed() };
-            //}
+            //     // TODO: is plug and play support
+            //     //
+            //     //if self.device_inited
+            //     //* and if is plug and play? assume is! */
+            //     //&& r.port_register_set.read_volatile_at(self.root_port_id).portsc.current_connect_status()
+            //     //{
+            //     //    unsafe { self.device.assume_init().status_changed() };
+            //     //}
         })
     }
 
@@ -138,6 +137,7 @@ impl Roothub {
             .iter_mut()
             .map(|a| unsafe { a.clone().assume_init() })
             .for_each(|arc| {
+                debug!("initializing port {}", arc.lock().root_port_id);
                 arc.lock().initialize();
             });
 
@@ -156,12 +156,10 @@ impl Roothub {
 pub(crate) fn status_changed(uch_port_id: u8) {
     // 将UCH端口ID转换为索引，并确保索引在有效范围内
     let n_port = uch_port_id as usize - 1; //TODO 真的是-1吗？
-    debug!("try to lock!,port:{}", n_port);
     let mut root_hub = ROOT_HUB
         .try_get()
         .expect("ROOT_HUB is not initialized")
         .data_ptr();
-    debug!("locked!");
     assert!(
         n_port < unsafe { (*root_hub).ports },
         "Port index out of bounds"

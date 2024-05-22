@@ -34,9 +34,10 @@ pub struct XHCIUSBDevice {
 
 impl XHCIUSBDevice {
     pub fn new(port_id: u8) -> Result<Self, ()> {
+        debug!("new device! port:{}", port_id);
         if let Some(manager) = COMMAND_MANAGER.get() {
             match manager.lock().enable_slot() {
-                CommandResult::Success(code, Some(asserted_slot_id)) => {
+                CommandResult::Success(succedd_trb) => {
                     debug!("enable slot success!");
                     Ok({
                         let xhciusbdevice = Self {
@@ -46,16 +47,15 @@ impl XHCIUSBDevice {
                                 global_no_cache_allocator(),
                             ),
                             port_id,
-                            slot_id: asserted_slot_id,
+                            slot_id: succedd_trb.slot_id(),
                         };
 
-                        debug!("return...");
                         xhciusbdevice
                     })
                 }
                 //需要让device分配在指定的内存空间中
-                _ => Err({
-                    error!("failed to enable slot!");
+                err => Err({
+                    error!("failed to enable slot!\n {:?}", err);
                 }),
             }
         } else {
@@ -110,9 +110,9 @@ impl XHCIUSBDevice {
             .do_command(command::Allowed::ConfigureEndpoint(
                 *ConfigureEndpoint::default()
                     .set_input_context_pointer(self.context.input.virt_addr().as_usize() as u64)
-                    .set_slot_id(self.slot_id),
+                    .set_slot_id(self.slot_id), // -1?
             )) {
-            CommandResult::Success(_, _) => debug!("endpoint config succeed!"),
+            CommandResult::Success(trb) => debug!("endpoint config succeed!\n {:?}", trb),
             err => debug!("failed to config endpoint:{:?}", err),
         }
     }
@@ -138,7 +138,10 @@ impl XHCIUSBDevice {
             .lock()
             .address_device(virt_addr, self.slot_id)
         {
-            CommandResult::Success(_, _) => debug!("addressed device at slot id {}", self.slot_id),
+            CommandResult::Success(trb) => {
+                debug!("addressed device at slot id {}", self.slot_id);
+                debug!("command result {:?}", trb);
+            }
             err => error!("error while address device at slot id {}", self.slot_id),
         }
     }

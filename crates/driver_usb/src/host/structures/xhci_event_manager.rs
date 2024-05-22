@@ -132,19 +132,10 @@ pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
                         }
                     }
                 }
-                EventAllowed::CommandCompletion(_) => {
+                EventAllowed::CommandCompletion(complete) => {
                     debug!("step into command completion.\n");
                     let trb_array = trb.into_raw();
-                    command_completed(
-                        (((trb_array[0] as usize) << 32) | ((trb_array[1] as usize) << 32)).into(),
-                        (trb_array[2] >> XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT)
-                            .try_into()
-                            .unwrap(),
-                        (trb_array[3] >> XHCI_CMD_COMPLETION_EVENT_TRB_CONTROL_SLOTID_SHIFT)
-                            .try_into()
-                            .unwrap(),
-                    );
-                    return Ok(TypeXhciTrb::default());
+                    return command_completed(complete);
                 }
                 EventAllowed::PortStatusChange(_) => {
                     debug!("step into port status change.\n");
@@ -153,7 +144,6 @@ pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
                         trb_array[2] >> XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT
                             == CompletionCode::Success as u32
                     );
-                    debug!("exec handler!");
                     status_changed(
                         (trb_array[0] >> XHCI_PORT_STATUS_EVENT_TRB_PARAMETER1_PORTID_SHIFT)
                             .try_into()
