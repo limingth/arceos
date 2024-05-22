@@ -76,7 +76,7 @@ impl<O: OsDep> Ring<O> {
         i
     }
 
-    pub fn next(&mut self) -> (&mut TrbData, bool) {
+    pub fn next_data(&mut self) -> (&mut TrbData, bool) {
         let i = self.next_index();
         (&mut self.trbs[i], self.cycle)
     }

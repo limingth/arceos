@@ -4,7 +4,7 @@ use axhal::irq::IrqHandler;
 use core::{alloc::Allocator, num::NonZeroUsize};
 use log::*;
 use spinlock::SpinNoIrq;
-use xhci::ring::trb::command::{Allowed, Noop};
+use xhci::ring::trb::{command::{Allowed, Noop}, event::CommandCompletion};
 mod registers;
 use registers::Registers;
 mod context;
@@ -64,7 +64,6 @@ where
         let entries_per_page = 4096 / mem::size_of::<ring::TrbData>();
         let ring = Ring::new(config.os.clone(), entries_per_page, true)?;
         let event = EventRing::new(config.os.clone())?;
-
 
         let mut s = Self {
             config,
@@ -216,16 +215,34 @@ where
     }
 
     fn post_cmd(&self, trb: Allowed) -> Result {
-        let mut cr = self.ring.lock();
-        let (buff, cycle) = cr.next();
 
-        let mut regs = self.regs.lock();
+        {
+            let mut cr = self.ring.lock();
+            let (buff, cycle) = cr.next_data();
 
-        regs.doorbell.update_volatile_at(0, |r| {
-            r.set_doorbell_stream_id(0);
-            r.set_doorbell_target(0);
-        });
+            let ptr = &buff[0] as *const u32 as usize;
 
+            debug!("{TAG} post cmd {:?} @{:X}", trb, ptr);
+
+            let mut regs = self.regs.lock();
+
+            regs.doorbell.update_volatile_at(0, |r| {
+                r.set_doorbell_stream_id(0);
+                r.set_doorbell_target(0);
+            });
+        }
+        debug!("{TAG} wait result");
+        {
+            let mut er = self.primary_event_ring.lock();
+            let event = er.next();
+
+            if let  ring::trb::event::Allowed::CommandCompletion(c)= event {
+                while c.completion_code() .is_err(){}
+                debug!("{TAG} cmd @{:X} got result", c.command_trb_pointer());
+            }else{
+                warn!("{TAG} event not match!");
+            }
+        }
         Ok(())
     }
 

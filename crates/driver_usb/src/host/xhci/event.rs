@@ -1,23 +1,10 @@
 use crate::{dma::DMA, OsDep};
-
 pub use super::ring::{Ring, TrbData};
 use crate::err::*;
-
-// #[derive(Default)]
-// #[repr(packed)]
-// pub struct EventRingSte {
-//     pub address_low: u32,
-//     pub address_high: u32,
-//     pub size: u16,
-//     _rsvd: u16,
-//     _rsvd2: u32,
-// }
-
-
-
 use tock_registers::registers::{ReadOnly, ReadWrite, WriteOnly};
 use tock_registers::register_structs;
 use tock_registers::interfaces::Writeable;
+use xhci::ring::trb::{self, event::Allowed};
 
 register_structs! {
     EventRingSte {
@@ -56,9 +43,11 @@ where O: OsDep
         Ok(ring)
     }
 
-    pub fn next(&mut self) -> &mut TrbData {
-        self.ring.next().0
+    pub fn next(&mut self) -> Allowed {
+        let data = self.ring.next_data().0.clone();
+        Allowed::try_from(data).unwrap()
     }
+
     pub fn erdp(&self) -> u64 {
         self.ring.register() & 0xFFFF_FFFF_FFFF_FFF0
     }
