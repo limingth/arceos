@@ -9,9 +9,9 @@ use registers::Registers;
 mod context;
 mod ring;
 use self::{context::DeviceContextList, ring::Ring};
-use core::mem;
 use super::{Controller, USBHostConfig};
 use alloc::sync::Arc;
+use core::mem;
 const ARM_IRQ_PCIE_HOST_INTA: usize = 143 + 32;
 const XHCI_CONFIG_MAX_EVENTS_PER_INTR: usize = 16;
 const TAG: &str = "[XHCI]";
@@ -21,7 +21,7 @@ where
     O: OsDep,
 {
     config: USBHostConfig<O>,
-    regs: Registers,
+    regs: SpinNoIrq<Registers>,
     max_slots: u8,
     max_ports: u8,
     max_irqs: u16,
@@ -63,7 +63,7 @@ where
 
         let mut s = Self {
             config,
-            regs,
+            regs: SpinNoIrq::new(regs),
             max_slots,
             max_irqs,
             max_ports,
@@ -83,25 +83,6 @@ where
 {
     fn init(&mut self) -> Result {
         self.reset()?;
-
-        debug!("{TAG} Setting enabled slots to {}.", self.max_slots);
-        self.regs.operational.config.update_volatile(|r| {
-            r.set_max_device_slots_enabled(self.max_slots);
-        });
-
-        let dcbaap = self.dev_ctx.dcbaap();
-        debug!("Writing DCBAAP: {:X}", dcbaap);
-        self.regs.operational.dcbaap.update_volatile(|r|{
-            r.set(dcbaap as u64);
-        });
-
-        let crcr = self.ring.get_mut().register();
-        debug!("Writing CRCR: {:X}", crcr);
-        self.regs.operational.crcr.update_volatile(|r|{
-            r.set_command_ring_pointer(crcr);
-        });
-
-
         self.start()?;
         Ok(())
     }
@@ -109,14 +90,17 @@ where
     fn reset(&mut self) -> Result {
         debug!("{TAG} reset begin");
         debug!("{TAG} stop");
-        self.regs.operational.usbcmd.update_volatile(|c| {
+
+        let mut regs = self.regs.lock();
+
+        regs.operational.usbcmd.update_volatile(|c| {
             c.clear_run_stop();
         });
         debug!("{TAG} until halt");
-        while !self.regs.operational.usbsts.read_volatile().hc_halted() {}
+        while !regs.operational.usbsts.read_volatile().hc_halted() {}
         debug!("{TAG} halted");
 
-        let mut o = &mut self.regs.operational;
+        let mut o = &mut regs.operational;
         // debug!("xhci stat: {:?}", o.usbsts.read_volatile());
 
         debug!("{TAG} wait for ready...");
@@ -131,14 +115,12 @@ where
 
         debug!("{TAG} reset HC");
 
-        while self
-            .regs
+        while regs
             .operational
             .usbcmd
             .read_volatile()
             .host_controller_reset()
-            || self
-                .regs
+            || regs
                 .operational
                 .usbsts
                 .read_volatile()
@@ -161,12 +143,30 @@ where
 
     fn start(&mut self) -> Result {
         debug!("{TAG} start");
+        let mut regs = self.regs.lock();
 
-        self.regs.operational.usbcmd.update_volatile(|r| {
+        debug!("{TAG} Setting enabled slots to {}.", self.max_slots);
+        regs.operational.config.update_volatile(|r| {
+            r.set_max_device_slots_enabled(self.max_slots);
+        });
+
+        let dcbaap = self.dev_ctx.dcbaap();
+        debug!("Writing DCBAAP: {:X}", dcbaap);
+        regs.operational.dcbaap.update_volatile(|r| {
+            r.set(dcbaap as u64);
+        });
+
+        let crcr = self.ring.get_mut().register();
+        debug!("Writing CRCR: {:X}", crcr);
+        regs.operational.crcr.update_volatile(|r| {
+            r.set_command_ring_pointer(crcr);
+        });
+
+        regs.operational.usbcmd.update_volatile(|r| {
             r.set_run_stop();
         });
 
-        while self.regs.operational.usbsts.read_volatile().hc_halted() {}
+        while regs.operational.usbsts.read_volatile().hc_halted() {}
 
         info!("{TAG} is running");
         Ok(())
