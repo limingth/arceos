@@ -31,41 +31,26 @@ impl RootPort {
     pub fn configure(&mut self) {}
 
     pub fn initialize(&mut self) {
+        //TODO 由于uboot已经探测过设备，因此设备的device context已被更改，因此我们比起普通的xhci驱动，还多了端口复位+设备复位的操作，需要修改。
         if !self.connected() {
             error!("port {} not connected", self.root_port_id);
             return;
         }
         debug!("port {} connected, continue", self.root_port_id);
 
-        // registers::handle(|r| {
-        //     // r.port_register_set.read_volatile_at(self.index).portsc.port_link_state() // usb 3, not complete code
-        //     //DEBUG lets just use usb 2 job sequence? should be compaible? might stuck at here
-        //     r.port_register_set
-        //         .update_volatile_at(self.root_port_id, |prs| {
-        //             prs.portsc.set_port_reset();
-
-        //             // prs.portsc.set_0_port_enabled_disabled();
-
-        //             debug!("waiting for port reset!");
-        //             while !prs.portsc.port_reset_change() {}
-        //         })
-        // });
-
-        debug!("restart port!");
         registers::handle(|r| {
+            // r.port_register_set.read_volatile_at(self.index).portsc.port_link_state() // usb 3, not complete code
+            //DEBUG lets just use usb 2 job sequence? should be compaible? might stuck at here
             r.port_register_set
-                .update_volatile_at(self.root_port_id, |port| {
-                    port.portsc.set_port_reset();
-                });
+                .update_volatile_at(self.root_port_id, |prs| {
+                    prs.portsc.set_port_reset();
 
-            while !r
-                .port_register_set
-                .read_volatile_at(self.root_port_id)
-                .portsc
-                .port_reset_change()
-            {}
+                    prs.portsc.set_0_port_enabled_disabled();
+
+                    debug!("waiting for port reset!");
+                    while !prs.portsc.port_reset() {}
+                })
         });
-        debug!("port {} reset!", self.root_port_id);
 
         // //waiting for reset
         // while !registers::handle(|r| {
@@ -74,6 +59,8 @@ impl RootPort {
         //         .portsc
         //         .port_reset_change()
         // }) {}
+
+        debug!("port {} reset!", self.root_port_id);
 
         let get_speed = self.get_speed();
         if get_speed == USBSpeed::USBSpeedUnknown {
@@ -101,7 +88,7 @@ impl RootPort {
         // 检查MMIO（内存映射I/O），确保索引在有效范围内
         assert!(self.root_port_id < XHCI_CONFIG_MAX_PORTS);
         debug!("port {} status changed", self.root_port_id);
-        //LETS JUST DO NOTHING?
+        //LETS JUST DO NOTHING
         // registers::handle(|r| {
         //     r.port_register_set
         //         .update_volatile_at(self.root_port_id, |port_register_set| {
