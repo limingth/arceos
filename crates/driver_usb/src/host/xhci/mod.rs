@@ -1,15 +1,16 @@
 use crate::{addr::VirtAddr, err::*, OsDep};
 use alloc::{borrow::ToOwned, format};
 use axhal::irq::IrqHandler;
-use xhci::ring::trb::command::{Allowed, Noop};
 use core::{alloc::Allocator, num::NonZeroUsize};
 use log::*;
 use spinlock::SpinNoIrq;
+use xhci::ring::trb::command::{Allowed, Noop};
 mod registers;
 use registers::Registers;
 mod context;
-mod ring;
-use self::{context::DeviceContextList, ring::Ring};
+mod event;
+pub(crate) mod ring;
+use self::{context::DeviceContextList, event::EventRing, ring::Ring};
 use super::{Controller, USBHostConfig};
 use alloc::sync::Arc;
 use core::mem;
@@ -28,6 +29,7 @@ where
     max_irqs: u16,
     dev_ctx: DeviceContextList<O>,
     ring: SpinNoIrq<Ring<O>>,
+    primary_event_ring: SpinNoIrq<EventRing<O>>,
 }
 
 impl<O> Controller<O> for Xhci<O>
@@ -61,6 +63,8 @@ where
         // DMA allocation (which is at least a 4k page).
         let entries_per_page = 4096 / mem::size_of::<ring::TrbData>();
         let ring = Ring::new(config.os.clone(), entries_per_page, true)?;
+        let event = EventRing::new(config.os.clone())?;
+
 
         let mut s = Self {
             config,
@@ -70,6 +74,7 @@ where
             max_ports,
             dev_ctx,
             ring: SpinNoIrq::new(ring),
+            primary_event_ring: SpinNoIrq::new(event),
         };
         s.init()?;
         info!("{TAG} init success");
@@ -145,7 +150,6 @@ where
     fn start(&mut self) -> Result {
         let mut regs = self.regs.lock();
 
-
         let dcbaap = self.dev_ctx.dcbaap();
         debug!("Writing DCBAAP: {:X}", dcbaap);
         regs.operational.dcbaap.update_volatile(|r| {
@@ -163,12 +167,41 @@ where
             r.set_max_device_slots_enabled(self.max_slots);
         });
 
-
         debug!("{TAG} disable interrupts");
 
-        regs.operational.usbcmd.update_volatile(|r|{
+        regs.operational.usbcmd.update_volatile(|r| {
             r.clear_interrupter_enable();
         });
+
+        let mut ir0 = regs.interrupter_register_set.interrupter_mut(0);
+        {
+            debug!("{TAG} Writing ERSTZ");
+            ir0.erstsz.update_volatile(|r| r.set(1));
+
+            let erdp = self.primary_event_ring.get_mut().erdp();
+            debug!("Writing ERDP: {:X}", erdp);
+
+            ir0.erdp.update_volatile(|r| {
+                r.set_event_ring_dequeue_pointer(erdp);
+            });
+
+            let erstba = self.primary_event_ring.get_mut().erstba();
+            debug!("Writing ERSTBA: {:X}", erstba);
+
+            ir0.erstba.update_volatile(|r| {
+                r.set(erstba);
+            });
+
+            ir0.imod.update_volatile(|im| {
+                im.set_interrupt_moderation_interval(0);
+                im.set_interrupt_moderation_counter(0);
+            });
+
+            debug!("Enabling Primary Interrupter.");
+            ir0.iman.update_volatile(|im| {
+                im.set_interrupt_enable();
+            });
+        }
 
         debug!("{TAG} start run");
         regs.operational.usbcmd.update_volatile(|r| {
@@ -182,26 +215,23 @@ where
         Ok(())
     }
 
-
-
-    fn post_cmd(&self, trb: Allowed)->Result{
+    fn post_cmd(&self, trb: Allowed) -> Result {
         let mut cr = self.ring.lock();
         let (buff, cycle) = cr.next();
 
         let mut regs = self.regs.lock();
 
-        regs.doorbell.update_volatile_at(0, |r|{
+        regs.doorbell.update_volatile_at(0, |r| {
             r.set_doorbell_stream_id(0);
             r.set_doorbell_target(0);
         });
 
-
         Ok(())
     }
 
-    fn test_cmd(&self)->Result{
+    fn test_cmd(&self) -> Result {
         debug!("{TAG} test command ring");
-        for _ in 0..3{
+        for _ in 0..3 {
             self.post_cmd(Allowed::Noop(Noop::new()))?;
         }
         debug!("{TAG} command ring ok");
