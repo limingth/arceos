@@ -9,78 +9,78 @@ smp = 1
 build_mode = release
 log_level = debug
 
-ccc[ 41.505160 0 axruntime:138] Logging is enabled.
-[ 41.510889 0 axruntime:139] Primary CPU 512 started, dtb = 0x1.
-[ 41.518006 0 axruntime:141] Found physcial memory regions:
-c[ 41.524777 0 axruntime:144]   [PA:0x90100000, PA:0x9011f000) .text (READ | EXECUTE | RESERVED)
-[ 41.534585 0 axruntime:144]   [PA:0x9011f000, PA:0x90127000) .rodata (READ | RESERVED)
-[ 41.543699 0 axruntime:144]   [PA:0x90127000, PA:0x9012b000) .data .tdata .tbss .percpu (READ | WRITE | RESERVED)
-[ 41.555156 0 axruntime:144]   [PA:0x9012b000, PA:0x9016b000) boot stack (READ | WRITE | RESERVED)
-[ 41.565225 0 axruntime:144]   [PA:0x9016b000, PA:0x90190000) .bss (READ | WRITE | RESERVED)
-[ 41.574773 0 axruntime:144]   [PA:0x0, PA:0x1000) spintable (READ | WRITE | RESERVED)
-[ 41.583801 0 axruntime:144]   [PA:0x90190000, PA:0x90490000) nocache memory (READ | WRITE | DEVICE)
-[ 41.594043 0 axruntime:144]   [PA:0x90490000, PA:0xffd00000) free memory (READ | WRITE | FREE)
-[ 41.603851 0 axruntime:144]   [PA:0x2800c000, PA:0x2800d000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 41.614181 0 axruntime:144]   [PA:0x2800d000, PA:0x2800e000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 41.624510 0 axruntime:144]   [PA:0x2800e000, PA:0x2800f000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 41.634839 0 axruntime:144]   [PA:0x2800f000, PA:0x28010000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 41.645168 0 axruntime:144]   [PA:0x30000000, PA:0x38000000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 41.655498 0 axruntime:144]   [PA:0x40000000, PA:0x50000000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 41.665827 0 axruntime:223] Initialize global memory allocator...
-[ 41.673118 0 axruntime:224]   use TLSF allocator.
-[ 41.679022 0 axalloc:281] initialize global allocator at: free-[0xffff000090490000, 0xffff0000ffd00000)
-[ 41.689934 0 axruntime:158] Initialize kernel page table...
-[ 41.696479 0 axruntime:258] Initialize global no cache memory allocator...
-[ 41.704454 0 axalloc:297] initialize global allocator at: nocache-[0x90190000,0x90490000)
-[ 41.713829 0 axruntime:165] Initialize platform devices...
-[ 41.720511 0 axtask::api:66] Initialize scheduling...
-[ 41.726765 0 axtask::task:146] new task: Task(1, "idle")
-[ 41.733274 0 axtask::task:146] new task: Task(3, "gc")
-[ 41.739611 0 axalloc:126] expand heap memory: [0xffff0000904a3000, 0xffff0000904e3000)
-[ 41.748728 0 axalloc:126] expand heap memory: [0xffff0000904e3000, 0xffff000090563000)
-[ 41.757836 0 axtask::api:72]   use FIFO scheduler.
-[ 41.763824 0 axdriver:158] Initialize device drivers...
-[ 41.770247 0 axdriver:159]   device model: static
-[ 41.776150 0 driver_pci::phytium:18] PCIe link start @0xFFFF000040000000...
-[ 41.784309 0 driver_pci::phytium:19] theroticly, since uboot had already initialized it, we need't to operate it any more!
-[ 41.796547 0 axdriver::bus::pci:14] probing in pci.rs!
-[ 41.802884 0 driver_pci::root_complex:96] into next!
-[ 41.809047 0 driver_pci::root_complex:98] looped
-[ 41.814863 0 driver_pci::root_complex:98] looped
-[ 41.820678 0 driver_pci::root_complex:98] looped
-[ 41.826494 0 driver_pci::root_complex:98] looped
-[ 41.832309 0 driver_pci::root_complex:98] looped
-[ 41.838125 0 driver_pci::root_complex:98] looped
-[ 41.843940 0 driver_pci::root_complex:98] looped
-[ 41.849756 0 driver_pci::root_complex:98] looped
-[ 41.855572 0 driver_pci::root_complex:98] looped
-[ 41.861387 0 driver_pci::root_complex:98] looped
-[ 41.867203 0 driver_pci::root_complex:98] looped
-[ 41.873018 0 driver_pci::root_complex:98] looped
-[ 41.878834 0 driver_pci::root_complex:98] looped
-[ 41.884650 0 driver_pci::root_complex:98] looped
-[ 41.890465 0 driver_pci::root_complex:98] looped
-[ 41.896281 0 driver_pci::root_complex:98] looped
-[ 41.902096 0 driver_pci::root_complex:98] looped
-[ 41.907912 0 driver_pci::root_complex:98] looped
-[ 41.913728 0 driver_pci::root_complex:98] looped
-[ 41.919543 0 driver_pci::root_complex:98] looped
-[ 41.925359 0 driver_pci::root_complex:98] looped
-[ 41.931174 0 driver_pci::root_complex:98] looped
-[ 41.936990 0 driver_pci::root_complex:98] looped
-[ 41.942806 0 driver_pci::root_complex:98] looped
-[ 41.948621 0 driver_pci::root_complex:98] looped
-[ 41.954437 0 driver_pci::root_complex:98] looped
-[ 41.960252 0 driver_pci::root_complex:98] looped
-[ 41.966068 0 driver_pci::root_complex:98] looped
-[ 41.971884 0 driver_pci::root_complex:98] looped
-[ 41.977699 0 driver_pci::root_complex:98] looped
-[ 41.983515 0 driver_pci::root_complex:98] looped
-[ 41.989330 0 driver_pci::root_complex:98] looped
-[ 41.995146 0 driver_pci::root_complex:98] looped
-[ 42.000962 0 driver_pci::root_complex:116] none!
-[ 42.006777 0 axdriver:190] number of usb host controller: 0
-[ 42.013548 0 axruntime:201] Primary CPU 512 init OK.
+ccc[ 77.536598 0 axruntime:138] Logging is enabled.
+[ 77.542327 0 axruntime:139] Primary CPU 512 started, dtb = 0x1.
+[ 77.549445 0 axruntime:141] Found physcial memory regions:
+c[ 77.556216 0 axruntime:144]   [PA:0x90100000, PA:0x9011f000) .text (READ | EXECUTE | RESERVED)
+[ 77.566023 0 axruntime:144]   [PA:0x9011f000, PA:0x90127000) .rodata (READ | RESERVED)
+[ 77.575137 0 axruntime:144]   [PA:0x90127000, PA:0x9012b000) .data .tdata .tbss .percpu (READ | WRITE | RESERVED)
+[ 77.586595 0 axruntime:144]   [PA:0x9012b000, PA:0x9016b000) boot stack (READ | WRITE | RESERVED)
+[ 77.596664 0 axruntime:144]   [PA:0x9016b000, PA:0x90190000) .bss (READ | WRITE | RESERVED)
+[ 77.606212 0 axruntime:144]   [PA:0x0, PA:0x1000) spintable (READ | WRITE | RESERVED)
+[ 77.615239 0 axruntime:144]   [PA:0x90190000, PA:0x90490000) nocache memory (READ | WRITE | DEVICE)
+[ 77.625481 0 axruntime:144]   [PA:0x90490000, PA:0xffd00000) free memory (READ | WRITE | FREE)
+[ 77.635290 0 axruntime:144]   [PA:0x2800c000, PA:0x2800d000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 77.645619 0 axruntime:144]   [PA:0x2800d000, PA:0x2800e000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 77.655948 0 axruntime:144]   [PA:0x2800e000, PA:0x2800f000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 77.666277 0 axruntime:144]   [PA:0x2800f000, PA:0x28010000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 77.676606 0 axruntime:144]   [PA:0x30000000, PA:0x38000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 77.686936 0 axruntime:144]   [PA:0x40000000, PA:0x50000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 77.697265 0 axruntime:223] Initialize global memory allocator...
+[ 77.704556 0 axruntime:224]   use TLSF allocator.
+[ 77.710461 0 axalloc:281] initialize global allocator at: free-[0xffff000090490000, 0xffff0000ffd00000)
+[ 77.721373 0 axruntime:158] Initialize kernel page table...
+[ 77.727917 0 axruntime:258] Initialize global no cache memory allocator...
+[ 77.735893 0 axalloc:297] initialize global allocator at: nocache-[0x90190000,0x90490000)
+[ 77.745267 0 axruntime:165] Initialize platform devices...
+[ 77.751949 0 axtask::api:66] Initialize scheduling...
+[ 77.758203 0 axtask::task:146] new task: Task(1, "idle")
+[ 77.764713 0 axtask::task:146] new task: Task(3, "gc")
+[ 77.771050 0 axalloc:126] expand heap memory: [0xffff0000904a3000, 0xffff0000904e3000)
+[ 77.780166 0 axalloc:126] expand heap memory: [0xffff0000904e3000, 0xffff000090563000)
+[ 77.789275 0 axtask::api:72]   use FIFO scheduler.
+[ 77.795262 0 axdriver:158] Initialize device drivers...
+[ 77.801685 0 axdriver:159]   device model: static
+[ 77.807588 0 driver_pci::phytium:18] PCIe link start @0xFFFF000040000000...
+[ 77.815747 0 driver_pci::phytium:19] theroticly, since uboot had already initialized it, we need't to operate it any more!
+[ 77.827986 0 axdriver::bus::pci:14] probing in pci.rs!
+[ 77.834323 0 driver_pci::root_complex:96] into next!
+[ 77.840485 0 driver_pci::root_complex:98] looped
+[ 77.846301 0 driver_pci::root_complex:98] looped
+[ 77.852116 0 driver_pci::root_complex:98] looped
+[ 77.857932 0 driver_pci::root_complex:98] looped
+[ 77.863748 0 driver_pci::root_complex:98] looped
+[ 77.869563 0 driver_pci::root_complex:98] looped
+[ 77.875379 0 driver_pci::root_complex:98] looped
+[ 77.881195 0 driver_pci::root_complex:98] looped
+[ 77.887010 0 driver_pci::root_complex:98] looped
+[ 77.892826 0 driver_pci::root_complex:98] looped
+[ 77.898641 0 driver_pci::root_complex:98] looped
+[ 77.904457 0 driver_pci::root_complex:98] looped
+[ 77.910272 0 driver_pci::root_complex:98] looped
+[ 77.916088 0 driver_pci::root_complex:98] looped
+[ 77.921904 0 driver_pci::root_complex:98] looped
+[ 77.927719 0 driver_pci::root_complex:98] looped
+[ 77.933535 0 driver_pci::root_complex:98] looped
+[ 77.939350 0 driver_pci::root_complex:98] looped
+[ 77.945166 0 driver_pci::root_complex:98] looped
+[ 77.950982 0 driver_pci::root_complex:98] looped
+[ 77.956797 0 driver_pci::root_complex:98] looped
+[ 77.962613 0 driver_pci::root_complex:98] looped
+[ 77.968429 0 driver_pci::root_complex:98] looped
+[ 77.974244 0 driver_pci::root_complex:98] looped
+[ 77.980060 0 driver_pci::root_complex:98] looped
+[ 77.985875 0 driver_pci::root_complex:98] looped
+[ 77.991691 0 driver_pci::root_complex:98] looped
+[ 77.997506 0 driver_pci::root_complex:98] looped
+[ 78.003322 0 driver_pci::root_complex:98] looped
+[ 78.009138 0 driver_pci::root_complex:98] looped
+[ 78.014953 0 driver_pci::root_complex:98] looped
+[ 78.020769 0 driver_pci::root_complex:98] looped
+[ 78.026584 0 driver_pci::root_complex:98] looped
+[ 78.032400 0 driver_pci::root_complex:116] none!
+[ 78.038215 0 axdriver:190] number of usb host controller: 0
+[ 78.044986 0 axruntime:201] Primary CPU 512 init OK.
 Available commands:
   exit
   help
@@ -88,90 +88,172 @@ Available commands:
   ldr
   str
   test_xhci
-arceos# test_xc hci
-[ 44.272083 0:2 driver_usb::host::xhci:49] resetting xhci controller
-[ 44.276844 0:2 driver_usb::host::xhci:50] before reset:UsbStatusRegister { hc_halted: false, host_system_error: false, event_interrupt: false, port_change_detect: true, save_state_status: false, restore_state_status: false, save_restore_error: false, controller_not_ready: false, host_controller_error: false }
-[ 44.305401 0:2 driver_usb::host::xhci:144] stop
-[ 44.311130 0:2 driver_usb::host::xhci:149] wait until halt
-[ 44.317813 0:2 driver_usb::host::xhci:151] halted
-[ 44.323715 0:2 driver_usb::host::xhci:153] HCRST!
-[ 44.329619 0:2 driver_usb::host::xhci:179] Reset xHCI Controller Globally
-[ 44.337607 0:2 driver_usb::host::structures::xhci_slot_manager:78] max slot: 0
-[ 44.346024 0:2 driver_usb::host::structures::xhci_slot_manager:89] initialized!
-[ 44.354529 0:2 driver_usb::host::structures::xhci_event_manager:43] initilizating!
-[ 44.363330 0:2 driver_usb::host::structures::event_ring:33] created!
-[ 44.370849 0:2 driver_usb::host::structures::xhci_event_manager:56] test
-[ 44.378752 0:2 driver_usb::host::structures::xhci_event_manager:101] initialized!
-[ 44.387463 0:2 driver_usb::host::structures::xhci_command_manager:186] initialized!
-[ 44.396287 0:2 driver_usb::host::structures::scratchpad:54] initialized!
-[ 44.404180 0:2 driver_usb::host::structures::scratchpad:60] initialized!
-[ 44.412080 0:2 driver_usb::host::structures::xhci_roothub:189] number of ports:2
-[ 44.420671 0:2 driver_usb::host::structures::xhci_roothub:194] allocating port 0
-[ 44.429265 0:2 driver_usb::host::structures::xhci_roothub:200] assert:0 == 0
-[ 44.437510 0:2 driver_usb::host::structures::xhci_roothub:194] allocating port 1
-[ 44.446104 0:2 driver_usb::host::structures::xhci_roothub:200] assert:1 == 1
-[ 44.454350 0:2 driver_usb::host::structures::xhci_roothub:214] initialized!
-[ 44.462509 0:2 driver_usb::host::xhci:66] before start:UsbStatusRegister { hc_halted: true, host_system_error: false, event_interrupt: false, port_change_detect: true, save_state_status: false, restore_state_status: false, save_restore_error: false, controller_not_ready: false, host_controller_error: false }
-[ 44.490980 0:2 driver_usb::host::xhci:77] init completed!, coltroller state:UsbStatusRegister { hc_halted: false, host_system_error: false, event_interrupt: false, port_change_detect: true, save_state_status: false, restore_state_status: false, save_restore_error: false, controller_not_ready: false, host_controller_error: false }
-[ 44.521362 0:2 driver_usb::host::xhci:86] port0 : false
-[ 44.527784 0:2 driver_usb::host::xhci:86] port1 : true
-[ 44.534118 0:2 driver_usb::host::xhci:113] initializing roothub
-[ 44.541236 0:2 driver_usb::host::structures::xhci_roothub:138] initializing root ports
-[ 44.550350 0:2 driver_usb::host::structures::xhci_roothub:143] initializing port 1
-[ 44.559119 0:2 driver_usb::host::structures::xhci_roothub:38] port 1 connected, continue
-[ 44.568406 0:2 driver_usb::host::structures::xhci_roothub:49] waiting for port reset!
-[ 44.577433 0:2 driver_usb::host::structures::xhci_roothub:62] port 1 reset!
-[ 44.585593 0:2 driver_usb::host::structures::xhci_roothub:68] port speed: USBSpeedSuper
-[ 44.594792 0:2 driver_usb::host::structures::xhci_roothub:70] initializing device: USBSpeedSuper
-[ 44.604774 0:2 driver_usb::host::structures::xhci_usb_device:37] new device! port:1
-[ 44.613628 0:2 driver_usb::host::structures::xhci_command_manager:75] do command EnableSlot(EnableSlot { slot_type: 0, cycle_bit: false }) !
-[ 44.627430 0:2 driver_usb::host::structures::xhci_command_manager:90] waiting for interrupt handler complete!
-[ 44.638542 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 2, cycle_bit: true })
-[ 44.656594 0:2 driver_usb::host::structures::xhci_event_manager:141] step into port status change.
+arceos# test_xhci
+[ 79.602061 0:2 driver_usb::host::xhci:49] resetting xhci controller
+[ 79.606823 0:2 driver_usb::host::xhci:50] before reset:UsbStatusRegister { hc_halted: false, host_system_error: false, event_interrupt: false, port_change_detect: true, save_state_status: false, restore_state_status: false, save_restore_error: false, controller_not_ready: false, host_controller_error: false }
+[ 79.635380 0:2 driver_usb::host::xhci:144] stop
+[ 79.641109 0:2 driver_usb::host::xhci:149] wait until halt
+[ 79.647792 0:2 driver_usb::host::xhci:151] halted
+[ 79.653694 0:2 driver_usb::host::xhci:153] HCRST!
+[ 79.659598 0:2 driver_usb::host::xhci:179] Reset xHCI Controller Globally
+[ 79.667587 0:2 driver_usb::host::structures::xhci_slot_manager:78] max slot: 0
+[ 79.676003 0:2 driver_usb::host::structures::xhci_slot_manager:90] initialized!
+[ 79.684508 0:2 driver_usb::host::structures::xhci_event_manager:43] initilizating!
+[ 79.693309 0:2 driver_usb::host::structures::event_ring:33] created!
+[ 79.700827 0:2 driver_usb::host::structures::xhci_event_manager:56] test
+[ 79.708731 0:2 driver_usb::host::structures::xhci_event_manager:101] initialized!
+[ 79.717442 0:2 driver_usb::host::structures::xhci_command_manager:191] initialized!
+[ 79.726267 0:2 driver_usb::host::structures::scratchpad:54] initialized!
+[ 79.734159 0:2 driver_usb::host::structures::scratchpad:60] initialized!
+[ 79.742058 0:2 driver_usb::host::structures::xhci_roothub:234] number of ports:2
+[ 79.750650 0:2 driver_usb::host::structures::xhci_roothub:239] allocating port 0
+[ 79.759244 0:2 driver_usb::host::structures::xhci_roothub:245] assert:0 == 0
+[ 79.767489 0:2 driver_usb::host::structures::xhci_roothub:239] allocating port 1
+[ 79.776082 0:2 driver_usb::host::structures::xhci_roothub:245] assert:1 == 1
+[ 79.784329 0:2 driver_usb::host::structures::xhci_roothub:259] initialized!
+[ 79.792488 0:2 driver_usb::host::xhci:66] before start:UsbStatusRegister { hc_halted: true, host_system_error: false, event_interrupt: false, port_change_detect: true, save_state_status: false, restore_state_status: false, save_restore_error: false, controller_not_ready: false, host_controller_error: false }
+[ 79.820959 0:2 driver_usb::host::xhci:77] init completed!, coltroller state:UsbStatusRegister { hc_halted: false, host_system_error: false, event_interrupt: false, port_change_detect: true, save_state_status: false, restore_state_status: false, save_restore_error: false, controller_not_ready: false, host_controller_error: false }
+[ 79.851341 0:2 driver_usb::host::xhci:86] port0 : false
+[ 79.857762 0:2 driver_usb::host::xhci:86] port1 : true
+[ 79.864097 0:2 driver_usb::host::xhci:113] initializing roothub
+[ 79.871215 0:2 driver_usb::host::structures::xhci_roothub:158] reset device and slot
+[ 79.880156 0:2 driver_usb::host::structures::xhci_command_manager:80] do command ResetDevice(ResetDevice { slot_id: 0, cycle_bit: false }) !
+[ 79.893958 0:2 driver_usb::host::structures::xhci_command_manager:95] waiting for interrupt handler complete!
+[ 79.905070 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 2, cycle_bit: true })
+[ 79.923122 0:2 driver_usb::host::structures::xhci_event_manager:141] step into port status change.
 
-[ 44.666923 0:2 driver_usb::host::structures::xhci_roothub:89] port 1 status changed
-[ 44.675777 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 2, cycle_bit: true })
-[ 44.693830 0:2 driver_usb::host::structures::xhci_event_manager:141] step into port status change.
+[ 79.933451 0:2 driver_usb::host::structures::xhci_roothub:110] port 1 status changed
+[ 79.942392 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:CommandCompletion(CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417577984, command_completion_parameter: 0, vf_id: 0, slot_id: 0, cycle_bit: true })
+[ 79.968258 0:2 driver_usb::host::structures::xhci_event_manager:136] step into command completion.
 
-[ 44.704160 0:2 driver_usb::host::structures::xhci_roothub:89] port 1 status changed
-[ 44.713015 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:CommandCompletion(CommandCompletion { completion_code: Ok(Success), command_trb_pointer: 2417577984, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true })
-[ 44.737838 0:2 driver_usb::host::structures::xhci_event_manager:136] step into command completion.
+[ 79.978587 0:2 driver_usb::host::structures::xhci_command_manager:149] handleing command complete:CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417577984, command_completion_parameter: 0, vf_id: 0, slot_id: 0, cycle_bit: true }
+[ 80.003238 0:2 driver_usb::host::structures::xhci_command_manager:105] ok, but: SlotNotEnabledError
+ full trb: CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417577984, command_completion_parameter: 0, vf_id: 0, slot_id: 0, cycle_bit: true }
+[ 80.029104 0:2 driver_usb::host::structures::xhci_command_manager:80] do command DisableSlot(DisableSlot { slot_id: 1, cycle_bit: false }) !
+[ 80.042906 0:2 driver_usb::host::structures::xhci_command_manager:95] waiting for interrupt handler complete!
+[ 80.054017 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:CommandCompletion(CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578000, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true })
+[ 80.079882 0:2 driver_usb::host::structures::xhci_event_manager:136] step into command completion.
 
-[ 44.748167 0:2 driver_usb::host::structures::xhci_command_manager:144] handleing command complete:CommandCompletion { completion_code: Ok(Success), command_trb_pointer: 2417577984, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
-[ 44.771777 0:2 driver_usb::host::structures::xhci_command_manager:96] t o t a l success!
-[ 44.781065 0:2 driver_usb::host::structures::xhci_usb_device:41] enable slot success!
-[ 44.790150 0:2 driver_usb::host::structures::xhci_roothub:73] writing ...
-[ 44.798078 0:2 driver_usb::host::structures::xhci_usb_device:74] begin config endpoint 0 and assign dev!
-[ 44.808756 0:2 driver_usb::host::structures::xhci_usb_device:98] config ep0
-[ 44.816915 0:2 driver_usb::host::structures::xhci_usb_device:107] assigning device into dcbaa
-[ 44.826635 0:2 driver_usb::host::structures::xhci_slot_manager:21] assign device: VA:0xffff000090493270 to dcbaa 1
-[ 44.838179 0:2 driver_usb::host::structures::xhci_usb_device:122] config ep0: command!
-[ 44.847293 0:2 driver_usb::host::structures::xhci_command_manager:75] do command ConfigureEndpoint(ConfigureEndpoint { input_context_pointer: 2417598464, deconfigure: false, slot_id: 1, cycle_bit: false }) !
-[ 44.866911 0:2 driver_usb::host::structures::xhci_command_manager:90] waiting for interrupt handler complete!
-[ 44.878021 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:CommandCompletion(CommandCompletion { completion_code: Ok(ContextStateError), command_trb_pointer: 2417578000, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true })
-[ 44.903713 0:2 driver_usb::host::structures::xhci_event_manager:136] step into command completion.
+[ 80.090211 0:2 driver_usb::host::structures::xhci_command_manager:149] handleing command complete:CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578000, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
+[ 80.114863 0:2 driver_usb::host::structures::xhci_command_manager:105] ok, but: SlotNotEnabledError
+ full trb: CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578000, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
+[ 80.140729 0:2 driver_usb::host::structures::xhci_command_manager:80] do command ResetDevice(ResetDevice { slot_id: 1, cycle_bit: false }) !
+[ 80.154531 0:2 driver_usb::host::structures::xhci_command_manager:95] waiting for interrupt handler complete!
+[ 80.165642 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:CommandCompletion(CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578016, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true })
+[ 80.191507 0:2 driver_usb::host::structures::xhci_event_manager:136] step into command completion.
 
-[ 44.914042 0:2 driver_usb::host::structures::xhci_command_manager:144] handleing command complete:CommandCompletion { completion_code: Ok(ContextStateError), command_trb_pointer: 2417578000, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
-[ 44.938520 0:2 driver_usb::host::structures::xhci_command_manager:100] ok, but: ContextStateError
- full trb: CommandCompletion { completion_code: Ok(ContextStateError), command_trb_pointer: 2417578000, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
-[ 44.964039 0:2 driver_usb::host::structures::xhci_usb_device:133] failed to config endpoint:OtherButSuccess(CommandCompletion { completion_code: Ok(ContextStateError), command_trb_pointer: 2417578000, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true })
-[ 44.989471 0:2 driver_usb::host::structures::xhci_usb_device:138] addressing device
-[ 44.998325 0:2 driver_usb::host::structures::xhci_command_manager:58] addressing device!
-[ 45.007612 0:2 driver_usb::host::structures::xhci_command_manager:75] do command AddressDevice(AddressDevice { input_context_pointer: 2417598464, block_set_address_request: false, slot_id: 1, cycle_bit: false }) !
-[ 45.027751 0:2 driver_usb::host::structures::xhci_command_manager:90] waiting for interrupt handler complete!
-[ 45.038862 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:CommandCompletion(CommandCompletion { completion_code: Ok(ParameterError), command_trb_pointer: 2417578016, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true })
-[ 45.064293 0:2 driver_usb::host::structures::xhci_event_manager:136] step into command completion.
+[ 80.201836 0:2 driver_usb::host::structures::xhci_command_manager:149] handleing command complete:CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578016, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
+[ 80.226487 0:2 driver_usb::host::structures::xhci_command_manager:105] ok, but: SlotNotEnabledError
+ full trb: CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578016, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
+[ 80.252354 0:2 driver_usb::host::structures::xhci_command_manager:80] do command DisableSlot(DisableSlot { slot_id: 2, cycle_bit: false }) !
+[ 80.266156 0:2 driver_usb::host::structures::xhci_command_manager:95] waiting for interrupt handler complete!
+[ 80.277267 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:CommandCompletion(CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578032, command_completion_parameter: 0, vf_id: 0, slot_id: 2, cycle_bit: true })
+[ 80.303132 0:2 driver_usb::host::structures::xhci_event_manager:136] step into command completion.
 
-[ 45.074622 0:2 driver_usb::host::structures::xhci_command_manager:144] handleing command complete:CommandCompletion { completion_code: Ok(ParameterError), command_trb_pointer: 2417578016, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
-[ 45.098839 0:2 driver_usb::host::structures::xhci_command_manager:100] ok, but: ParameterError
- full trb: CommandCompletion { completion_code: Ok(ParameterError), command_trb_pointer: 2417578016, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
-[ 45.123838 0:2 driver_usb::host::structures::xhci_usb_device:150] error while address device at slot id 1
-[ 45.134601 0:2 driver_usb::host::structures::xhci_usb_device:175] get descriptor!
-[ 45.143282 0:2 driver_usb::host::structures::xhci_usb_device:189] setup stage!
-[ 45.151702 0:2 driver_usb::host::structures::xhci_usb_device:157] doorbell ing
-[ 45.160122 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:TransferEvent(TransferEvent { completion_code: Ok(EndpointNotEnabledError), trb_pointer: 0, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
-[ 45.185553 0:2 driver_usb::host::structures::xhci_event_manager:114] event = TransferEvent { completion_code: Ok(EndpointNotEnabledError), trb_pointer: 0, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true }
-[ 45.208295 0:2 driver_usb::host::structures::xhci_event_manager:115] step into transfer event
+[ 80.313461 0:2 driver_usb::host::structures::xhci_command_manager:149] handleing command complete:CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578032, command_completion_parameter: 0, vf_id: 0, slot_id: 2, cycle_bit: true }
+[ 80.338112 0:2 driver_usb::host::structures::xhci_command_manager:105] ok, but: SlotNotEnabledError
+ full trb: CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578032, command_completion_parameter: 0, vf_id: 0, slot_id: 2, cycle_bit: true }
+[ 80.363978 0:2 driver_usb::host::structures::xhci_command_manager:80] do command ResetDevice(ResetDevice { slot_id: 2, cycle_bit: false }) !
+[ 80.377781 0:2 driver_usb::host::structures::xhci_command_manager:95] waiting for interrupt handler complete!
+[ 80.388891 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:CommandCompletion(CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578048, command_completion_parameter: 0, vf_id: 0, slot_id: 2, cycle_bit: true })
+[ 80.414756 0:2 driver_usb::host::structures::xhci_event_manager:136] step into command completion.
 
-[ 45.218189 0:2 driver_usb::host::structures::xhci_slot_manager:47] transfer event! param: EndpointNotEnabledError,TransferEvent { completion_code: Ok(EndpointNotEnabledError), trb_pointer: 0, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true }
-[ 45.244143 0:2 driver_usb::host::structures::xhci_slot_manager:54] failed, code:EndpointNotEnabledError
+[ 80.425086 0:2 driver_usb::host::structures::xhci_command_manager:149] handleing command complete:CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578048, command_completion_parameter: 0, vf_id: 0, slot_id: 2, cycle_bit: true }
+[ 80.449737 0:2 driver_usb::host::structures::xhci_command_manager:105] ok, but: SlotNotEnabledError
+ full trb: CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578048, command_completion_parameter: 0, vf_id: 0, slot_id: 2, cycle_bit: true }
+[ 80.475603 0:2 driver_usb::host::structures::xhci_command_manager:80] do command DisableSlot(DisableSlot { slot_id: 3, cycle_bit: false }) !
+[ 80.489406 0:2 driver_usb::host::structures::xhci_command_manager:95] waiting for interrupt handler complete!
+[ 80.500516 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:CommandCompletion(CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578064, command_completion_parameter: 0, vf_id: 0, slot_id: 3, cycle_bit: true })
+[ 80.526381 0:2 driver_usb::host::structures::xhci_event_manager:136] step into command completion.
+
+[ 80.536710 0:2 driver_usb::host::structures::xhci_command_manager:149] handleing command complete:CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578064, command_completion_parameter: 0, vf_id: 0, slot_id: 3, cycle_bit: true }
+[ 80.561362 0:2 driver_usb::host::structures::xhci_command_manager:105] ok, but: SlotNotEnabledError
+ full trb: CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578064, command_completion_parameter: 0, vf_id: 0, slot_id: 3, cycle_bit: true }
+[ 80.587228 0:2 driver_usb::host::structures::xhci_command_manager:80] do command ResetDevice(ResetDevice { slot_id: 3, cycle_bit: false }) !
+[ 80.601030 0:2 driver_usb::host::structures::xhci_command_manager:95] waiting for interrupt handler complete!
+[ 80.612141 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:CommandCompletion(CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578080, command_completion_parameter: 0, vf_id: 0, slot_id: 3, cycle_bit: true })
+[ 80.638006 0:2 driver_usb::host::structures::xhci_event_manager:136] step into command completion.
+
+[ 80.648335 0:2 driver_usb::host::structures::xhci_command_manager:149] handleing command complete:CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578080, command_completion_parameter: 0, vf_id: 0, slot_id: 3, cycle_bit: true }
+[ 80.672987 0:2 driver_usb::host::structures::xhci_command_manager:105] ok, but: SlotNotEnabledError
+ full trb: CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578080, command_completion_parameter: 0, vf_id: 0, slot_id: 3, cycle_bit: true }
+[ 80.698853 0:2 driver_usb::host::structures::xhci_command_manager:80] do command DisableSlot(DisableSlot { slot_id: 4, cycle_bit: false }) !
+[ 80.712655 0:2 driver_usb::host::structures::xhci_command_manager:95] waiting for interrupt handler complete!
+[ 80.723766 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:CommandCompletion(CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578096, command_completion_parameter: 0, vf_id: 0, slot_id: 4, cycle_bit: true })
+[ 80.749631 0:2 driver_usb::host::structures::xhci_event_manager:136] step into command completion.
+
+[ 80.759960 0:2 driver_usb::host::structures::xhci_command_manager:149] handleing command complete:CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578096, command_completion_parameter: 0, vf_id: 0, slot_id: 4, cycle_bit: true }
+[ 80.784611 0:2 driver_usb::host::structures::xhci_command_manager:105] ok, but: SlotNotEnabledError
+ full trb: CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578096, command_completion_parameter: 0, vf_id: 0, slot_id: 4, cycle_bit: true }
+[ 80.810478 0:2 driver_usb::host::structures::xhci_command_manager:80] do command ResetDevice(ResetDevice { slot_id: 4, cycle_bit: false }) !
+[ 80.824280 0:2 driver_usb::host::structures::xhci_command_manager:95] waiting for interrupt handler complete!
+[ 80.835390 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:CommandCompletion(CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578112, command_completion_parameter: 0, vf_id: 0, slot_id: 4, cycle_bit: true })
+[ 80.861256 0:2 driver_usb::host::structures::xhci_event_manager:136] step into command completion.
+
+[ 80.871585 0:2 driver_usb::host::structures::xhci_command_manager:149] handleing command complete:CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578112, command_completion_parameter: 0, vf_id: 0, slot_id: 4, cycle_bit: true }
+[ 80.896236 0:2 driver_usb::host::structures::xhci_command_manager:105] ok, but: SlotNotEnabledError
+ full trb: CommandCompletion { completion_code: Ok(SlotNotEnabledError), command_trb_pointer: 2417578112, command_completion_parameter: 0, vf_id: 0, slot_id: 4, cycle_bit: true }
+[ 80.922103 0:2 driver_usb::host::structures::xhci_roothub:164] initializing root ports
+[ 80.931217 0:2 driver_usb::host::structures::xhci_roothub:169] initializing port 1
+[ 80.939985 0:2 driver_usb::host::structures::xhci_roothub:39] port 1 connected, continue
+[ 80.949273 0:2 driver_usb::host::structures::xhci_roothub:50] waiting for port reset!
+[ 80.958299 0:2 driver_usb::host::structures::xhci_roothub:63] port 1 reset!
+[ 80.966459 0:2 driver_usb::host::structures::xhci_roothub:69] port speed: USBSpeedSuper
+[ 80.975658 0:2 driver_usb::host::structures::xhci_roothub:71] initializing device: USBSpeedSuper
+[ 80.985640 0:2 driver_usb::host::structures::xhci_usb_device:37] new device! port:1
+[ 80.994494 0:2 driver_usb::host::structures::xhci_command_manager:80] do command EnableSlot(EnableSlot { slot_type: 0, cycle_bit: false }) !
+[ 81.008296 0:2 driver_usb::host::structures::xhci_command_manager:95] waiting for interrupt handler complete!
+[ 81.019407 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 2, cycle_bit: true })
+[ 81.037460 0:2 driver_usb::host::structures::xhci_event_manager:141] step into port status change.
+
+[ 81.047789 0:2 driver_usb::host::structures::xhci_roothub:110] port 1 status changed
+[ 81.056730 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:CommandCompletion(CommandCompletion { completion_code: Ok(Success), command_trb_pointer: 2417578128, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true })
+[ 81.081554 0:2 driver_usb::host::structures::xhci_event_manager:136] step into command completion.
+
+[ 81.091883 0:2 driver_usb::host::structures::xhci_command_manager:149] handleing command complete:CommandCompletion { completion_code: Ok(Success), command_trb_pointer: 2417578128, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
+[ 81.115493 0:2 driver_usb::host::structures::xhci_command_manager:101] t o t a l success!
+[ 81.124868 0:2 driver_usb::host::structures::xhci_usb_device:41] enable slot success!
+[ 81.133953 0:2 driver_usb::host::structures::xhci_roothub:74] writing ...
+[ 81.141880 0:2 driver_usb::host::structures::xhci_usb_device:74] begin config endpoint 0 and assign dev!
+[ 81.152560 0:2 driver_usb::host::structures::xhci_usb_device:98] config ep0
+[ 81.160717 0:2 driver_usb::host::structures::xhci_usb_device:107] reset device
+[ 81.169135 0:2 driver_usb::host::structures::xhci_command_manager:80] do command ResetDevice(ResetDevice { slot_id: 1, cycle_bit: false }) !
+[ 81.182938 0:2 driver_usb::host::structures::xhci_command_manager:95] waiting for interrupt handler complete!
+[ 81.194048 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:CommandCompletion(CommandCompletion { completion_code: Ok(ContextStateError), command_trb_pointer: 2417578144, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true })
+[ 81.219740 0:2 driver_usb::host::structures::xhci_event_manager:136] step into command completion.
+
+[ 81.230069 0:2 driver_usb::host::structures::xhci_command_manager:149] handleing command complete:CommandCompletion { completion_code: Ok(ContextStateError), command_trb_pointer: 2417578144, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
+[ 81.254547 0:2 driver_usb::host::structures::xhci_command_manager:105] ok, but: ContextStateError
+ full trb: CommandCompletion { completion_code: Ok(ContextStateError), command_trb_pointer: 2417578144, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
+[ 81.280066 0:2 driver_usb::host::structures::xhci_usb_device:121] assigning device into dcbaa
+[ 81.289788 0:2 driver_usb::host::structures::xhci_slot_manager:21] assign device: VA:0xffff000090493270 to dcbaa 1
+[ 81.301332 0:2 driver_usb::host::structures::xhci_usb_device:136] config ep0: command!
+[ 81.310446 0:2 driver_usb::host::structures::xhci_command_manager:80] do command ConfigureEndpoint(ConfigureEndpoint { input_context_pointer: 2417598464, deconfigure: false, slot_id: 1, cycle_bit: false }) !
+[ 81.330064 0:2 driver_usb::host::structures::xhci_command_manager:95] waiting for interrupt handler complete!
+[ 81.341174 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:CommandCompletion(CommandCompletion { completion_code: Ok(ContextStateError), command_trb_pointer: 2417578160, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true })
+[ 81.366866 0:2 driver_usb::host::structures::xhci_event_manager:136] step into command completion.
+
+[ 81.377195 0:2 driver_usb::host::structures::xhci_command_manager:149] handleing command complete:CommandCompletion { completion_code: Ok(ContextStateError), command_trb_pointer: 2417578160, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
+[ 81.401673 0:2 driver_usb::host::structures::xhci_command_manager:105] ok, but: ContextStateError
+ full trb: CommandCompletion { completion_code: Ok(ContextStateError), command_trb_pointer: 2417578160, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
+[ 81.427192 0:2 driver_usb::host::structures::xhci_usb_device:147] failed to config endpoint:OtherButSuccess(CommandCompletion { completion_code: Ok(ContextStateError), command_trb_pointer: 2417578160, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true })
+[ 81.452624 0:2 driver_usb::host::structures::xhci_usb_device:152] addressing device
+[ 81.461478 0:2 driver_usb::host::structures::xhci_command_manager:63] addressing device!
+[ 81.470765 0:2 driver_usb::host::structures::xhci_command_manager:80] do command AddressDevice(AddressDevice { input_context_pointer: 2417598464, block_set_address_request: false, slot_id: 1, cycle_bit: false }) !
+[ 81.490904 0:2 driver_usb::host::structures::xhci_command_manager:95] waiting for interrupt handler complete!
+[ 81.502015 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:CommandCompletion(CommandCompletion { completion_code: Ok(ParameterError), command_trb_pointer: 2417578176, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true })
+[ 81.527446 0:2 driver_usb::host::structures::xhci_event_manager:136] step into command completion.
+
+[ 81.537775 0:2 driver_usb::host::structures::xhci_command_manager:149] handleing command complete:CommandCompletion { completion_code: Ok(ParameterError), command_trb_pointer: 2417578176, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
+[ 81.561992 0:2 driver_usb::host::structures::xhci_command_manager:105] ok, but: ParameterError
+ full trb: CommandCompletion { completion_code: Ok(ParameterError), command_trb_pointer: 2417578176, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
+[ 81.586991 0:2 driver_usb::host::structures::xhci_usb_device:164] error while address device at slot id 1
+[ 81.597754 0:2 driver_usb::host::structures::xhci_usb_device:189] get descriptor!
+[ 81.606435 0:2 driver_usb::host::structures::xhci_usb_device:203] setup stage!
+[ 81.614855 0:2 driver_usb::host::structures::xhci_usb_device:171] doorbell ing
+[ 81.623275 0:2 driver_usb::host::structures::xhci_event_manager:111] event handler has a trb:TransferEvent(TransferEvent { completion_code: Ok(EndpointNotEnabledError), trb_pointer: 0, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
+[ 81.648706 0:2 driver_usb::host::structures::xhci_event_manager:114] event = TransferEvent { completion_code: Ok(EndpointNotEnabledError), trb_pointer: 0, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true }
+[ 81.671447 0:2 driver_usb::host::structures::xhci_event_manager:115] step into transfer event
+
+[ 81.681343 0:2 driver_usb::host::structures::xhci_slot_manager:47] transfer event! param: EndpointNotEnabledError,TransferEvent { completion_code: Ok(EndpointNotEnabledError), trb_pointer: 0, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true }
+[ 81.707295 0:2 driver_usb::host::structures::xhci_slot_manager:54] failed, code:EndpointNotEnabledError

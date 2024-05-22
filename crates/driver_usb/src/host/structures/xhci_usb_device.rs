@@ -104,6 +104,20 @@ impl XHCIUSBDevice {
         ep_0.set_error_count(3);
         ep_0.set_average_trb_length(8);
 
+        debug!("reset device");
+        match COMMAND_MANAGER
+            .get()
+            .unwrap()
+            .lock()
+            .reset_device(self.slot_id)
+        {
+            CommandResult::Success(trb) => Ok(()),
+            other => {
+                // debug!("reset device failed! {:?}", other);
+                Err(())
+            }
+        };
+
         debug!("assigning device into dcbaa");
         match &(*self.context.output) {
             super::context::Device::Byte64(device) => {

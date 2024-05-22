@@ -84,6 +84,26 @@ impl RootPort {
         debug!("initialize complete");
     }
 
+    fn reset_device_and_slot(slot_id: u8) {
+        debug!("reset device and slot");
+        let mut manager = COMMAND_MANAGER.get().unwrap().lock();
+        match manager.disable_slot(slot_id) {
+            CommandResult::Success(trb) => Ok(()),
+            other => {
+                debug!("disable slot failed! {:?}", other);
+                Err(())
+            }
+        }
+        .and_then(|_| match manager.reset_device(slot_id) {
+            CommandResult::Success(trb) => Ok(()),
+            other => {
+                debug!("reset device failed! {:?}", other);
+                Err(())
+            }
+        });
+        debug!("reset device and slot complete");
+    }
+
     pub fn status_changed(&self) {
         // 检查MMIO（内存映射I/O），确保索引在有效范围内
         assert!(self.root_port_id < XHCI_CONFIG_MAX_PORTS);
@@ -135,6 +155,11 @@ pub struct Roothub {
 
 impl Roothub {
     pub fn initialize(&mut self) {
+        // debug!("reset device and slot");
+        // for i in 0..=4 {
+        //     Self::reset_device_and_slot(i)
+        // }
+
         //todo delay?
         debug!("initializing root ports");
         self.root_ports
@@ -152,6 +177,25 @@ impl Roothub {
             .for_each(|arc| {
                 arc.lock().configure();
             });
+    }
+
+    fn reset_device_and_slot(slot_id: u8) {
+        let mut manager = COMMAND_MANAGER.get().unwrap().lock();
+        match manager.disable_slot(slot_id) {
+            CommandResult::Success(trb) => Ok(()),
+            other => {
+                // debug!("disable slot failed! {:?}", other);
+                Err(())
+            }
+        };
+        match manager.reset_device(slot_id) {
+            CommandResult::Success(trb) => Ok(()),
+            other => {
+                // debug!("reset device failed! {:?}", other);
+                Err(())
+            }
+        };
+        // debug!("reset device and slot complete");
     }
 }
 

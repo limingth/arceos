@@ -10,7 +10,7 @@ use xhci::{
     context::Slot,
     extended_capabilities::debug::Debug,
     ring::trb::{
-        command::{self, AddressDevice, Allowed, DisableSlot, EnableSlot},
+        command::{self, AddressDevice, Allowed, DisableSlot, EnableSlot, ResetDevice},
         event::{self, CommandCompletion, CompletionCode},
     },
 };
@@ -35,7 +35,6 @@ pub(crate) enum CommandResult {
 
 impl CommandManager {
     fn slot_id_in_valid_range(slotid: u8) -> bool {
-        debug!("uch_slot_id:{slotid}");
         (1..=XHCI_CONFIG_MAX_SLOTS).contains(&(slotid as usize))
     }
 
@@ -48,6 +47,12 @@ impl CommandManager {
             }));
         }
         return CommandResult::InvalidSlot;
+    }
+
+    pub fn reset_device(&mut self, slot_id: u8) -> CommandResult {
+        self.do_command(Allowed::ResetDevice(
+            *ResetDevice::default().set_slot_id(slot_id),
+        ))
     }
 
     pub fn enable_slot(&mut self) -> CommandResult {
