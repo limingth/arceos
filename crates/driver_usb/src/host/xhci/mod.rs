@@ -178,14 +178,14 @@ where
             ir0.erstsz.update_volatile(|r| r.set(1));
 
             let erdp = self.primary_event_ring.get_mut().erdp();
-            debug!("Writing ERDP: {:X}", erdp);
+            debug!("{TAG} Writing ERDP: {:X}", erdp);
 
             ir0.erdp.update_volatile(|r| {
                 r.set_event_ring_dequeue_pointer(erdp);
             });
 
             let erstba = self.primary_event_ring.get_mut().erstba();
-            debug!("Writing ERSTBA: {:X}", erstba);
+            debug!("{TAG} Writing ERSTBA: {:X}", erstba);
 
             ir0.erstba.update_volatile(|r| {
                 r.set(erstba);
@@ -196,7 +196,7 @@ where
                 im.set_interrupt_moderation_counter(0);
             });
 
-            debug!("Enabling Primary Interrupter.");
+            debug!("{TAG} Enabling Primary Interrupter.");
             ir0.iman.update_volatile(|im| {
                 im.set_interrupt_enable();
             });
