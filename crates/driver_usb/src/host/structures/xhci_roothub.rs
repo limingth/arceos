@@ -230,7 +230,8 @@ pub(crate) fn new() {
     // 通过MMIO读取根集线器支持的端口数量
     registers::handle(|r| {
         let number_of_ports = r.capability.hcsparams1.read_volatile().number_of_ports() as usize;
-        let mut root_ports = PageBox::new_slice(Arc::new_uninit(), number_of_ports); //DEBUG: using nocache allocator
+        let mut root_ports = PageBox::new_slice(Arc::new_zeroed(), number_of_ports); //DEBUG: using nocache allocator
+                                                                                     //TODO 这里全都是同一个ARC,共享了内存，导致反复重复复制，需要修改
         debug!("number of ports:{}", number_of_ports);
         root_ports
             .iter_mut()
