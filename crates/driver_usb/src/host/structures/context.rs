@@ -1,22 +1,30 @@
 use super::registers;
-use alloc::boxed::Box;
+use alloc::{boxed::Box, sync::Arc};
+use axalloc::{global_no_cache_allocator, GlobalNoCacheAllocator};
 use axhal::mem::{PhysAddr, VirtAddr};
 use page_box::PageBox;
+use spinning_top::Spinlock;
 use xhci::context::{
     Device32Byte, Device64Byte, DeviceHandler, Input32Byte, Input64Byte, InputControlHandler,
     InputHandler,
 };
 
 pub(crate) struct Context {
-    pub(crate) input: Input,
+    input: Arc<Input, GlobalNoCacheAllocator>,
     pub(crate) output: PageBox<Device>,
 }
 impl Default for Context {
     fn default() -> Self {
         Self {
-            input: Input::default(),
+            input: Arc::new_in(Input::default(), global_no_cache_allocator()),
             output: Device::default().into(),
         }
+    }
+}
+
+impl Context {
+    pub fn get_input(&mut self) -> &mut Input {
+        unsafe { &mut *(self.input.virt_addr().as_usize() as *mut Input) }
     }
 }
 

@@ -73,8 +73,8 @@ impl XHCIUSBDevice {
         sleep(Duration::from_millis(2));
         self.address_device();
         sleep(Duration::from_millis(2));
-        self.check_endpoint();
-        sleep(Duration::from_millis(2));
+        // self.check_endpoint();
+        // sleep(Duration::from_millis(2));
         let get_descriptor = self.get_descriptor(); //damn, just assume speed is same lowest!
         debug!("get desc: {:?}", get_descriptor);
         self.set_endpoint_speed(get_descriptor.max_packet_size()); //just let it be lowest speed!
@@ -87,7 +87,7 @@ impl XHCIUSBDevice {
         // input_control.set_add_context_flag(0);
         // input_control.set_add_context_flag(1);
 
-        let slot = self.context.input.device_mut().slot_mut();
+        let slot = self.context.get_input().device_mut().slot_mut();
         slot.set_context_entries(1);
         slot.set_root_hub_port_number(self.port_id);
         barrier::dmb(SY);
@@ -115,9 +115,9 @@ impl XHCIUSBDevice {
         let s = self.get_max_len();
 
         debug!("config ep0");
-        let ep_0 = self.context.input.device_mut().endpoint_mut(1);
-        let endpoint_state = ep_0.endpoint_state();
-        debug!("endpoint 0 state: {:?}", endpoint_state);
+        let ep_0 = self.context.get_input().device_mut().endpoint_mut(1);
+        // let endpoint_state = ep_0.endpoint_state();
+        // debug!("endpoint 0 state: {:?}", endpoint_state);
         ep_0.set_endpoint_type(EndpointType::Control);
         ep_0.set_average_trb_length(8);
         ep_0.set_max_packet_size(s);
@@ -165,7 +165,13 @@ impl XHCIUSBDevice {
         //})
         //
         debug!("checking endpoint!");
-        match self.context.input.device_mut().endpoint(1).endpoint_state() {
+        match self
+            .context
+            .get_input()
+            .device_mut()
+            .endpoint(1)
+            .endpoint_state()
+        {
             xhci::context::EndpointState::Disabled => {
                 debug!("endpoint disabled!");
                 return;
@@ -190,7 +196,7 @@ impl XHCIUSBDevice {
                                             debug!("c o m p l e t e s u c c e s s again!");
                                             current_state = self
                                                 .context
-                                                .input
+                                                .get_input()
                                                 .device_mut()
                                                 .endpoint(1)
                                                 .endpoint_state();
@@ -228,8 +234,12 @@ impl XHCIUSBDevice {
                             {
                                 self.transfer_ring.init();
                                 debug!("transfer ring complete");
-                                current_state =
-                                    self.context.input.device_mut().endpoint(1).endpoint_state();
+                                current_state = self
+                                    .context
+                                    .get_input()
+                                    .device_mut()
+                                    .endpoint(1)
+                                    .endpoint_state();
                             } else {
                                 debug!("reset transfer ring deque failed!");
                                 return;
@@ -275,7 +285,7 @@ impl XHCIUSBDevice {
         let mut has_data_stage = false;
 
         let endpoint_id: u8 = {
-            let endpoint = self.context.input.device_mut().endpoint(1);
+            let endpoint = self.context.get_input().device_mut().endpoint(1);
             let addr = endpoint.as_ref().as_ptr().addr();
             let endpoint_type = endpoint.endpoint_type();
             ((addr & 0x7f) * 2
@@ -339,15 +349,15 @@ impl XHCIUSBDevice {
     }
 
     fn set_endpoint_speed(&mut self, speed: u16) {
-        let ep_0 = self.context.input.device_mut().endpoint_mut(1);
+        let mut binding = self.context.get_input();
+        let ep_0 = binding.device_mut().endpoint_mut(1);
 
         ep_0.set_max_packet_size(speed);
     }
 
     fn evaluate_context_enable_ep0(&mut self) {
         debug!("eval ctx and enable ep0!");
-        let mut input = self.context.input.borrow_mut();
-        input.control_mut().set_add_context_flag(1);
+        let input = self.context.get_input();
         match COMMAND_MANAGER
             .get()
             .unwrap()
