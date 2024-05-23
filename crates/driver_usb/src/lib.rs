@@ -7,6 +7,7 @@
 #![feature(new_uninit)]
 #![allow(warnings)]
 #![feature(if_let_guard)]
+#![feature(let_chains)]
 
 extern crate alloc;
 pub(crate) mod dma;
