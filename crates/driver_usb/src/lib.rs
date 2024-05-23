@@ -6,6 +6,7 @@
 #![feature(get_mut_unchecked)]
 #![feature(new_uninit)]
 #![allow(warnings)]
+#![feature(if_let_guard)]
 
 extern crate alloc;
 pub(crate) mod dma;

@@ -2,15 +2,18 @@ use crate::{
     dma,
     host::structures::{
         event_ring, xhci_command_manager::command_completed, xhci_roothub::status_changed,
-        XHCI_CMD_COMPLETION_EVENT_TRB_CONTROL_SLOTID_SHIFT,
+        xhci_slot_manager::transfer_event, XHCI_CMD_COMPLETION_EVENT_TRB_CONTROL_SLOTID_SHIFT,
         XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT,
         XHCI_PORT_STATUS_EVENT_TRB_PARAMETER1_PORTID_SHIFT,
+        XHCI_TRANSFER_EVENT_TRB_CONTROL_ENDPOINTID_MASK,
+        XHCI_TRANSFER_EVENT_TRB_CONTROL_ENDPOINTID_SHIFT,
+        XHCI_TRANSFER_EVENT_TRB_STATUS_TRB_TRANSFER_LENGTH_MASK,
     },
 };
 use conquer_once::spin::OnceCell;
 use core::f32::consts::E;
-use log::warn;
 use log::{debug, info};
+use log::{error, warn};
 use page_box::PageBox;
 use spinning_top::Spinlock;
 use xhci::ring::trb::command::Allowed as CommandAllowed;
@@ -98,11 +101,14 @@ pub(crate) fn new() {
     debug!("initialized!");
 }
 
+//TODO 给这玩意单独开个线程！
 pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
-    debug!("start to handle event...\n");
+    // debug!("start to handle event...\n");
     //TODO 事件环返回的TRB应当被入队，需要修改
     if let Some(mut manager) = EVENT_MANAGER.get().unwrap().try_lock() {
         if let Some(trb) = manager.event_ring.get_deque_trb() {
+            manager.event_ring.inc_deque();
+            debug!("event handler has a trb:{:?}", trb);
             match trb {
                 EventAllowed::TransferEvent(evt) => {
                     debug!("event = {:?}", evt);
@@ -110,25 +116,26 @@ pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
                     // let trb_array = trb.into_raw();
                     // TODO: transfer_event
                     // transfer_event(
-                    //         trb_array[2] >> XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT,
-                    //         trb_array[2] & XHCI_TRANSFER_EVENT_TRB_STATUS_TRB_TRANSFER_LENGTH_MASK,
-                    //         trb_array[3] >> XHCI_CMD_COMPLETION_EVENT_TRB_CONTROL_SLOTID_SHIFT,
-                    //         (trb_array[3] & XHCI_TRANSFER_EVENT_TRB_CONTROL_ENDPOINTID_MASK) >> XHCI_TRANSFER_EVENT_TRB_CONTROL_ENDPOINTID_SHIFT
+                    //     trb_array[2] >> XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT,
+                    //     trb_array[2] & XHCI_TRANSFER_EVENT_TRB_STATUS_TRB_TRANSFER_LENGTH_MASK,
+                    //     trb_array[3] >> XHCI_CMD_COMPLETION_EVENT_TRB_CONTROL_SLOTID_SHIFT,
+                    //     (trb_array[3] & XHCI_TRANSFER_EVENT_TRB_CONTROL_ENDPOINTID_MASK)
+                    //         >> XHCI_TRANSFER_EVENT_TRB_CONTROL_ENDPOINTID_SHIFT,
                     // )
+                    match evt.completion_code() {
+                        Ok(code) => {
+                            return transfer_event(code, evt);
+                        }
+                        Err(_) => {
+                            error!("error on transfer event!");
+                            return Err(());
+                        }
+                    }
                 }
-                EventAllowed::CommandCompletion(_) => {
+                EventAllowed::CommandCompletion(complete) => {
                     debug!("step into command completion.\n");
                     let trb_array = trb.into_raw();
-                    command_completed(
-                        (((trb_array[0] as usize) << 32) | ((trb_array[1] as usize) << 32)).into(),
-                        (trb_array[2] >> XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT)
-                            .try_into()
-                            .unwrap(),
-                        (trb_array[3] >> XHCI_CMD_COMPLETION_EVENT_TRB_CONTROL_SLOTID_SHIFT)
-                            .try_into()
-                            .unwrap(),
-                    );
-                    return Ok(TypeXhciTrb::default());
+                    return command_completed(complete);
                 }
                 EventAllowed::PortStatusChange(_) => {
                     debug!("step into port status change.\n");
@@ -137,7 +144,6 @@ pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
                         trb_array[2] >> XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT
                             == CompletionCode::Success as u32
                     );
-                    debug!("exec handler!");
                     status_changed(
                         (trb_array[0] >> XHCI_PORT_STATUS_EVENT_TRB_PARAMETER1_PORTID_SHIFT)
                             .try_into()
@@ -164,7 +170,6 @@ pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
                 EventAllowed::MfindexWrap(_) => todo!(),
             }
         };
-        manager.event_ring.inc_deque();
     }
     return Err(());
 }
