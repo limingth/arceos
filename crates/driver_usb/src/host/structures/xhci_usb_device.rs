@@ -12,7 +12,7 @@ use xhci::{
     extended_capabilities::debug::ContextPointer,
     ring::trb::{
         command::{self, ConfigureEndpoint, EvaluateContext},
-        event::{CompletionCode, TransferEvent},
+        event::{CommandCompletion, CompletionCode, TransferEvent},
         transfer::{self, Allowed, DataStage, Direction, SetupStage, StatusStage, TransferType},
     },
 };
@@ -122,6 +122,61 @@ impl XHCIUSBDevice {
 
         //confitional compile needed
         barrier::dmb(SY);
+    }
+
+    fn check_endpoint(&mut self) {
+        //registers::handle(|r|{
+        //    r.port_register_set.read_volatile_at(self.port_id).portli.
+        //})
+        //
+        match self.context.input.device_mut().endpoint(1).endpoint_state() {
+            xhci::context::EndpointState::Disabled => {
+                debug!("endpoint disabled!");
+                return;
+            }
+            xhci::context::EndpointState::Running => debug!("endpoint running, ok!"),
+            other_state => {
+                debug!("state error: {:?}", other_state);
+                debug!("start reset!");
+                let mut current_state = other_state;
+                loop {
+                    match other_state {
+                        xhci::context::EndpointState::Halted => {
+                            match COMMAND_MANAGER
+                                .get()
+                                .unwrap()
+                                .lock()
+                                .reset_endpoint(1, self.slot_id)
+                            {
+                                CommandResult::Success(comp) => {
+                                    match comp.completion_code() {
+                                        Ok(success) if success == CompletionCode::Success => {
+                                            debug!("c o m p l e t e s u c c e s s again!");
+                                        }
+                                        Ok(but) => {
+                                            debug!("transfer success but : {:?}", but);
+                                            return;
+                                        }
+                                        Err(impossible) => {
+                                            debug!("error bug complete, what?? : {impossible}");
+                                            return;
+                                        }
+                                    };
+                                }
+                                other => {
+                                    error!("error while reset endpoint: {:?}", other);
+                                    return;
+                                }
+                            }
+                        } //TODO not complete, fill these code;
+                        xhci::context::EndpointState::Stopped => todo!(),
+                        xhci::context::EndpointState::Error => todo!(),
+                        xhci::context::EndpointState::Disabled => todo!(),
+                        xhci::context::EndpointState::Running => todo!(),
+                    }
+                }
+            }
+        }
     }
 
     fn address_device(&mut self) {

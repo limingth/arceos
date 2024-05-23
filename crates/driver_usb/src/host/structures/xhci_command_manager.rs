@@ -10,7 +10,9 @@ use xhci::{
     context::Slot,
     extended_capabilities::debug::Debug,
     ring::trb::{
-        command::{self, AddressDevice, Allowed, DisableSlot, EnableSlot, ResetDevice},
+        command::{
+            self, AddressDevice, Allowed, DisableSlot, EnableSlot, ResetDevice, ResetEndpoint,
+        },
         event::{self, CommandCompletion, CompletionCode},
     },
 };
@@ -57,6 +59,14 @@ impl CommandManager {
 
     pub fn enable_slot(&mut self) -> CommandResult {
         self.do_command(Allowed::EnableSlot(EnableSlot::new()))
+    }
+
+    pub fn reset_endpoint(&mut self, endpoint_id: u8, slot_id: u8) -> CommandResult {
+        self.do_command(Allowed::ResetEndpoint(
+            *ResetEndpoint::new()
+                .set_endpoint_id(endpoint_id)
+                .set_slot_id(slot_id),
+        ))
     }
 
     pub fn address_device(&mut self, addr: VirtAddr, slot_id: u8) -> CommandResult {
