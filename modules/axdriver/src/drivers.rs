@@ -101,6 +101,7 @@ cfg_if::cfg_if! {
         pub struct OsDepImp;
 
         impl OsDep for OsDepImp{
+            const PAGE_SIZE: usize = axalloc::PAGE_SIZE;
             type DMA = GlobalNoCacheAllocator;
             fn dma_alloc(&self)->Self::DMA {
                 axalloc::global_no_cache_allocator()

@@ -33,3 +33,51 @@ where O: OsDep
         self.dcbaa.as_ptr() as _
     }
 }
+
+
+use tock_registers::registers::{ReadOnly, ReadWrite, WriteOnly};
+use tock_registers::register_structs;
+use tock_registers::interfaces::Writeable;
+
+register_structs! {
+    ScratchpadBufferEntry{
+        (0x000 => addr_low: ReadWrite<u32>),
+        (0x004 => addr_high: ReadWrite<u32>),
+        (0x008 => @END),
+    }
+}
+
+
+
+
+// pub struct ScratchpadBufferArray<O>
+// where O: OsDep 
+// {
+//     pub entries: DMA<[ScratchpadBufferEntry], O>,
+//     pub pages: Vec<DMA<[u8; O::PAGE_SIZE], O>>,
+// }
+// impl <O> ScratchpadBufferArray <O>
+// where O: OsDep 
+// {
+//     pub fn new(ac64: bool, entries: u16) -> Result<Self> {
+        
+//         let mut entries = unsafe { Xhci::alloc_dma_zeroed_unsized_raw(ac64, entries as usize)? };
+
+//         let pages = entries.iter_mut().map(|entry: &mut ScratchpadBufferEntry| -> Result<_, syscall::Error> {
+//             let dma = unsafe { Dma::<[u8; PAGE_SIZE]>::zeroed()?.assume_init() };
+//             assert_eq!(dma.physical() % PAGE_SIZE, 0);
+//             entry.set_addr(dma.physical() as u64);
+//             Ok(dma)
+//         }).collect::<Result<Vec<_>, _>>()?;
+
+//         Ok(Self {
+//             entries,
+//             pages,
+//         })
+//     }
+//     pub fn register(&self) -> usize {
+//         self.entries.physical()
+//     }
+// }
+
+

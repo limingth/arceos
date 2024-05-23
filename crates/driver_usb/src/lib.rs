@@ -20,6 +20,7 @@ pub mod ax;
 
 
 pub trait OsDep: Clone + Send + Sync {
+    const PAGE_SIZE: usize;
     type DMA: Allocator + Send + Sync;
     fn dma_alloc(&self)->Self::DMA;
 }
