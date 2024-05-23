@@ -1,3 +1,9 @@
+use alloc::sync::Weak;
+
+use crate::OsDep;
+
+use super::Controller;
+
 #[repr(packed)]
 #[derive(Clone, Copy, Debug, Default)]
 pub struct DeviceDescriptor {
@@ -17,6 +23,7 @@ pub struct DeviceDescriptor {
     pub configurations: u8,
 }
 
-pub struct USBDevice{
 
-}
+
+
+

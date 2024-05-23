@@ -36,4 +36,6 @@ fn main() {
     );
 
     let usb = USBHost::new::<Xhci<_>>(config).unwrap();
+
+    usb.poll();
 }

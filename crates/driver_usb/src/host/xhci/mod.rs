@@ -1,5 +1,5 @@
 use crate::{addr::VirtAddr, err::*, OsDep};
-use alloc::{borrow::ToOwned, format};
+use alloc::{borrow::ToOwned, format, vec::Vec};
 use axhal::irq::IrqHandler;
 use core::{
     alloc::Allocator,
@@ -8,13 +8,18 @@ use core::{
 };
 use log::*;
 use spinlock::SpinNoIrq;
-use xhci::ring::trb::{
-    command::{Allowed, Noop},
-    event::CommandCompletion,
+use xhci::{
+    context::Slot, registers::PortRegisterSet, ring::trb::{
+        command::{Allowed, Noop},
+        event::CommandCompletion,
+    }
 };
+
+pub use xhci::ring::trb::transfer::Direction;
 mod registers;
 use registers::Registers;
 mod context;
+
 mod event;
 pub(crate) mod ring;
 use self::{
@@ -23,6 +28,7 @@ use self::{
     ring::Ring,
 };
 use super::{Controller, USBHostConfig};
+use crate::host::device::*;
 use alloc::sync::Arc;
 use core::mem;
 const ARM_IRQ_PCIE_HOST_INTA: usize = 143 + 32;
@@ -38,7 +44,7 @@ where
     max_slots: u8,
     max_ports: u8,
     max_irqs: u16,
-    dev_ctx: DeviceContextList<O>,
+    dev_ctx: SpinNoIrq<DeviceContextList<O>>,
     ring: SpinNoIrq<Ring<O>>,
     primary_event_ring: SpinNoIrq<EventRing<O>>,
     scratchpad_buf_arr: Option<ScratchpadBufferArray<O>>,
@@ -83,7 +89,7 @@ where
             max_slots,
             max_irqs,
             max_ports,
-            dev_ctx,
+            dev_ctx: SpinNoIrq::new(dev_ctx),
             ring: SpinNoIrq::new(ring),
             primary_event_ring: SpinNoIrq::new(event),
             scratchpad_buf_arr: None,
@@ -91,6 +97,10 @@ where
         s.init()?;
         info!("{TAG} Init success");
         Ok(s)
+    }
+
+    fn poll(&self) -> Result {
+        todo!()
     }
 }
 
@@ -101,8 +111,11 @@ where
     fn init(&mut self) -> Result {
         self.reset()?;
         self.init_registers()?;
+        self.reset_cic();
         self.start()?;
         self.test_cmd()?;
+        self.root_hub_init()?;
+        // self.probe()?;
         Ok(())
     }
 
@@ -180,7 +193,7 @@ where
         let buf_count = {
             let mut regs = self.regs.lock();
 
-            let dcbaap = self.dev_ctx.dcbaap();
+            let dcbaap = { self.dev_ctx.lock().dcbaap()} ;
             debug!("{TAG} Writing DCBAAP: {:X}", dcbaap);
             regs.operational.dcbaap.update_volatile(|r| {
                 r.set(dcbaap as u64);
@@ -289,12 +302,142 @@ where
             return;
         }
         let scratchpad_buf_arr = ScratchpadBufferArray::new(buf_count, self.config.os.clone());
-        self.dev_ctx.dcbaa[0] = scratchpad_buf_arr.register() as u64;
+        {
+            let mut dev_ctx = self.dev_ctx.lock();
+            dev_ctx.dcbaa[0] = scratchpad_buf_arr.register() as u64;
+
+        }
         debug!(
             "{TAG} Setting up {} scratchpads, at {:#0x}",
             buf_count,
             scratchpad_buf_arr.register()
         );
         self.scratchpad_buf_arr = Some(scratchpad_buf_arr);
+    }
+
+    fn reset_cic(&self) {
+        let mut regs = self.regs.lock();
+        let cic = regs
+            .capability
+            .hccparams2
+            .read_volatile()
+            .configuration_information_capability();
+        regs.operational.config.update_volatile(|r| {
+            if cic {
+                r.set_configuration_information_enable();
+            } else {
+                r.clear_configuration_information_enable();
+            }
+        });
+    }
+
+    fn root_hub_init(&self) -> Result {
+        {
+            let mut regs = self.regs.lock();
+
+            let port_len = regs.port_register_set.len();
+
+            for i in 0..port_len {
+                debug!(
+                    "{TAG} Port {} start reset, connected: {}",
+                    i,
+                    regs.port_register_set
+                        .read_volatile_at(i)
+                        .portsc
+                        .current_connect_status()
+                );
+                regs.port_register_set.update_volatile_at(i, |port| {
+                    port.portsc.set_port_reset();
+                });
+            }
+
+            for i in 0..port_len {
+                while regs
+                    .port_register_set
+                    .read_volatile_at(i)
+                    .portsc
+                    .port_enabled_disabled()
+                {}
+
+                debug!(
+                    "{TAG} Port {} reset, connected: {}",
+                    i,
+                    regs.port_register_set
+                        .read_volatile_at(i)
+                        .portsc
+                        .current_connect_status()
+                );
+            }
+        }
+        info!("{TAG} Root hub init done.");
+
+        self.dev_poll(0)?;
+
+        Ok(())
+    }
+
+    fn dev_poll(&self, slot: u8) -> Result {
+        let mut regs = self.regs.lock();
+        // let changed =regs.operational.usbsts.read_volatile().port_change_detect();
+        // if changed{
+        //     regs.operational.usbsts.update_volatile(|r|{
+        //         r.clear_port_change_detect();
+        //     });
+        // }else {
+        //     return Ok(());
+        // }
+        debug!("{TAG} Poll slot {}", slot);
+
+        let port_len = regs.port_register_set.len();
+
+        for i in 0..port_len {
+            regs.port_register_set.update_volatile_at(i, |port| {
+                if port.portsc.connect_status_change() {
+                    port.portsc.clear_connect_status_change();
+
+                    debug!("{TAG} Port {i} status changed.");
+                }
+            });
+        }
+
+
+    
+
+
+        Ok(())
+    }
+
+    fn probe(&self) -> Result {
+        let mut regs = self.regs.lock();
+
+        let port_len = regs.port_register_set.len();
+
+        for i in 0..port_len {
+            regs.port_register_set.update_volatile_at(i, |port| {
+                // port.portsc.set_0_port_enabled_disabled();
+                port.portsc.set_port_reset();
+                while !port.portsc.port_reset() {}
+
+                info!(
+                    "{TAG} Port {}: Connected: {}, Speed {}, Power {}",
+                    i,
+                    port.portsc.current_connect_status(),
+                    port.portsc.port_speed(),
+                    port.portsc.port_power()
+                );
+            });
+        }
+
+        Ok(())
+    }
+
+    fn control(&self, direction: Direction, src: &mut [u8])->Result{
+
+        
+
+
+
+
+        Ok(())
     }
 }

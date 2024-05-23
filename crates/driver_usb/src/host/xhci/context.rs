@@ -1,9 +1,23 @@
 use core::borrow::BorrowMut;
-
+use alloc::collections::BTreeMap;
 use crate::{dma::DMA, OsDep};
 use alloc::alloc::Allocator;
 use alloc::{boxed::Box, vec::Vec};
 use xhci::context::{Device, Device64Byte};
+
+const NUM_EPS: usize = 32;
+
+
+
+pub struct DeviceAttached<O>
+where O:OsDep
+{
+    hub: i32,
+    port: i32,
+    num_endp: i32,
+    address: i32,
+    transfer_rings: Vec<Ring<O>>,
+}
 
 pub struct DeviceContextList<O>
 where
@@ -11,8 +25,8 @@ where
 {
     pub dcbaa: DMA<[u64; 256], O::DMA>,
     context_list: Vec<DMA<Device64Byte, O::DMA>>,
+    attached_set: BTreeMap<usize, DeviceAttached<O>>
 }
-unsafe impl<O: OsDep> Sync for DeviceContextList<O> {}
 
 impl<O> DeviceContextList<O>
 where
@@ -30,9 +44,12 @@ where
             context_list.push(context);
         }
 
+
+
         Self {
             dcbaa,
             context_list,
+            attached_set: BTreeMap::new()
         }
     }
 
@@ -44,6 +61,8 @@ where
 use tock_registers::interfaces::Writeable;
 use tock_registers::register_structs;
 use tock_registers::registers::{ReadOnly, ReadWrite, WriteOnly};
+
+use super::ring::Ring;
 
 register_structs! {
     ScratchpadBufferEntry{

@@ -29,6 +29,7 @@ pub trait Controller<O>: Send + Sync
 where O: OsDep
 {
     fn new(config: USBHostConfig<O>) -> Result<Self> where Self: Sized;
+    fn poll(&self)->Result;
 }
 
 #[derive(Clone)]
@@ -48,10 +49,7 @@ where O: OsDep
         Ok(Self { config, controller })
     }
 
-    fn init_dev_entry(&self, slot_id : i32)->Result{
-        
-
-
-        Ok(())
+    pub fn poll(&self)->Result{
+        self.controller.poll()
     }
 }
