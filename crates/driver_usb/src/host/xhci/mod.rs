@@ -1,16 +1,27 @@
 use crate::{addr::VirtAddr, err::*, OsDep};
 use alloc::{borrow::ToOwned, format};
 use axhal::irq::IrqHandler;
-use core::{alloc::Allocator, num::NonZeroUsize};
+use core::{
+    alloc::Allocator,
+    num::NonZeroUsize,
+    ops::{Deref, DerefMut},
+};
 use log::*;
 use spinlock::SpinNoIrq;
-use xhci::ring::trb::{command::{Allowed, Noop}, event::CommandCompletion};
+use xhci::ring::trb::{
+    command::{Allowed, Noop},
+    event::CommandCompletion,
+};
 mod registers;
 use registers::Registers;
 mod context;
 mod event;
 pub(crate) mod ring;
-use self::{context::DeviceContextList, event::EventRing, ring::Ring};
+use self::{
+    context::{DeviceContextList, ScratchpadBufferArray},
+    event::EventRing,
+    ring::Ring,
+};
 use super::{Controller, USBHostConfig};
 use alloc::sync::Arc;
 use core::mem;
@@ -30,6 +41,7 @@ where
     dev_ctx: DeviceContextList<O>,
     ring: SpinNoIrq<Ring<O>>,
     primary_event_ring: SpinNoIrq<EventRing<O>>,
+    scratchpad_buf_arr: Option<ScratchpadBufferArray<O>>,
 }
 
 impl<O> Controller<O> for Xhci<O>
@@ -61,7 +73,7 @@ where
 
         // Create the command ring with 4096 / 16 (TRB size) entries, so that it uses all of the
         // DMA allocation (which is at least a 4k page).
-        let entries_per_page = 4096 / mem::size_of::<ring::TrbData>();
+        let entries_per_page = O::PAGE_SIZE / mem::size_of::<ring::TrbData>();
         let ring = Ring::new(config.os.clone(), entries_per_page, true)?;
         let event = EventRing::new(config.os.clone())?;
 
@@ -74,6 +86,7 @@ where
             dev_ctx,
             ring: SpinNoIrq::new(ring),
             primary_event_ring: SpinNoIrq::new(event),
+            scratchpad_buf_arr: None,
         };
         s.init()?;
         info!("{TAG} init success");
@@ -147,67 +160,79 @@ where
     }
 
     fn start(&mut self) -> Result {
-        let mut regs = self.regs.lock();
+        let crcr = { self.ring.lock().register() };
 
-        let dcbaap = self.dev_ctx.dcbaap();
-        debug!("Writing DCBAAP: {:X}", dcbaap);
-        regs.operational.dcbaap.update_volatile(|r| {
-            r.set(dcbaap as u64);
-        });
+        let buf_count = {
+            let mut regs = self.regs.lock();
 
-        let crcr = self.ring.get_mut().register();
-        debug!("Writing CRCR: {:X}", crcr);
-        regs.operational.crcr.update_volatile(|r| {
-            r.set_command_ring_pointer(crcr);
-        });
+            let dcbaap = self.dev_ctx.dcbaap();
+            debug!("{TAG} Writing DCBAAP: {:X}", dcbaap);
+            regs.operational.dcbaap.update_volatile(|r| {
+                r.set(dcbaap as u64);
+            });
 
-        debug!("{TAG} Setting enabled slots to {}.", self.max_slots);
-        regs.operational.config.update_volatile(|r| {
-            r.set_max_device_slots_enabled(self.max_slots);
-        });
+            debug!("{TAG} Writing CRCR: {:X}", crcr);
+            regs.operational.crcr.update_volatile(|r| {
+                r.set_command_ring_pointer(crcr);
+            });
 
-        debug!("{TAG} disable interrupts");
+            debug!("{TAG} Setting enabled slots to {}.", self.max_slots);
+            regs.operational.config.update_volatile(|r| {
+                r.set_max_device_slots_enabled(self.max_slots);
+            });
 
-        regs.operational.usbcmd.update_volatile(|r| {
-            r.clear_interrupter_enable();
-        });
+            debug!("{TAG} disable interrupts");
 
-        let mut ir0 = regs.interrupter_register_set.interrupter_mut(0);
+            regs.operational.usbcmd.update_volatile(|r| {
+                r.clear_interrupter_enable();
+            });
+
+            let mut ir0 = regs.interrupter_register_set.interrupter_mut(0);
+            {
+                debug!("{TAG} Writing ERSTZ");
+                ir0.erstsz.update_volatile(|r| r.set(1));
+
+                let erdp = self.primary_event_ring.get_mut().erdp();
+                debug!("{TAG} Writing ERDP: {:X}", erdp);
+
+                ir0.erdp.update_volatile(|r| {
+                    r.set_event_ring_dequeue_pointer(erdp);
+                });
+
+                let erstba = self.primary_event_ring.get_mut().erstba();
+                debug!("{TAG} Writing ERSTBA: {:X}", erstba);
+
+                ir0.erstba.update_volatile(|r| {
+                    r.set(erstba);
+                });
+
+                ir0.imod.update_volatile(|im| {
+                    im.set_interrupt_moderation_interval(0);
+                    im.set_interrupt_moderation_counter(0);
+                });
+
+                debug!("{TAG} Enabling Primary Interrupter.");
+                ir0.iman.update_volatile(|im| {
+                    im.set_interrupt_enable();
+                });
+            }
+            regs.capability
+                .hcsparams2
+                .read_volatile()
+                .max_scratchpad_buffers()
+        };
+
+        self.setup_scratchpads(buf_count);
+
         {
-            debug!("{TAG} Writing ERSTZ");
-            ir0.erstsz.update_volatile(|r| r.set(1));
-
-            let erdp = self.primary_event_ring.get_mut().erdp();
-            debug!("{TAG} Writing ERDP: {:X}", erdp);
-
-            ir0.erdp.update_volatile(|r| {
-                r.set_event_ring_dequeue_pointer(erdp);
+            let mut regs = self.regs.lock();
+            debug!("{TAG} start run");
+            regs.operational.usbcmd.update_volatile(|r| {
+                r.set_run_stop();
             });
 
-            let erstba = self.primary_event_ring.get_mut().erstba();
-            debug!("{TAG} Writing ERSTBA: {:X}", erstba);
-
-            ir0.erstba.update_volatile(|r| {
-                r.set(erstba);
-            });
-
-            ir0.imod.update_volatile(|im| {
-                im.set_interrupt_moderation_interval(0);
-                im.set_interrupt_moderation_counter(0);
-            });
-
-            debug!("{TAG} Enabling Primary Interrupter.");
-            ir0.iman.update_volatile(|im| {
-                im.set_interrupt_enable();
-            });
+            while regs.operational.usbsts.read_volatile().hc_halted() {}
         }
-
-        debug!("{TAG} start run");
-        regs.operational.usbcmd.update_volatile(|r| {
-            r.set_run_stop();
-        });
-
-        while regs.operational.usbsts.read_volatile().hc_halted() {}
 
         info!("{TAG} is running");
 
@@ -215,7 +240,6 @@ where
     }
 
     fn post_cmd(&self, trb: Allowed) -> Result {
-
         {
             let mut cr = self.ring.lock();
             let (buff, cycle) = cr.next_data();
@@ -236,10 +260,10 @@ where
             let mut er = self.primary_event_ring.lock();
             let event = er.next();
 
-            if let  ring::trb::event::Allowed::CommandCompletion(c)= event {
-                while c.completion_code() .is_err(){}
+            if let ring::trb::event::Allowed::CommandCompletion(c) = event {
+                while c.completion_code().is_err() {}
                 debug!("{TAG} cmd @{:X} got result", c.command_trb_pointer());
-            }else{
+            } else {
                 warn!("{TAG} event not match!");
             }
         }
@@ -253,5 +277,22 @@ where
         }
         debug!("{TAG} command ring ok");
         Ok(())
+    }
+
+    fn setup_scratchpads(&mut self, buf_count: u32) {
+
+        debug!("{TAG} scratch buf count: {}", buf_count);
+
+        if buf_count == 0 {
+            return;
+        }
+        let scratchpad_buf_arr = ScratchpadBufferArray::new(buf_count, self.config.os.clone());
+        self.dev_ctx.dcbaa[0] = scratchpad_buf_arr.register() as u64;
+        debug!(
+            "{TAG} Setting up {} scratchpads, at {:#0x}",
+            buf_count,
+            scratchpad_buf_arr.register()
+        );
+        self.scratchpad_buf_arr = Some(scratchpad_buf_arr);
     }
 }

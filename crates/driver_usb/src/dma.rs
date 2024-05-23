@@ -56,11 +56,21 @@ where
         }
     }
 
+
+}
+
+impl<T, A> DMA<T, A>
+where
+    T: ?Sized,
+    A: Allocator,
+{
     /// 返回 [DMA] 地址
     pub fn addr(&self) -> usize {
         self.data.addr().into()
     }
 }
+
+
 
 impl<T, A> DMA<[T], A>
 where
