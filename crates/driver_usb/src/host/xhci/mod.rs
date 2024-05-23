@@ -174,7 +174,7 @@ where
         Ok(())
     }
 
-    fn init_registers(&self) -> Result {
+    fn init_registers(&mut self) -> Result {
         let crcr = { self.ring.lock().register() };
 
         let buf_count = {
@@ -283,7 +283,7 @@ where
     }
 
     fn setup_scratchpads(&mut self, buf_count: u32) {
-        debug!("{TAG} scratch buf count: {}", buf_count);
+        debug!("{TAG} Scratch buf count: {}", buf_count);
 
         if buf_count == 0 {
             return;
