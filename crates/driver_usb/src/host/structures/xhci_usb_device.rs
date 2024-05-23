@@ -68,6 +68,7 @@ impl XHCIUSBDevice {
         self.config_endpoint_0_assign_dev();
         self.address_device();
         sleep(Duration::from_millis(2));
+        self.check_endpoint();
         let get_descriptor = self.get_descriptor();
         debug!("get desc: {:?}", get_descriptor)
     }
@@ -152,6 +153,12 @@ impl XHCIUSBDevice {
                                     match comp.completion_code() {
                                         Ok(success) if success == CompletionCode::Success => {
                                             debug!("c o m p l e t e s u c c e s s again!");
+                                            current_state = self
+                                                .context
+                                                .input
+                                                .device_mut()
+                                                .endpoint(1)
+                                                .endpoint_state();
                                         }
                                         Ok(but) => {
                                             debug!("transfer success but : {:?}", but);
@@ -168,11 +175,31 @@ impl XHCIUSBDevice {
                                     return;
                                 }
                             }
-                        } //TODO not complete, fill these code;
-                        xhci::context::EndpointState::Stopped => todo!(),
-                        xhci::context::EndpointState::Error => todo!(),
-                        xhci::context::EndpointState::Disabled => todo!(),
-                        xhci::context::EndpointState::Running => todo!(),
+                        } //TODO not complete,
+                        xhci::context::EndpointState::Running => {
+                            debug!("endpoint is running!");
+                            return;
+                        }
+                        other => {
+                            //disabled is impossible since we filtered it
+                            if let CommandResult::Success(comp) = COMMAND_MANAGER
+                                .get()
+                                .unwrap()
+                                .lock()
+                                .set_transfer_ring_deque(1, self.slot_id)
+                                && comp
+                                    .completion_code()
+                                    .is_ok_and(|code| code == CompletionCode::Success)
+                            {
+                                self.transfer_ring.init();
+                                debug!("transfer ring complete");
+                                current_state =
+                                    self.context.input.device_mut().endpoint(1).endpoint_state();
+                            } else {
+                                debug!("reset transfer ring deque failed!");
+                                return;
+                            }
+                        }
                     }
                 }
             }

@@ -12,6 +12,7 @@ use xhci::{
     ring::trb::{
         command::{
             self, AddressDevice, Allowed, DisableSlot, EnableSlot, ResetDevice, ResetEndpoint,
+            SetTrDequeuePointer,
         },
         event::{self, CommandCompletion, CompletionCode},
     },
@@ -63,7 +64,7 @@ impl CommandManager {
 
     pub fn reset_endpoint(&mut self, endpoint_id: u8, slot_id: u8) -> CommandResult {
         self.do_command(Allowed::ResetEndpoint(
-            *ResetEndpoint::new()
+            *ResetEndpoint::default()
                 .set_endpoint_id(endpoint_id)
                 .set_slot_id(slot_id),
         ))
@@ -78,6 +79,14 @@ impl CommandManager {
                 .set_slot_id(slot_id);
             address_device
         }))
+    }
+
+    pub fn set_transfer_ring_deque(&mut self, endpoint_id: u8, slot_id: u8) -> CommandResult {
+        self.do_command(Allowed::SetTrDequeuePointer(
+            *SetTrDequeuePointer::default()
+                .set_slot_id(slot_id)
+                .set_endpoint_id(endpoint_id),
+        ))
     }
 
     pub fn do_commands(&mut self, trb: &[Allowed]) {
