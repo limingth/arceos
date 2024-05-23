@@ -53,7 +53,7 @@ where
         Self: Sized,
     {
         let mmio_base = config.base_addr;
-        debug!("{TAG} base addr: {:?}", mmio_base);
+        debug!("{TAG} Base addr: {:?}", mmio_base);
         let mut regs = registers::new_registers(mmio_base);
 
         // TODO: pcie 未配置，读不出来
@@ -65,7 +65,7 @@ where
         let max_irqs = hcsp1.number_of_interrupts();
         let page_size = regs.operational.pagesize.read_volatile().get();
         debug!(
-            "{TAG} max_slots: {}, max_ports: {}, max_irqs: {}, page size: {}",
+            "{TAG} Max_slots: {}, max_ports: {}, max_irqs: {}, page size: {}",
             max_slots, max_ports, max_irqs, page_size
         );
 
@@ -89,7 +89,7 @@ where
             scratchpad_buf_arr: None,
         };
         s.init()?;
-        info!("{TAG} init success");
+        info!("{TAG} Init success");
         Ok(s)
     }
 }
@@ -100,30 +100,31 @@ where
 {
     fn init(&mut self) -> Result {
         self.reset()?;
+        self.init_registers()?;
         self.start()?;
         self.test_cmd()?;
         Ok(())
     }
 
     fn reset(&mut self) -> Result {
-        debug!("{TAG} reset begin");
-        debug!("{TAG} stop");
+        debug!("{TAG} Reset begin");
+        debug!("{TAG} Stop");
 
         let mut regs = self.regs.lock();
 
         regs.operational.usbcmd.update_volatile(|c| {
             c.clear_run_stop();
         });
-        debug!("{TAG} until halt");
+        debug!("{TAG} Until halt");
         while !regs.operational.usbsts.read_volatile().hc_halted() {}
-        debug!("{TAG} halted");
+        debug!("{TAG} Halted");
 
         let mut o = &mut regs.operational;
         // debug!("xhci stat: {:?}", o.usbsts.read_volatile());
 
-        debug!("{TAG} wait for ready...");
+        debug!("{TAG} Wait for ready...");
         while o.usbsts.read_volatile().controller_not_ready() {}
-        debug!("{TAG} ready");
+        debug!("{TAG} Ready");
 
         o.usbcmd.update_volatile(|f| {
             f.set_host_controller_reset();
@@ -131,7 +132,7 @@ where
 
         while o.usbcmd.read_volatile().host_controller_reset() {}
 
-        debug!("{TAG} reset HC");
+        debug!("{TAG} Reset HC");
 
         while regs
             .operational
@@ -160,6 +161,20 @@ where
     }
 
     fn start(&mut self) -> Result {
+        let mut regs = self.regs.lock();
+        debug!("{TAG} Start run");
+        regs.operational.usbcmd.update_volatile(|r| {
+            r.set_run_stop();
+        });
+
+        while regs.operational.usbsts.read_volatile().hc_halted() {}
+
+        info!("{TAG} Is running");
+
+        Ok(())
+    }
+
+    fn init_registers(&self) -> Result {
         let crcr = { self.ring.lock().register() };
 
         let buf_count = {
@@ -181,7 +196,7 @@ where
                 r.set_max_device_slots_enabled(self.max_slots);
             });
 
-            debug!("{TAG} disable interrupts");
+            debug!("{TAG} Disable interrupts");
 
             regs.operational.usbcmd.update_volatile(|r| {
                 r.clear_interrupter_enable();
@@ -211,7 +226,7 @@ where
                     im.set_interrupt_moderation_counter(0);
                 });
 
-                debug!("{TAG} Enabling Primary Interrupter.");
+                debug!("{TAG} Enabling primary interrupter.");
                 ir0.iman.update_volatile(|im| {
                     im.set_interrupt_enable();
                 });
@@ -224,18 +239,6 @@ where
 
         self.setup_scratchpads(buf_count);
 
-        {
-            let mut regs = self.regs.lock();
-            debug!("{TAG} start run");
-            regs.operational.usbcmd.update_volatile(|r| {
-                r.set_run_stop();
-            });
-
-            while regs.operational.usbsts.read_volatile().hc_halted() {}
-        }
-
-        info!("{TAG} is running");
-
         Ok(())
     }
 
@@ -246,7 +249,7 @@ where
 
             let ptr = &buff[0] as *const u32 as usize;
 
-            debug!("{TAG} post cmd {:?} @{:X}", trb, ptr);
+            debug!("{TAG} Post cmd {:?} @{:X}", trb, ptr);
 
             let mut regs = self.regs.lock();
 
@@ -255,32 +258,31 @@ where
                 r.set_doorbell_target(0);
             });
         }
-        debug!("{TAG} wait result");
+        debug!("{TAG} Wait result");
         {
             let mut er = self.primary_event_ring.lock();
             let event = er.next();
 
             if let ring::trb::event::Allowed::CommandCompletion(c) = event {
                 while c.completion_code().is_err() {}
-                debug!("{TAG} cmd @{:X} got result", c.command_trb_pointer());
+                debug!("{TAG} Cmd @{:X} got result", c.command_trb_pointer());
             } else {
-                warn!("{TAG} event not match!");
+                warn!("{TAG} Event not match!");
             }
         }
         Ok(())
     }
 
     fn test_cmd(&self) -> Result {
-        debug!("{TAG} test command ring");
+        debug!("{TAG} Test command ring");
         for _ in 0..3 {
             self.post_cmd(Allowed::Noop(Noop::new()))?;
         }
-        debug!("{TAG} command ring ok");
+        debug!("{TAG} Command ring ok");
         Ok(())
     }
 
     fn setup_scratchpads(&mut self, buf_count: u32) {
-
         debug!("{TAG} scratch buf count: {}", buf_count);
 
         if buf_count == 0 {
