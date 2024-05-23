@@ -11,8 +11,8 @@ use xhci::{
     extended_capabilities::debug::Debug,
     ring::trb::{
         command::{
-            self, AddressDevice, Allowed, DisableSlot, EnableSlot, ResetDevice, ResetEndpoint,
-            SetTrDequeuePointer,
+            self, AddressDevice, Allowed, DisableSlot, EnableSlot, EvaluateContext, ResetDevice,
+            ResetEndpoint, SetTrDequeuePointer,
         },
         event::{self, CommandCompletion, CompletionCode},
     },
@@ -50,6 +50,14 @@ impl CommandManager {
             }));
         }
         return CommandResult::InvalidSlot;
+    }
+
+    pub fn evaluate_context(&mut self, slot_id: u8, input_addr: VirtAddr) -> CommandResult {
+        self.do_command(Allowed::EvaluateContext(
+            *EvaluateContext::default()
+                .set_input_context_pointer(input_addr.as_usize() as u64)
+                .set_slot_id(slot_id),
+        ))
     }
 
     pub fn reset_device(&mut self, slot_id: u8) -> CommandResult {

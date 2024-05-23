@@ -238,11 +238,18 @@ pub(crate) fn new() {
             .enumerate()
             .for_each(|(i, port_uninit)| {
                 debug!("allocating port {i}");
-                unsafe { Arc::get_mut_unchecked(port_uninit) }.write(Spinlock::new(RootPort {
+                //     unsafe { Arc::get_mut_unchecked(port_uninit) }.write(
+                //         Spinlock::new(RootPort {
+                //         root_port_id: i,
+                //         device: Arc::new_uninit(),
+                //         device_inited: false,
+                //     }
+                // ));
+                *port_uninit = Arc::new(MaybeUninit::new(Spinlock::new(RootPort {
                     root_port_id: i,
                     device: Arc::new_uninit(),
                     device_inited: false,
-                }));
+                })));
                 debug!("assert:{} == {i}", unsafe {
                     port_uninit.clone().assume_init().lock().root_port_id
                 })

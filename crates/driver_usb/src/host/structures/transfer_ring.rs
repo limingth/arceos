@@ -13,7 +13,8 @@ use xhci::ring::trb::{
 use crate::host::structures::XHCI_LINK_TRB_CONTROL_TC;
 
 use super::{
-    registers, XHCI_CONFIG_RING_SIZE, XHCI_TRB_CONTROL_C, XHCI_TRB_CONTROL_TRB_TYPE_SHIFT,
+    event_ring, registers, XHCI_CONFIG_RING_SIZE, XHCI_TRB_CONTROL_C,
+    XHCI_TRB_CONTROL_TRB_TYPE_SHIFT,
 };
 
 pub struct TransferRing {
@@ -45,16 +46,31 @@ impl TransferRing {
         let ringsize = self.ring.virt_addr().as_usize() as u64;
         let mut link_trb = &mut self.ring[get_trb_count - 1];
 
-        unsafe { *(link_trb.as_ptr() as *mut u64) = ringsize };
-        link_trb[2] = 0;
-        link_trb[3] = (((xhci::ring::trb::Type::Link as usize) << XHCI_TRB_CONTROL_TRB_TYPE_SHIFT)
-            | XHCI_LINK_TRB_CONTROL_TC) as u32;
+        // unsafe { *(link_trb.as_ptr() as *mut u64) = ringsize };
+        // link_trb[2] = 0;
+        // link_trb[3] = (((xhci::ring::trb::Type::Link as usize) << XHCI_TRB_CONTROL_TRB_TYPE_SHIFT)
+        //     | XHCI_LINK_TRB_CONTROL_TC) as u32;
+    }
+
+    fn append_link_trb(&mut self) -> bool {
+        let t = *Link::default().set_ring_segment_pointer(self.ring.virt_addr().as_usize() as u64);
+        let mut t = transfer::Allowed::Link(t);
+        self.set_cyclebit(&mut t);
+        self.ring[self.enqueue_index] = t.into_raw();
+        return t.cycle_bit();
     }
 
     pub fn enqueue_trbs(&mut self, ts: &[Allowed]) {
         ts.iter().for_each(|trb| self.enqueue(*trb));
     }
 
+    // pub fn enqueue(&mut self, mut trb: transfer::Allowed) {
+    //     self.set_cyclebit(&mut trb);
+    //     if let Some(enque_trb) = self.get_enque_trb() {
+    //         *enque_trb = trb.into_raw();
+    //         self.inc_enque();
+    //     }
+    // }
     pub fn enqueue(&mut self, mut trb: transfer::Allowed) {
         self.set_cyclebit(&mut trb);
         if let Some(enque_trb) = self.get_enque_trb() {
@@ -106,7 +122,6 @@ impl TransferRing {
             self.ring[self.enqueue_index][3] & XHCI_TRB_CONTROL_C as u32,
             self.cycle_state
         );
-
         self.enqueue_index += 1;
 
         if self.enqueue_index == self.get_trb_count() - 1 {
