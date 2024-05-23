@@ -28,6 +28,7 @@ impl Context {
     }
 }
 
+#[derive(Debug)]
 pub(crate) enum Input {
     Byte64(PageBox<Input64Byte>),
     Byte32(PageBox<Input32Byte>),

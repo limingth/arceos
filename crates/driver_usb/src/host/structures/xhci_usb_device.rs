@@ -47,7 +47,7 @@ impl XHCIUSBDevice {
                                 TransferRing::new(),
                                 global_no_cache_allocator(),
                             ),
-                            port_id,
+                            port_id: port_id,
                             slot_id: succedd_trb.slot_id(),
                         };
 
@@ -75,21 +75,48 @@ impl XHCIUSBDevice {
         sleep(Duration::from_millis(2));
         // self.check_endpoint();
         // sleep(Duration::from_millis(2));
+
         let get_descriptor = self.get_descriptor(); //damn, just assume speed is same lowest!
         debug!("get desc: {:?}", get_descriptor);
         self.set_endpoint_speed(get_descriptor.max_packet_size()); //just let it be lowest speed!
         self.evaluate_context_enable_ep0();
     }
 
+    fn reset_slot(&mut self) {
+        let disable_slot = COMMAND_MANAGER
+            .get()
+            .unwrap()
+            .lock()
+            .disable_slot(self.slot_id);
+        debug!("disable slot once! {:?}", disable_slot);
+
+        if let Some(manager) = COMMAND_MANAGER.get() {
+            match manager.lock().enable_slot() {
+                CommandResult::Success(succedd_trb)
+                    if succedd_trb.completion_code() == Ok(CompletionCode::Success) =>
+                {
+                    debug!("enable slot success!");
+                    self.slot_id = succedd_trb.slot_id();
+                }
+                //需要让device分配在指定的内存空间中
+                err => {
+                    panic!("failed to enable slot!\n {:?}", err);
+                }
+            }
+        } else {
+            panic!("command manager not initialized! it should not happen!");
+        };
+    }
+
     fn init_input_ctx(&mut self) {
         debug!("init input ctx");
-        // let input_control = self.context.input.control_mut();
+        let input_control = self.context.get_input().control_mut();
         // input_control.set_add_context_flag(0);
-        // input_control.set_add_context_flag(1);
+        input_control.set_add_context_flag(1);
 
         let slot = self.context.get_input().device_mut().slot_mut();
         slot.set_context_entries(1);
-        slot.set_root_hub_port_number(self.port_id);
+        slot.set_root_hub_port_number(self.port_id + 1);
         barrier::dmb(SY);
     }
 
@@ -105,7 +132,11 @@ impl XHCIUSBDevice {
             1 | 3 => 64,
             2 => 8,
             4 => 512,
-            _ => unimplemented!("PSI: {}", psi),
+            _ => {
+                // unimplemented!("PSI: {}", psi)
+                error!("unimpl PSI: {}", psi);
+                8
+            }
         }
     }
 
@@ -283,9 +314,11 @@ impl XHCIUSBDevice {
 
         let buffer = PageBox::from(descriptor::Device::default());
         let mut has_data_stage = false;
+        let get_input = self.context.get_input();
+        // debug!("device input ctx: {:?}", get_input);
 
         let endpoint_id: u8 = {
-            let endpoint = self.context.get_input().device_mut().endpoint(1);
+            let endpoint = get_input.device_mut().endpoint(1);
             let addr = endpoint.as_ref().as_ptr().addr();
             let endpoint_type = endpoint.endpoint_type();
             ((addr & 0x7f) * 2

@@ -1,9 +1,12 @@
 use core::mem::MaybeUninit;
+use core::time::Duration;
 use core::{num, option, panic, result};
 
+use aarch64_cpu::asm::barrier::{self, SY};
 use alloc::string::String;
 use alloc::sync::Arc;
 use axalloc::GlobalNoCacheAllocator;
+use axtask::sleep;
 use conquer_once::spin::OnceCell;
 use log::{debug, error, info};
 use page_box::PageBox;
@@ -38,29 +41,69 @@ impl RootPort {
         }
         debug!("port {} connected, continue", self.root_port_id);
 
-        registers::handle(|r| {
-            // r.port_register_set.read_volatile_at(self.index).portsc.port_link_state() // usb 3, not complete code
-            //DEBUG lets just use usb 2 job sequence? should be compaible? might stuck at here
-            r.port_register_set
-                .update_volatile_at(self.root_port_id, |prs| {
-                    prs.portsc.set_port_reset();
+        // debug!("poweron!"); try to not reset !
+        // registers::handle(|r| {
+        //     r.port_register_set
+        //         .update_volatile_at(self.root_port_id, |prs| {
+        //             prs.portsc.set_port_power();
+        //         })
+        // });
 
-                    prs.portsc.set_0_port_enabled_disabled();
-
-                    debug!("waiting for port reset!");
-                    while !prs.portsc.port_reset() {}
-                })
-        });
-
-        // //waiting for reset
+        // debug!("waiting for port reset!");
         // while !registers::handle(|r| {
         //     r.port_register_set
-        //         .read_volatile_at(self.root_port_id)
+        //         .read_volatile_at((self.root_port_id).into())
         //         .portsc
-        //         .port_reset_change()
+        //         .port_power()
         // }) {}
 
-        debug!("port {} reset!", self.root_port_id);
+        // debug!("reset port!");
+        // registers::handle(|r| {
+        //     r.port_register_set
+        //         .update_volatile_at(self.root_port_id, |prs| {
+        //             debug!("state: {:?}", prs);
+        //             prs.portsc.set_port_reset();
+        //         })
+        // });
+
+        // sleep(Duration::from_millis(150));
+
+        // debug!("waiting for port reset!");
+        // while registers::handle(|r| {
+        //     r.port_register_set
+        //         .read_volatile_at((self.root_port_id).into())
+        //         .portsc
+        //         .port_reset()
+        // }) {}
+
+        // debug!("port {} reset!", self.root_port_id);
+
+        // debug!("enable port after reset!");
+        // registers::handle(|r| {
+        //     r.port_register_set
+        //         .update_volatile_at(self.root_port_id, |prs| {
+        //             prs.portsc.clear_port_enabled_disabled();
+        //         })
+        // });
+
+        // sleep(Duration::from_millis(150));
+
+        // while !registers::handle(|r| {
+        //     r.port_register_set
+        //         .read_volatile_at((self.root_port_id).into())
+        //         .portsc
+        //         .port_enabled_disabled()
+        // }) {}
+        // debug!("port enabled!");
+
+        debug!(
+            "port status {:?}",
+            registers::handle(|r| {
+                r.port_register_set
+                    .read_volatile_at(self.root_port_id)
+                    .portsc
+            })
+        );
 
         let get_speed = self.get_speed();
         if get_speed == USBSpeed::USBSpeedUnknown {
