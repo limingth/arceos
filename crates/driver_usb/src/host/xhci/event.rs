@@ -43,9 +43,9 @@ where O: OsDep
         Ok(ring)
     }
 
-    pub fn next(&mut self) -> Allowed {
-        let data = self.ring.next_data().0.clone();
-        Allowed::try_from(data).unwrap()
+    pub fn next(&mut self) ->Allowed {
+        let (data, cycle) = self.ring.next_data();
+        Allowed::try_from(data.clone()).unwrap()
     }
 
     pub fn erdp(&self) -> u64 {

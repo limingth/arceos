@@ -10,17 +10,17 @@ use core::{
 use log::*;
 use spinlock::SpinNoIrq;
 use xhci::{
-    context::Slot,
+    context::{Slot, Slot64Byte},
     registers::PortRegisterSet,
     ring::trb::{
-        command::{Allowed, Noop},
+        command::{Allowed, EnableSlot, Noop},
         event::CommandCompletion,
     },
 };
 
 pub use xhci::ring::trb::transfer::Direction;
 mod registers;
-use registers::Registers;
+use registers::*;
 mod context;
 mod event;
 pub(crate) mod ring;
@@ -58,16 +58,16 @@ where
     {
         let mmio_base = config.base_addr;
         debug!("{TAG} Base addr: {:?}", mmio_base);
-        let mut regs = registers::new_registers(mmio_base);
+        let mut regs = Registers::new_registers(mmio_base);
 
         // TODO: pcie 未配置，读不出来
         // let version = self.regs.capability.hciversion.read_volatile();
         // info!("xhci version: {:x}", version.get());
-        let hcsp1 = regs.capability.hcsparams1.read_volatile();
+        let hcsp1 = regs.regs.capability.hcsparams1.read_volatile();
         let max_slots = hcsp1.number_of_device_slots();
         let max_ports = hcsp1.number_of_ports();
         let max_irqs = hcsp1.number_of_interrupts();
-        let page_size = regs.operational.pagesize.read_volatile().get();
+        let page_size = regs.regs.operational.pagesize.read_volatile().get();
         debug!(
             "{TAG} Max_slots: {}, max_ports: {}, max_irqs: {}, page size: {}",
             max_slots, max_ports, max_irqs, page_size
@@ -122,7 +122,8 @@ where
         debug!("{TAG} Reset begin");
         debug!("{TAG} Stop");
 
-        let mut regs = self.regs.lock();
+        let mut g = self.regs.lock();
+        let regs = &mut g.regs;
 
         regs.operational.usbcmd.update_volatile(|c| {
             c.clear_run_stop();
@@ -165,7 +166,7 @@ where
     fn set_max_device_slots(&self) -> Result {
         let mut regs = self.regs.lock();
         debug!("{TAG} Setting enabled slots to {}.", self.max_slots);
-        regs.operational.config.update_volatile(|r| {
+        regs.regs.operational.config.update_volatile(|r| {
             r.set_max_device_slots_enabled(self.max_slots);
         });
         Ok(())
@@ -175,7 +176,7 @@ where
         let dcbaap = { self.dev_ctx.lock().dcbaap() };
         let mut regs = self.regs.lock();
         debug!("{TAG} Writing DCBAAP: {:X}", dcbaap);
-        regs.operational.dcbaap.update_volatile(|r| {
+        regs.regs.operational.dcbaap.update_volatile(|r| {
             r.set(dcbaap as u64);
         });
         Ok(())
@@ -186,7 +187,7 @@ where
         let mut regs = self.regs.lock();
 
         debug!("{TAG} Writing CRCR: {:X}", crcr);
-        regs.operational.crcr.update_volatile(|r| {
+        regs.regs.operational.crcr.update_volatile(|r| {
             r.set_command_ring_pointer(crcr);
         });
 
@@ -204,7 +205,8 @@ where
     }
 
     fn start(&mut self) -> Result {
-        let mut regs = self.regs.lock();
+        let mut g = self.regs.lock();
+        let regs = &mut g.regs;
         debug!("{TAG} Start run");
         regs.operational.usbcmd.update_volatile(|r| {
             r.set_run_stop();
@@ -224,7 +226,8 @@ where
 
     fn init_ir(&mut self) -> Result {
         debug!("{TAG} Disable interrupts");
-        let mut regs = self.regs.lock();
+        let mut g = self.regs.lock();
+        let regs = &mut g.regs;
 
         regs.operational.usbcmd.update_volatile(|r| {
             r.clear_interrupter_enable();
@@ -267,10 +270,13 @@ where
         Ok(())
     }
 
-    fn post_cmd(&self, trb: Allowed) -> Result {
+    fn post_cmd(&self, mut trb: Allowed) -> Result<ring::trb::event::CommandCompletion> {
         {
             let mut cr = self.ring.lock();
             let (buff, cycle) = cr.next_data();
+            if cycle {
+                trb.set_cycle_bit();
+            }
 
             let ptr = &buff[0] as *const u32 as usize;
 
@@ -278,7 +284,7 @@ where
 
             let mut regs = self.regs.lock();
 
-            regs.doorbell.update_volatile_at(0, |r| {
+            regs.regs.doorbell.update_volatile_at(0, |r| {
                 r.set_doorbell_stream_id(0);
                 r.set_doorbell_target(0);
             });
@@ -286,22 +292,30 @@ where
         debug!("{TAG} Wait result");
         {
             let mut er = self.primary_event_ring.lock();
-            let event = er.next();
 
-            if let ring::trb::event::Allowed::CommandCompletion(c) = event {
-                while c.completion_code().is_err() {}
-                debug!("{TAG} Cmd @{:X} got result", c.command_trb_pointer());
-            } else {
-                warn!("{TAG} Event not match!");
+            loop {
+                let event = er.next();
+                match event {
+                    xhci::ring::trb::event::Allowed::CommandCompletion(c) => {
+                        while c.completion_code().is_err() {}
+                        debug!(
+                            "{TAG} Cmd @{:X} got result, cycle {}",
+                            c.command_trb_pointer(),
+                            c.cycle_bit()
+                        );
+
+                        return  Ok(c);
+                    }
+                    _ => warn!("event: {:?}", event),
+                }
             }
         }
-        Ok(())
     }
 
     fn test_cmd(&self) -> Result {
         debug!("{TAG} Test command ring");
         for _ in 0..3 {
-            self.post_cmd(Allowed::Noop(Noop::new()))?;
+            let completion = self.post_cmd(Allowed::Noop(Noop::new()))?;
         }
         debug!("{TAG} Command ring ok");
         Ok(())
@@ -311,6 +325,7 @@ where
         let buf_count = {
             let regs = self.regs.lock();
             let count = regs
+                .regs
                 .capability
                 .hcsparams2
                 .read_volatile()
@@ -335,7 +350,8 @@ where
     }
 
     fn reset_cic(&self) {
-        let mut regs = self.regs.lock();
+        let mut g = self.regs.lock();
+        let regs = &mut g.regs;
         let cic = regs
             .capability
             .hccparams2
@@ -350,8 +366,9 @@ where
         });
     }
     fn reset_ports(&self) {
-        let mut regs = self.regs.lock();
+        let mut g = self.regs.lock();
 
+        let regs = &mut g.regs;
         let port_len = regs.port_register_set.len();
 
         for i in 0..port_len {
@@ -375,7 +392,8 @@ where
     fn probe(&self) -> Result {
         let mut port_id_list = Vec::new();
         {
-            let mut regs = self.regs.lock();
+            let mut g = self.regs.lock();
+            let regs = &mut g.regs;
             let port_len = regs.port_register_set.len();
             for i in 0..port_len {
                 let portsc = &regs.port_register_set.read_volatile_at(i).portsc;
@@ -395,17 +413,41 @@ where
                 port_id_list.push(i);
             }
         }
-        for port_id in port_id_list{
-            self.device_slot_assignment(port)?;
+        for port_id in port_id_list {
+            self.device_slot_assignment(port_id)?;
         }
-
 
         Ok(())
     }
 
     fn device_slot_assignment(&self, port: usize) -> Result {
+        // enable slot
+        let mut cmd = EnableSlot::new();
+        let slot_type = {
+            // TODO: PCI未初始化，读不出来
+            // let mut regs = self.regs.lock();
+            // match regs.supported_protocol(port) {
+            //     Some(p) => p.header.read_volatile().protocol_slot_type(),
+            //     None => {
+            //         warn!(
+            //             "{TAG} Failed to find supported protocol information for port {}",
+            //             port
+            //         );
+            //         0
+            //     }
+            // }
+            0
+        };
+        cmd.set_slot_type(slot_type);
 
+        let cmd = Allowed::EnableSlot(EnableSlot::new());
 
+        debug!("{TAG} CMD: enable slot");
+
+        let result = self.post_cmd(cmd)?;
+
+        let slot_id = result.slot_id();
+        debug!("{TAG} Result: {:?}", result);
 
         Ok(())
     }
