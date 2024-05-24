@@ -3,30 +3,28 @@ use alloc::{borrow::ToOwned, format, vec::Vec};
 use axhal::irq::IrqHandler;
 use core::{
     alloc::Allocator,
+    borrow::BorrowMut,
     num::NonZeroUsize,
     ops::{Deref, DerefMut},
 };
 use log::*;
 use spinlock::SpinNoIrq;
 use xhci::{
-    context::Slot, registers::PortRegisterSet, ring::trb::{
+    context::Slot,
+    registers::PortRegisterSet,
+    ring::trb::{
         command::{Allowed, Noop},
         event::CommandCompletion,
-    }
+    },
 };
 
 pub use xhci::ring::trb::transfer::Direction;
 mod registers;
 use registers::Registers;
 mod context;
-
 mod event;
 pub(crate) mod ring;
-use self::{
-    context::{DeviceContextList, ScratchpadBufferArray},
-    event::EventRing,
-    ring::Ring,
-};
+use self::{context::*, event::EventRing, ring::Ring};
 use super::{Controller, USBHostConfig};
 use crate::host::device::*;
 use alloc::sync::Arc;
@@ -100,7 +98,7 @@ where
     }
 
     fn poll(&self) -> Result {
-        todo!()
+        self.probe()
     }
 }
 
@@ -109,17 +107,18 @@ where
     O: OsDep,
 {
     fn init(&mut self) -> Result {
-        self.reset()?;
-        self.init_registers()?;
-        self.reset_cic();
+        self.chip_hardware_reset()?;
+        self.set_max_device_slots()?;
+        self.set_dcbaap()?;
+        self.set_cmd_ring()?;
+        self.init_ir()?;
+        self.setup_scratchpads();
         self.start()?;
         self.test_cmd()?;
-        self.root_hub_init()?;
-        // self.probe()?;
+        self.reset_ports();
         Ok(())
     }
-
-    fn reset(&mut self) -> Result {
+    fn chip_hardware_reset(&mut self) -> Result {
         debug!("{TAG} Reset begin");
         debug!("{TAG} Stop");
 
@@ -163,6 +162,37 @@ where
         Ok(())
     }
 
+    fn set_max_device_slots(&self) -> Result {
+        let mut regs = self.regs.lock();
+        debug!("{TAG} Setting enabled slots to {}.", self.max_slots);
+        regs.operational.config.update_volatile(|r| {
+            r.set_max_device_slots_enabled(self.max_slots);
+        });
+        Ok(())
+    }
+
+    fn set_dcbaap(&self) -> Result {
+        let dcbaap = { self.dev_ctx.lock().dcbaap() };
+        let mut regs = self.regs.lock();
+        debug!("{TAG} Writing DCBAAP: {:X}", dcbaap);
+        regs.operational.dcbaap.update_volatile(|r| {
+            r.set(dcbaap as u64);
+        });
+        Ok(())
+    }
+
+    fn set_cmd_ring(&self) -> Result {
+        let crcr = { self.ring.lock().register() };
+        let mut regs = self.regs.lock();
+
+        debug!("{TAG} Writing CRCR: {:X}", crcr);
+        regs.operational.crcr.update_volatile(|r| {
+            r.set_command_ring_pointer(crcr);
+        });
+
+        Ok(())
+    }
+
     fn check_slot(&self, slot: u8) -> Result {
         if slot > self.max_slots {
             return Err(Error::Param(format!(
@@ -184,73 +214,55 @@ where
 
         info!("{TAG} Is running");
 
+        regs.doorbell.update_volatile_at(0, |r| {
+            r.set_doorbell_stream_id(0);
+            r.set_doorbell_target(0);
+        });
+
         Ok(())
     }
 
-    fn init_registers(&mut self) -> Result {
-        let crcr = { self.ring.lock().register() };
+    fn init_ir(&mut self) -> Result {
+        debug!("{TAG} Disable interrupts");
+        let mut regs = self.regs.lock();
 
-        let buf_count = {
-            let mut regs = self.regs.lock();
+        regs.operational.usbcmd.update_volatile(|r| {
+            r.clear_interrupter_enable();
+        });
 
-            let dcbaap = { self.dev_ctx.lock().dcbaap()} ;
-            debug!("{TAG} Writing DCBAAP: {:X}", dcbaap);
-            regs.operational.dcbaap.update_volatile(|r| {
-                r.set(dcbaap as u64);
+        let mut ir0 = regs.interrupter_register_set.interrupter_mut(0);
+        {
+            debug!("{TAG} Writing ERSTZ");
+            ir0.erstsz.update_volatile(|r| r.set(1));
+
+            let erdp = self.primary_event_ring.get_mut().erdp();
+            debug!("{TAG} Writing ERDP: {:X}", erdp);
+
+            ir0.erdp.update_volatile(|r| {
+                r.set_event_ring_dequeue_pointer(erdp);
             });
 
-            debug!("{TAG} Writing CRCR: {:X}", crcr);
-            regs.operational.crcr.update_volatile(|r| {
-                r.set_command_ring_pointer(crcr);
+            let erstba = self.primary_event_ring.get_mut().erstba();
+            debug!("{TAG} Writing ERSTBA: {:X}", erstba);
+
+            ir0.erstba.update_volatile(|r| {
+                r.set(erstba);
             });
 
-            debug!("{TAG} Setting enabled slots to {}.", self.max_slots);
-            regs.operational.config.update_volatile(|r| {
-                r.set_max_device_slots_enabled(self.max_slots);
+            ir0.imod.update_volatile(|im| {
+                im.set_interrupt_moderation_interval(0);
+                im.set_interrupt_moderation_counter(0);
             });
 
-            debug!("{TAG} Disable interrupts");
-
-            regs.operational.usbcmd.update_volatile(|r| {
-                r.clear_interrupter_enable();
+            debug!("{TAG} Enabling primary interrupter.");
+            ir0.iman.update_volatile(|im| {
+                im.set_interrupt_enable();
             });
+        }
 
-            let mut ir0 = regs.interrupter_register_set.interrupter_mut(0);
-            {
-                debug!("{TAG} Writing ERSTZ");
-                ir0.erstsz.update_volatile(|r| r.set(1));
+        // };
 
-                let erdp = self.primary_event_ring.get_mut().erdp();
-                debug!("{TAG} Writing ERDP: {:X}", erdp);
-
-                ir0.erdp.update_volatile(|r| {
-                    r.set_event_ring_dequeue_pointer(erdp);
-                });
-
-                let erstba = self.primary_event_ring.get_mut().erstba();
-                debug!("{TAG} Writing ERSTBA: {:X}", erstba);
-
-                ir0.erstba.update_volatile(|r| {
-                    r.set(erstba);
-                });
-
-                ir0.imod.update_volatile(|im| {
-                    im.set_interrupt_moderation_interval(0);
-                    im.set_interrupt_moderation_counter(0);
-                });
-
-                debug!("{TAG} Enabling primary interrupter.");
-                ir0.iman.update_volatile(|im| {
-                    im.set_interrupt_enable();
-                });
-            }
-            regs.capability
-                .hcsparams2
-                .read_volatile()
-                .max_scratchpad_buffers()
-        };
-
-        self.setup_scratchpads(buf_count);
+        // self.setup_scratchpads(buf_count);
 
         Ok(())
     }
@@ -295,9 +307,17 @@ where
         Ok(())
     }
 
-    fn setup_scratchpads(&mut self, buf_count: u32) {
-        debug!("{TAG} Scratch buf count: {}", buf_count);
-
+    fn setup_scratchpads(&mut self) {
+        let buf_count = {
+            let regs = self.regs.lock();
+            let count = regs
+                .capability
+                .hcsparams2
+                .read_volatile()
+                .max_scratchpad_buffers();
+            debug!("{TAG} Scratch buf count: {}", count);
+            count
+        };
         if buf_count == 0 {
             return;
         }
@@ -305,7 +325,6 @@ where
         {
             let mut dev_ctx = self.dev_ctx.lock();
             dev_ctx.dcbaa[0] = scratchpad_buf_arr.register() as u64;
-
         }
         debug!(
             "{TAG} Setting up {} scratchpads, at {:#0x}",
@@ -330,113 +349,75 @@ where
             }
         });
     }
-
-    fn root_hub_init(&self) -> Result {
-        {
-            let mut regs = self.regs.lock();
-
-            let port_len = regs.port_register_set.len();
-
-            for i in 0..port_len {
-                debug!(
-                    "{TAG} Port {} start reset, connected: {}",
-                    i,
-                    regs.port_register_set
-                        .read_volatile_at(i)
-                        .portsc
-                        .current_connect_status()
-                );
-                regs.port_register_set.update_volatile_at(i, |port| {
-                    port.portsc.set_port_reset();
-                });
-            }
-
-            for i in 0..port_len {
-                while regs
-                    .port_register_set
-                    .read_volatile_at(i)
-                    .portsc
-                    .port_enabled_disabled()
-                {}
-
-                debug!(
-                    "{TAG} Port {} reset, connected: {}",
-                    i,
-                    regs.port_register_set
-                        .read_volatile_at(i)
-                        .portsc
-                        .current_connect_status()
-                );
-            }
-        }
-        info!("{TAG} Root hub init done.");
-
-        self.dev_poll(0)?;
-
-        Ok(())
-    }
-
-    fn dev_poll(&self, slot: u8) -> Result {
+    fn reset_ports(&self) {
         let mut regs = self.regs.lock();
-        // let changed =regs.operational.usbsts.read_volatile().port_change_detect();
-        // if changed{
-        //     regs.operational.usbsts.update_volatile(|r|{
-        //         r.clear_port_change_detect();
-        //     });
-        // }else {
-        //     return Ok(());
-        // }
-        debug!("{TAG} Poll slot {}", slot);
 
         let port_len = regs.port_register_set.len();
 
         for i in 0..port_len {
+            debug!("{TAG} Port {} start reset", i,);
             regs.port_register_set.update_volatile_at(i, |port| {
-                if port.portsc.connect_status_change() {
-                    port.portsc.clear_connect_status_change();
-
-                    debug!("{TAG} Port {i} status changed.");
-                }
+                port.portsc.set_0_port_enabled_disabled();
+                port.portsc.set_port_reset();
             });
+
+            while regs
+                .port_register_set
+                .read_volatile_at(i)
+                .portsc
+                .port_reset()
+            {}
+
+            debug!("{TAG} Port {} reset ok", i);
         }
-
-
-    
-
-
-        Ok(())
     }
 
     fn probe(&self) -> Result {
-        let mut regs = self.regs.lock();
-
-        let port_len = regs.port_register_set.len();
-
-        for i in 0..port_len {
-            regs.port_register_set.update_volatile_at(i, |port| {
-                // port.portsc.set_0_port_enabled_disabled();
-                port.portsc.set_port_reset();
-                while !port.portsc.port_reset() {}
-
+        let mut port_id_list = Vec::new();
+        {
+            let mut regs = self.regs.lock();
+            let port_len = regs.port_register_set.len();
+            for i in 0..port_len {
+                let portsc = &regs.port_register_set.read_volatile_at(i).portsc;
                 info!(
-                    "{TAG} Port {}: Connected: {}, Speed {}, Power {}",
+                    "{TAG} Port {}: Enabled: {}, Connected: {}, Speed {}, Power {}",
                     i,
-                    port.portsc.current_connect_status(),
-                    port.portsc.port_speed(),
-                    port.portsc.port_power()
+                    portsc.port_enabled_disabled(),
+                    portsc.current_connect_status(),
+                    portsc.port_speed(),
+                    portsc.port_power()
                 );
-            });
+
+                if !portsc.port_enabled_disabled() {
+                    continue;
+                }
+
+                port_id_list.push(i);
+            }
         }
+        for port_id in port_id_list{
+            self.device_slot_assignment(port)?;
+        }
+
 
         Ok(())
     }
 
-    fn control(&self, direction: Direction, src: &mut [u8])->Result{
-
-        
+    fn device_slot_assignment(&self, port: usize) -> Result {
 
 
 
+        Ok(())
+    }
+
+    fn control(&self, slot: u8, direction: Direction, src: &mut [u8]) -> Result {
+        let slot = slot as usize;
+        {
+            let mut dev_ctx = self.dev_ctx.lock();
+
+            let ctx = &mut dev_ctx.context_list[slot];
+            let ep0 = ctx.endpoint_mut(0);
+        }
 
         Ok(())
     }

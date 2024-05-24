@@ -1,10 +1,12 @@
 use core::borrow::BorrowMut;
+use core::num;
 use alloc::collections::BTreeMap;
+use alloc::format;
 use crate::{dma::DMA, OsDep};
 use alloc::alloc::Allocator;
 use alloc::{boxed::Box, vec::Vec};
-use xhci::context::{Device, Device64Byte};
-
+pub use xhci::context::{Device, Device64Byte, DeviceHandler};
+use crate::err::*;
 const NUM_EPS: usize = 32;
 
 
@@ -24,8 +26,9 @@ where
     O: OsDep,
 {
     pub dcbaa: DMA<[u64; 256], O::DMA>,
-    context_list: Vec<DMA<Device64Byte, O::DMA>>,
-    attached_set: BTreeMap<usize, DeviceAttached<O>>
+    pub context_list: Vec<DMA<Device64Byte, O::DMA>>,
+    pub attached_set: BTreeMap<usize, DeviceAttached<O>>,
+    os : O,
 }
 
 impl<O> DeviceContextList<O>
@@ -40,21 +43,33 @@ where
         for i in 0..max_slots as usize {
             let a = os.dma_alloc();
             let context = DMA::new(Device::new_64byte(), 64, a);
+            
             dcbaa[i] = context.addr() as u64;
             context_list.push(context);
         }
 
-
-
         Self {
             dcbaa,
             context_list,
-            attached_set: BTreeMap::new()
+            attached_set: BTreeMap::new(),
+            os
         }
     }
 
     pub fn dcbaap(&self) -> usize {
         self.dcbaa.as_ptr() as _
+    }
+
+
+    pub fn new_slot(&mut self, slot: usize, hub: i32, port: i32, num_ep: i32)-> Result<&mut DeviceAttached<O>>{
+        if slot > self.context_list.len(){
+            return  Err(Error::Param(format!("slot {} > max {}", slot, self.context_list.len())));
+        }
+        let trs = (0..num_ep).into_iter().map(|_| Ring::new(self.os.clone(), 16, true).unwrap());
+        self.attached_set.insert(slot, DeviceAttached { hub, port, num_endp: 0, address: slot as i32, transfer_rings: trs.collect() });
+                
+
+        Ok(self.attached_set.get_mut(&slot).unwrap())
     }
 }
 
@@ -63,6 +78,7 @@ use tock_registers::register_structs;
 use tock_registers::registers::{ReadOnly, ReadWrite, WriteOnly};
 
 use super::ring::Ring;
+use super::Error;
 
 register_structs! {
     ScratchpadBufferEntry{
