@@ -8,6 +8,7 @@
 #![allow(warnings)]
 #![feature(if_let_guard)]
 #![feature(let_chains)]
+#![feature(generic_arg_infer)]
 
 extern crate alloc;
 pub(crate) mod dma;

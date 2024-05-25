@@ -31,6 +31,10 @@ impl<T> PageBox<T> {
             ptr::write(self.virt.as_mut_ptr() as *mut T, x);
         }
     }
+
+    pub fn zeroed(&mut self) {
+        unsafe { ptr::write_bytes(self.virt.as_mut_ptr() as *mut T, 0x00u8, 1) };
+    }
 }
 impl<T> Deref for PageBox<T> {
     type Target = T;
@@ -98,11 +102,28 @@ where
         page_box
     }
 
+    pub fn new_zeroed_slice(x: T, num_of_elements: usize) -> Self {
+        let mut new_slice = Self::new_slice(x, num_of_elements);
+        new_slice.write_all_elements_with_zero();
+        new_slice
+    }
+
     pub fn alloc_pages(pages: usize, zero: T) -> Self {
         let bytes = PageSize::Size4K as usize * pages;
         let mut page_box = Self::from_bytes(bytes);
         page_box.write_all_elements_with_same_value(zero);
         page_box
+    }
+
+    fn write_all_elements_with_zero(&mut self) {
+        for i in 0..self.len() {
+            let ptr: usize =
+                usize::try_from(self.virt.as_usize()).unwrap() + mem::size_of::<T>() * i;
+
+            // SAFETY: This operation is safe. The memory ptr points is allocated and is aligned
+            // because the first elements is page-aligned.
+            unsafe { ptr::write_bytes(ptr as *mut T, 0, 1) }
+        }
     }
 
     fn write_all_elements_with_same_value(&mut self, x: T) {

@@ -1,14 +1,22 @@
-use core::{borrow::BorrowMut, time::Duration};
+use core::{
+    alloc::{Allocator, Layout},
+    borrow::BorrowMut,
+    mem::MaybeUninit,
+    time::Duration,
+};
 
 use aarch64_cpu::asm::barrier::{self, SY};
-use alloc::{borrow::ToOwned, boxed::Box, sync::Arc};
+use alloc::{borrow::ToOwned, boxed::Box, sync::Arc, vec, vec::Vec};
 use axalloc::{global_no_cache_allocator, GlobalNoCacheAllocator};
 use axtask::sleep;
 use log::{debug, error};
+use num_traits::ToPrimitive;
 use page_box::PageBox;
 use spinning_top::Spinlock;
 use xhci::{
-    context::{Device, Device64Byte, DeviceHandler, EndpointType, Slot, SlotHandler},
+    context::{
+        Device, Device64Byte, DeviceHandler, EndpointState, EndpointType, Slot, SlotHandler,
+    },
     extended_capabilities::debug::ContextPointer,
     ring::trb::{
         command::{self, ConfigureEndpoint, EvaluateContext},
@@ -17,11 +25,13 @@ use xhci::{
     },
 };
 
-use crate::host::structures::{transfer_ring::TransferRing, xhci_event_manager};
+use crate::host::structures::{
+    reset_port, transfer_ring::TransferRing, xhci_event_manager, PortLinkState,
+};
 
 use super::{
     context::Context,
-    descriptor, registers,
+    descriptor, dump_port_status, registers,
     xhci_command_manager::{CommandResult, COMMAND_MANAGER},
     xhci_slot_manager::SLOT_MANAGER,
 };
@@ -36,87 +46,78 @@ pub struct XHCIUSBDevice {
 impl XHCIUSBDevice {
     pub fn new(port_id: u8) -> Result<Self, ()> {
         debug!("new device! port:{}", port_id);
-        if let Some(manager) = COMMAND_MANAGER.get() {
-            match manager.lock().enable_slot() {
-                CommandResult::Success(succedd_trb) => {
-                    debug!("enable slot success!");
-                    Ok({
-                        let xhciusbdevice = Self {
-                            context: Context::default(),
-                            transfer_ring: Box::new_in(
-                                TransferRing::new(),
-                                global_no_cache_allocator(),
-                            ),
-                            port_id: port_id,
-                            slot_id: succedd_trb.slot_id(),
-                        };
 
-                        xhciusbdevice
-                    })
-                }
-                //需要让device分配在指定的内存空间中
-                err => Err({
-                    error!("failed to enable slot!\n {:?}", err);
-                }),
-            }
-        } else {
-            Err({ error!("command manager not initialized! it should not happen!") })
-        }
+        Ok({
+            let xhciusbdevice = Self {
+                context: Context::default(),
+                transfer_ring: Box::new_in(TransferRing::new(), global_no_cache_allocator()),
+                port_id: port_id,
+                slot_id: 0,
+            };
+
+            xhciusbdevice
+        })
     }
 
     pub fn initialize(&mut self) {
-        self.init_input_ctx();
-        sleep(Duration::from_millis(2));
+        debug!("initialize/enum this device! port={}", self.port_id);
+
+        dump_port_status(self.port_id as usize);
+        self.slot_ctx_init();
         self.config_endpoint_0();
-        sleep(Duration::from_millis(2));
         self.assign_device();
-        sleep(Duration::from_millis(2));
-        self.address_device();
-        sleep(Duration::from_millis(2));
-        // self.check_endpoint();
-        // sleep(Duration::from_millis(2));
+        self.enable_slot();
+        dump_port_status(self.port_id as usize);
+        self.dump_ep0();
+        // self.address_device();
+        // dump_port_status(self.port_id as usize);
+        // let get_descriptor = self.get_descriptor(); //damn, just assume speed is same lowest!
+        // debug!("get desc: {:?}", get_descriptor);
+        // dump_port_status(self.port_id as usize);
+        // // self.check_endpoint();
+        // // sleep(Duration::from_millis(2));
 
-        let get_descriptor = self.get_descriptor(); //damn, just assume speed is same lowest!
-        debug!("get desc: {:?}", get_descriptor);
-        self.set_endpoint_speed(get_descriptor.max_packet_size()); //just let it be lowest speed!
-        self.evaluate_context_enable_ep0();
+        // self.set_endpoint_speed(get_descriptor.max_packet_size()); //just let it be lowest speed!
+        // self.evaluate_context_enable_ep0();
     }
 
-    fn reset_slot(&mut self) {
-        let disable_slot = COMMAND_MANAGER
-            .get()
-            .unwrap()
-            .lock()
-            .disable_slot(self.slot_id);
-        debug!("disable slot once! {:?}", disable_slot);
-
-        if let Some(manager) = COMMAND_MANAGER.get() {
-            match manager.lock().enable_slot() {
-                CommandResult::Success(succedd_trb)
-                    if succedd_trb.completion_code() == Ok(CompletionCode::Success) =>
-                {
-                    debug!("enable slot success!");
-                    self.slot_id = succedd_trb.slot_id();
-                }
-                //需要让device分配在指定的内存空间中
-                err => {
-                    panic!("failed to enable slot!\n {:?}", err);
-                }
+    fn enable_slot(&mut self) {
+        // if let Some(manager) = COMMAND_MANAGER.get() {
+        //     match manager.lock().enable_slot() {
+        //         CommandResult::Success(succedd_trb) => {
+        //             debug!("enable slot success!");
+        //         }
+        //         //需要让device分配在指定的内存空间中
+        //         err => Err({
+        //             error!("failed to enable slot!\n {:?}", err);
+        //         }),
+        //     }
+        // } else {
+        //     Err({ error!("command manager not initialized! it should not happen!") })
+        // }
+        match COMMAND_MANAGER.get().unwrap().lock().enable_slot() {
+            CommandResult::Success(succedd_trb) => {
+                debug!("enable slot success! {:?}", succedd_trb);
+                self.slot_id = succedd_trb.slot_id();
             }
-        } else {
-            panic!("command manager not initialized! it should not happen!");
-        };
+            //需要让device分配在指定的内存空间中
+            err => debug!("failed to enable slot"),
+        }
     }
 
-    fn init_input_ctx(&mut self) {
+    fn slot_ctx_init(&mut self) {
         debug!("init input ctx");
-        let input_control = self.context.get_input().control_mut();
-        // input_control.set_add_context_flag(0);
+        self.dump_ep0();
+        let input_control = self.context.input.control_mut();
+        input_control.set_add_context_flag(0);
         input_control.set_add_context_flag(1);
 
-        let slot = self.context.get_input().device_mut().slot_mut();
-        slot.set_context_entries(1);
+        let slot = self.context.input.device_mut().slot_mut();
         slot.set_root_hub_port_number(self.port_id + 1);
+        slot.set_route_string(0);
+        slot.set_context_entries(1);
+        // input_control.clear_add_context_flag(0);
+        // input_control.clear_add_context_flag(1);
         barrier::dmb(SY);
     }
 
@@ -144,43 +145,123 @@ impl XHCIUSBDevice {
         debug!("begin config endpoint 0 and assign dev!");
 
         let s = self.get_max_len();
-
         debug!("config ep0");
-        let ep_0 = self.context.get_input().device_mut().endpoint_mut(1);
-        // let endpoint_state = ep_0.endpoint_state();
-        // debug!("endpoint 0 state: {:?}", endpoint_state);
-        ep_0.set_endpoint_type(EndpointType::Control);
-        ep_0.set_average_trb_length(8);
-        ep_0.set_max_packet_size(s);
-        ep_0.set_tr_dequeue_pointer(self.transfer_ring.get_ring_addr().as_usize() as u64);
-        ep_0.set_error_count(3);
-        ep_0.set_dequeue_cycle_state();
-        // ep_0.set_endpoint_state(xhci::context::EndpointState::Stopped);
+        self.dump_ep0();
+
+        self.context
+            .input
+            .device_mut()
+            .endpoint_mut(1)
+            .set_endpoint_type(EndpointType::Control);
+        self.dump_ep0();
+        self.context
+            .input
+            .device_mut()
+            .endpoint_mut(1)
+            .set_max_packet_size(s);
+        self.dump_ep0();
+        self.context
+            .input
+            .device_mut()
+            .endpoint_mut(1)
+            .set_max_burst_size(0);
+        self.dump_ep0();
+        self.context
+            .input
+            .device_mut()
+            .endpoint_mut(1)
+            .set_tr_dequeue_pointer(self.transfer_ring.get_ring_addr().as_usize() as u64);
+        self.dump_ep0();
+        if (self.transfer_ring.cycle_state() != 0) {
+            self.context
+                .input
+                .device_mut()
+                .endpoint_mut(1)
+                .set_dequeue_cycle_state();
+        } else {
+            self.context
+                .input
+                .device_mut()
+                .endpoint_mut(1)
+                .clear_dequeue_cycle_state();
+        }
+        self.dump_ep0();
+        self.context
+            .input
+            .device_mut()
+            .endpoint_mut(1)
+            .set_interval(0);
+        self.dump_ep0();
+        self.context
+            .input
+            .device_mut()
+            .endpoint_mut(1)
+            .set_max_primary_streams(0);
+        self.dump_ep0();
+        self.context.input.device_mut().endpoint_mut(1).set_mult(0);
+        self.dump_ep0();
+        self.context
+            .input
+            .device_mut()
+            .endpoint_mut(1)
+            .set_error_count(3);
+        self.dump_ep0();
+        // ep_0.set_endpoint_state(EndpointState::Disabled);
 
         //confitional compile needed
         barrier::dmb(SY);
     }
 
-    fn assign_device(&mut self) {
-        debug!("assigning device into dcbaa");
+    fn dump_ep0(&mut self) {
+        debug!(
+            "endpoint 0 state: {:?}",
+            self.context.input.device_mut().endpoint(1).endpoint_state()
+        )
+    }
 
+    pub fn assign_device(&mut self) {
+        debug!("assigning device into dcbaa, slot number= {}", self.slot_id);
+        let virt_addr = self.context.output.virt_addr();
         SLOT_MANAGER
             .get()
             .unwrap()
             .lock()
-            .assign_device(self.slot_id, self.context.output.virt_addr());
+            .assign_device(self.slot_id, virt_addr);
+
+        // match &(*self.context.output) {
+        //     crate::host::structures::context::Device::Byte64(dev) => {
+        //         SLOT_MANAGER.get().unwrap().lock().assign_device(
+        //             self.slot_id,
+        //             (dev.as_ref() as *const Device64Byte).addr().into(), //SUS
+        //         );
+        //     }
+        //     crate::host::structures::context::Device::Byte32(_) => todo!(),
+        // }
         barrier::dmb(SY);
     }
 
     fn address_device(&mut self) {
         debug!("addressing device");
-        // let ring_addr = self.context.input.virt_addr();
-        let ring_addr = self.transfer_ring.get_ring_addr();
+        let input_addr = self.context.input.virt_addr();
+        // let ring_addr = self.transfer_ring.get_ring_addr();
+        // debug!("request address!");
+        // match COMMAND_MANAGER
+        //     .get()
+        //     .unwrap()
+        //     .lock()
+        //     .address_device(input_addr, self.slot_id, true)
+        // {
+        //     CommandResult::Success(trb) => {
+        //         debug!("addressed device at slot id {}", self.slot_id);
+        //         debug!("command result {:?}", trb);
+        //     }
+        //     err => error!("error while address device at slot id {}", self.slot_id),
+        // }
         match COMMAND_MANAGER
             .get()
             .unwrap()
             .lock()
-            .address_device(ring_addr, self.slot_id)
+            .address_device(input_addr, self.slot_id, false)
         {
             CommandResult::Success(trb) => {
                 debug!("addressed device at slot id {}", self.slot_id);
@@ -188,6 +269,24 @@ impl XHCIUSBDevice {
             }
             err => error!("error while address device at slot id {}", self.slot_id),
         }
+        // self.context
+        //     .input
+        //     .device_mut()
+        //     .endpoint_mut(1)
+        //     .set_endpoint_state(EndpointState::Running);
+
+        debug!("assert ep0 running!");
+        self.dump_ep0();
+    }
+
+    fn disable_ep0(&mut self) {
+        // let mut lock = COMMAND_MANAGER.get().unwrap().lock();
+        // // dump_port_status(self.port_id as usize);
+        // // if let CommandResult::Success(complete) = lock.reset_endpoint(1, self.slot_id) {
+        // //     debug!("reset endpoint 0! result: {:?}", complete);
+        // // }
+        // dump_port_status(self.port_id as usize);
+        // lock.config_endpoint(slot_id)
     }
 
     fn check_endpoint(&mut self) {
@@ -195,14 +294,9 @@ impl XHCIUSBDevice {
         //    r.port_register_set.read_volatile_at(self.port_id).portli.
         //})
         //
+        self.optional_resume_port_state();
         debug!("checking endpoint!");
-        match self
-            .context
-            .get_input()
-            .device_mut()
-            .endpoint(1)
-            .endpoint_state()
-        {
+        match self.context.input.device_mut().endpoint(1).endpoint_state() {
             xhci::context::EndpointState::Disabled => {
                 debug!("endpoint disabled!");
                 return;
@@ -227,7 +321,7 @@ impl XHCIUSBDevice {
                                             debug!("c o m p l e t e s u c c e s s again!");
                                             current_state = self
                                                 .context
-                                                .get_input()
+                                                .input
                                                 .device_mut()
                                                 .endpoint(1)
                                                 .endpoint_state();
@@ -265,12 +359,8 @@ impl XHCIUSBDevice {
                             {
                                 self.transfer_ring.init();
                                 debug!("transfer ring complete");
-                                current_state = self
-                                    .context
-                                    .get_input()
-                                    .device_mut()
-                                    .endpoint(1)
-                                    .endpoint_state();
+                                current_state =
+                                    self.context.input.device_mut().endpoint(1).endpoint_state();
                             } else {
                                 debug!("reset transfer ring deque failed!");
                                 return;
@@ -289,6 +379,8 @@ impl XHCIUSBDevice {
     ) -> Result<[u32; 4], ()> {
         self.transfer_ring.enqueue(trb);
         barrier::dmb(SY);
+
+        // self.optional_resume_port_state();
 
         debug!("doorbell ing");
         registers::handle(|r| {
@@ -309,12 +401,79 @@ impl XHCIUSBDevice {
         Err(())
     }
 
+    fn enque_trbs_to_transger(
+        &mut self,
+        trbs: Vec<transfer::Allowed>,
+        endpoint_id: u8,
+    ) -> Vec<[u32; 4]> {
+        let size = trbs.len();
+        self.transfer_ring.enqueue_trbs(&trbs);
+        barrier::dmb(SY);
+
+        debug!("doorbell ing");
+        registers::handle(|r| {
+            r.doorbell
+                .update_volatile_at(self.slot_id as usize, |doorbell| {
+                    doorbell.set_doorbell_target(endpoint_id); //assume 1
+                })
+        });
+
+        let mut ret = Vec::with_capacity(size);
+        let mut mark = 0;
+        while let handle_event = xhci_event_manager::handle_event() {
+            if handle_event.is_ok() {
+                debug!(
+                    "interrupt handler complete! mark={mark} result = {:?}",
+                    handle_event
+                );
+                ret.push(handle_event.unwrap());
+                mark += 1;
+                if mark >= size {
+                    break;
+                }
+            }
+        }
+        debug!("trbs complete!");
+        ret
+    }
+
+    fn optional_resume_port_state(&mut self) {
+        //resume if need
+        registers::handle(|r| {
+            if r.port_register_set
+                .read_volatile_at(self.port_id as usize)
+                .portsc
+                .port_link_state()
+                == PortLinkState::U3AkaSuspend.to_u8().unwrap()
+            {
+                debug!("port in suspend mode, resume!");
+                r.port_register_set
+                    .update_volatile_at(self.port_id as usize, |port| {
+                        port.portsc
+                            .set_port_link_state(PortLinkState::Resume.to_u8().unwrap());
+                    });
+
+                // while r
+                //     .port_register_set
+                //     .read_volatile_at(self.port_id as usize)
+                //     .portsc
+                //     .port_link_state()
+                //     == PortLinkState::Resume.to_u8().unwrap()
+                // {}
+                sleep(Duration::from_millis(10));
+            }
+        });
+
+        dump_port_status(self.port_id as usize);
+    }
+
     fn get_descriptor(&mut self) -> descriptor::Device {
         debug!("get descriptor!");
+        self.dump_ep0();
 
         let buffer = PageBox::from(descriptor::Device::default());
         let mut has_data_stage = false;
-        let get_input = self.context.get_input();
+        let get_input = &mut *self.context.input;
         // debug!("device input ctx: {:?}", get_input);
 
         let endpoint_id: u8 = {
@@ -328,7 +487,30 @@ impl XHCIUSBDevice {
                 }) as u8
         };
 
-        debug!("endpoint id: {}", endpoint_id);
+        // debug!("doorbell id: {}", doorbell_id);
+        // let setup_stage = Allowed::SetupStage(
+        //     *SetupStage::default()
+        //         .set_transfer_type(TransferType::In)
+        //         .clear_interrupt_on_completion()
+        //         .set_request_type(0x80)
+        //         .set_request(6)
+        //         .set_value(0x0100)
+        //         .set_length(8),
+        // );
+
+        // let data_stage = Allowed::DataStage(
+        //     *DataStage::default()
+        //         .set_direction(Direction::In)
+        //         .set_trb_transfer_length(8)
+        //         .clear_interrupt_on_completion()
+        //         .set_data_buffer_pointer(buffer.virt_addr().as_usize() as u64),
+        // );
+
+        // let status_stage =
+        //     transfer::Allowed::StatusStage(*StatusStage::default().set_interrupt_on_completion());
+
+        // self.enque_trbs_to_transger(vec![setup_stage, data_stage, status_stage], doorbell_id);
+        // debug!("getted! buffer:{:?}", buffer);
 
         Ok(Allowed::SetupStage({
             let mut setup_stage = SetupStage::default(); //TODO check transfer ring
@@ -382,7 +564,7 @@ impl XHCIUSBDevice {
     }
 
     fn set_endpoint_speed(&mut self, speed: u16) {
-        let mut binding = self.context.get_input();
+        let mut binding = &mut *self.context.input;
         let ep_0 = binding.device_mut().endpoint_mut(1);
 
         ep_0.set_max_packet_size(speed);
@@ -390,7 +572,7 @@ impl XHCIUSBDevice {
 
     fn evaluate_context_enable_ep0(&mut self) {
         debug!("eval ctx and enable ep0!");
-        let input = self.context.get_input();
+        let input = &mut *self.context.input;
         match COMMAND_MANAGER
             .get()
             .unwrap()

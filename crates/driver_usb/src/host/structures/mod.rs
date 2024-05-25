@@ -1,9 +1,13 @@
+use log::debug;
+use num_derive::{FromPrimitive, ToPrimitive};
+
 mod context;
 mod descriptor;
 mod xhci_usb_device;
 // 命令管理器、事件管理器和插槽管理器等模块。
 pub(super) mod extended_capabilities;
 pub(super) mod registers;
+pub(crate) mod root_port;
 pub(crate) mod usb;
 pub(super) mod xhci_command_manager;
 pub(super) mod xhci_event_manager;
@@ -74,6 +78,65 @@ const XHCI_CONFIG_MAX_PORTS: usize = 5;
 
 // XHCI的配置中最大插槽数量。
 const XHCI_CONFIG_MAX_SLOTS: usize = 64;
+
+#[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq, Hash, FromPrimitive, ToPrimitive)]
+enum PortLinkState {
+    U0 = 0,
+    U1 = 1,
+    U2 = 2,
+    U3AkaSuspend = 3,
+    Disabled = 4,
+    RXDetect = 5,
+    Inactive = 6,
+    Polling = 7,
+    Recovery = 8,
+    HotReset = 9,
+    ComplianceMode = 10,
+    TestMode = 11,
+    Resume = 15,
+    Reserved,
+}
+pub fn dump_port_status(port_id: usize) {
+    registers::handle(|r| {
+        debug!(
+            "dumped port state: {:?}",
+            r.port_register_set.read_volatile_at(port_id).portsc,
+            // self.context.get_input().device_mut().
+        )
+    })
+}
+
+pub fn reset_port(i: usize) {
+    let number_of_ports = registers::handle(|r| r.port_register_set.len()) as usize;
+
+    //reset ports
+    debug!("reseting port {i}");
+
+    debug!(
+        "before reset Port {}, status: {:?}",
+        i,
+        registers::handle(|r| r.port_register_set.read_volatile_at(i).portsc)
+    );
+
+    registers::handle(|r| {
+        r.port_register_set.update_volatile_at(i, |port| {
+            port.portsc.set_0_port_enabled_disabled();
+            port.portsc.set_port_reset();
+        });
+    });
+
+    while registers::handle(|r| {
+        r.port_register_set
+            .read_volatile_at(i)
+            .portsc
+            .port_reset_change()
+    }) {}
+    debug!(
+        "Port {} reset ok, status: {:?}",
+        i,
+        registers::handle(|r| r.port_register_set.read_volatile_at(i).portsc)
+    );
+}
 
 // TODO: 确定DMA地址。
 //const DMA_ADDRESS: usize = 0xfd50_0000;

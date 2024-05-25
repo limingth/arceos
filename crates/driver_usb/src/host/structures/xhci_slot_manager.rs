@@ -48,18 +48,26 @@ pub(crate) fn transfer_event(
     match uch_completion_code {
         CompletionCode::Success => {
             debug!("transfer event succeed!");
-            Ok(trb.into_raw())
         }
         any => {
             debug!("failed, code:{:?}", any);
-            Err(())
         }
     }
+    Ok(trb.into_raw())
     // TODO: event transfer
 }
 
 pub(crate) fn new() {
     registers::handle(|r| {
+        let hcsp1 = r.capability.hcsparams1.read_volatile();
+        let count_device_slots = hcsp1.number_of_device_slots();
+
+        debug!("max slot: {}", count_device_slots); // return 0, not good!
+
+        r.operational.config.update_volatile(|cfg| {
+            cfg.set_max_device_slots_enabled(count_device_slots);
+        });
+
         let slot_manager = SlotManager {
             dcbaa: PageBox::new_slice(VirtAddr::from(0 as usize), XHCI_CONFIG_MAX_SLOTS + 1),
             // device: PageBox::new_slice(Device::new_64byte(), XHCI_CONFIG_MAX_SLOTS + 1),
@@ -67,21 +75,7 @@ pub(crate) fn new() {
 
         r.operational
             .dcbaap
-            .update_volatile(|d| d.set(slot_manager.dcbaa.virt_addr().as_usize() as u64));
-
-        let max_device_slots_enabled = r
-            .operational
-            .config
-            .read_volatile()
-            .max_device_slots_enabled();
-
-        debug!("max slot: {}", max_device_slots_enabled); // return 0, not good!
-
-        r.operational.config.update_volatile(|cfg| {
-            // cfg.set_max_device_slots_enabled(max_device_slots_enabled);
-            // cfg.set_max_device_slots_enabled(2); // lets just hard code: 2
-            cfg.set_max_device_slots_enabled(128); // lets just hard code: 128
-        });
+            .update_volatile(|d| d.set(slot_manager.dcbaa.as_ptr() as u64));
 
         SLOT_MANAGER
             .try_init_once(move || Spinlock::new(slot_manager))

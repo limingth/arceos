@@ -2,6 +2,7 @@ use super::registers;
 use alloc::{boxed::Box, sync::Arc};
 use axalloc::{global_no_cache_allocator, GlobalNoCacheAllocator};
 use axhal::mem::{PhysAddr, VirtAddr};
+use log::debug;
 use page_box::PageBox;
 use spinning_top::Spinlock;
 use xhci::context::{
@@ -10,25 +11,21 @@ use xhci::context::{
 };
 
 pub(crate) struct Context {
-    input: Arc<Input, GlobalNoCacheAllocator>,
+    pub(crate) input: PageBox<Input>,
     pub(crate) output: PageBox<Device>,
 }
 impl Default for Context {
     fn default() -> Self {
-        Self {
-            input: Arc::new_in(Input::default(), global_no_cache_allocator()),
+        let mut context = Self {
+            input: Input::default().into(),
             output: Device::default().into(),
-        }
+        };
+        debug!("debug input: {:?}", (*context.input).dump_device_state());
+        context
     }
 }
 
-impl Context {
-    pub fn get_input(&mut self) -> &mut Input {
-        unsafe { &mut *(self.input.virt_addr().as_usize() as *mut Input) }
-    }
-}
-
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) enum Input {
     Byte64(PageBox<Input64Byte>),
     Byte32(PageBox<Input32Byte>),
@@ -45,6 +42,13 @@ impl Input {
         match self {
             Self::Byte32(b32) => b32.device_mut(),
             Self::Byte64(b64) => b64.device_mut(),
+        }
+    }
+
+    pub(crate) fn dump_device_state(&mut self) -> &mut xhci::context::Input<16> {
+        match self {
+            Self::Byte32(b32) => unimplemented!(),
+            Self::Byte64(b64) => &mut (**b64),
         }
     }
 
@@ -65,7 +69,11 @@ impl Input {
 impl Default for Input {
     fn default() -> Self {
         if csz() {
-            Self::Byte64(Input64Byte::default().into())
+            Self::Byte64({
+                let mut into: PageBox<Input64Byte> = Input64Byte::new_64byte().into();
+                into.zeroed();
+                into
+            })
         } else {
             Self::Byte32(Input32Byte::default().into())
         }

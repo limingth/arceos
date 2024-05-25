@@ -11,8 +11,8 @@ use xhci::{
     extended_capabilities::debug::Debug,
     ring::trb::{
         command::{
-            self, AddressDevice, Allowed, DisableSlot, EnableSlot, EvaluateContext, ResetDevice,
-            ResetEndpoint, SetTrDequeuePointer,
+            self, AddressDevice, Allowed, ConfigureEndpoint, DisableSlot, EnableSlot,
+            EvaluateContext, ResetDevice, ResetEndpoint, SetTrDequeuePointer,
         },
         event::{self, CommandCompletion, CompletionCode},
     },
@@ -78,15 +78,49 @@ impl CommandManager {
         ))
     }
 
-    pub fn address_device(&mut self, addr: VirtAddr, slot_id: u8) -> CommandResult {
+    pub fn config_endpoint(
+        &mut self,
+        slot_id: u8,
+        input_ctx: VirtAddr,
+        defconfig: bool,
+    ) -> CommandResult {
+        if (defconfig) {
+            self.do_command(Allowed::ConfigureEndpoint(
+                *ConfigureEndpoint::default()
+                    .set_slot_id(slot_id)
+                    .set_deconfigure()
+                    .set_input_context_pointer(input_ctx.as_usize() as u64),
+            ))
+        } else {
+            self.do_command(Allowed::ConfigureEndpoint(
+                *ConfigureEndpoint::default()
+                    .set_slot_id(slot_id)
+                    .clear_deconfigure()
+                    .set_input_context_pointer(input_ctx.as_usize() as u64),
+            ))
+        }
+    }
+
+    pub fn address_device(&mut self, addr: VirtAddr, slot_id: u8, bsr: bool) -> CommandResult {
         debug!("addressing device!");
-        self.do_command(Allowed::AddressDevice({
-            let mut address_device = AddressDevice::default();
-            address_device
-                .set_input_context_pointer(addr.as_usize() as u64)
-                .set_slot_id(slot_id);
-            address_device
-        }))
+        if bsr {
+            self.do_command(Allowed::AddressDevice({
+                let mut address_device = AddressDevice::default();
+                address_device
+                    .set_input_context_pointer(addr.as_usize() as u64)
+                    .set_slot_id(slot_id)
+                    .set_block_set_address_request();
+                address_device
+            }))
+        } else {
+            self.do_command(Allowed::AddressDevice({
+                let mut address_device = AddressDevice::default();
+                address_device
+                    .set_input_context_pointer(addr.as_usize() as u64)
+                    .set_slot_id(slot_id);
+                address_device
+            }))
+        }
     }
 
     pub fn set_transfer_ring_deque(&mut self, endpoint_id: u8, slot_id: u8) -> CommandResult {

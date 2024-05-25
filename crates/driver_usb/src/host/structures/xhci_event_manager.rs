@@ -59,43 +59,41 @@ pub(crate) fn new() {
         erst_ent.seg_size = event_manager.event_ring.get_trb_count() as u32;
         erst_ent.reserved = 0;
 
-        let mut ir0 = r.interrupter_register_set.interrupter_mut(0);
-        ir0.erstsz.update_volatile(|e| {
-            e.set(1);
+        r.operational.usbcmd.update_volatile(|r| {
+            r.clear_interrupter_enable();
         });
 
-        ir0.erstba.update_volatile(|b| {
-            b.set(event_manager.erst_entry.virt_addr().as_usize() as u64);
-        });
-        //TODO FIXIT
-        ir0.erdp.update_volatile(|dp| {
-            dp.set_event_ring_dequeue_pointer(
-                event_manager.event_ring.get_ring_addr().as_usize() as u64
-            );
-        });
-        ir0.imod.update_volatile(|im| {
-            im.set_interrupt_moderation_interval(XHCI_CONFIG_IMODI);
-        });
-        ir0.iman.update_volatile(|im| {
-            im.set_interrupt_enable();
-        });
+        let mut ir0 = r.interrupter_register_set.interrupter_mut(0);
+        {
+            ir0.erstsz.update_volatile(|e| {
+                e.set(1);
+            });
+            //TODO FIXIT
+            ir0.erdp.update_volatile(|dp| {
+                dp.set_event_ring_dequeue_pointer(
+                    event_manager.event_ring.get_ring_addr().as_usize() as u64,
+                );
+            });
+            ir0.erstba.update_volatile(|b| {
+                b.set(event_manager.erst_entry.virt_addr().as_usize() as u64);
+            });
+            ir0.imod.update_volatile(|im| {
+                im.set_interrupt_moderation_interval(XHCI_CONFIG_IMODI);
+            });
+
+            ir0.imod.update_volatile(|im| {
+                im.set_interrupt_moderation_interval(0);
+                im.set_interrupt_moderation_counter(0);
+            });
+
+            ir0.iman.update_volatile(|im| {
+                im.set_interrupt_enable();
+            });
+        }
 
         EVENT_MANAGER
             .try_init_once(move || Spinlock::new(event_manager))
             .expect("Failed to initialize `EventManager`.");
-
-        //     let slot_manager = SlotManager {
-        //         dcbaa: PageBox::new_slice(VirtAddr::from(0 as usize), XHCI_CONFIG_MAX_SLOTS + 1),
-        //         device: PageBox::new_slice(Device::new_64byte(), XHCI_CONFIG_MAX_SLOTS + 1),
-        //     };
-
-        //     r.operational
-        //         .dcbaap
-        //         .update_volatile(|d| d.set(slot_manager.dcbaa.virt_addr()));
-
-        //     SLOT_MANAGER
-        //         .try_init_once(move || Spinlock::new(slot_manager))
-        //         .expect("Failed to initialize `SlotManager`.");
     });
 
     debug!("initialized!");

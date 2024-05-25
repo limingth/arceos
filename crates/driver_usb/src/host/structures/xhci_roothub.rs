@@ -8,7 +8,8 @@ use alloc::sync::Arc;
 use axalloc::GlobalNoCacheAllocator;
 use axtask::sleep;
 use conquer_once::spin::OnceCell;
-use log::{debug, error, info};
+use log::{debug, info};
+use num_traits::ToPrimitive;
 use page_box::PageBox;
 use spinning_top::{lock_api::Mutex, Spinlock};
 use xhci::context::{Device64Byte, DeviceHandler};
@@ -16,180 +17,15 @@ use xhci::{context::Device, registers::PortRegisterSet};
 
 use crate::host::structures::xhci_command_manager::{CommandResult, COMMAND_MANAGER};
 use crate::host::structures::xhci_slot_manager::{SlotManager, SLOT_MANAGER};
+use crate::host::structures::{dump_port_status, root_port, PortLinkState};
 use crate::{dma::DMAVec, host::structures::XHCI_CONFIG_MAX_PORTS};
 
+use super::registers;
+use super::root_port::RootPort;
 use super::xhci_usb_device::XHCIUSBDevice;
-use super::{registers, USBSpeed};
 
 // 定义静态变量ROOT_HUB，用于存储根集线器的实例
 pub(crate) static ROOT_HUB: OnceCell<Spinlock<Roothub>> = OnceCell::uninit();
-
-pub struct RootPort {
-    root_port_id: usize,
-    device: Arc<MaybeUninit<XHCIUSBDevice>>,
-    device_inited: bool,
-}
-
-impl RootPort {
-    pub fn configure(&mut self) {}
-
-    pub fn initialize(&mut self) {
-        //TODO 由于uboot已经探测过设备，因此设备的device context已被更改，因此我们比起普通的xhci驱动，还多了端口复位+设备复位的操作，需要修改。
-        if !self.connected() {
-            error!("port {} not connected", self.root_port_id);
-            return;
-        }
-        debug!("port {} connected, continue", self.root_port_id);
-
-        // debug!("poweron!"); try to not reset !
-        // registers::handle(|r| {
-        //     r.port_register_set
-        //         .update_volatile_at(self.root_port_id, |prs| {
-        //             prs.portsc.set_port_power();
-        //         })
-        // });
-
-        // debug!("waiting for port reset!");
-        // while !registers::handle(|r| {
-        //     r.port_register_set
-        //         .read_volatile_at((self.root_port_id).into())
-        //         .portsc
-        //         .port_power()
-        // }) {}
-
-        // debug!("reset port!");
-        // registers::handle(|r| {
-        //     r.port_register_set
-        //         .update_volatile_at(self.root_port_id, |prs| {
-        //             debug!("state: {:?}", prs);
-        //             prs.portsc.set_port_reset();
-        //         })
-        // });
-
-        // sleep(Duration::from_millis(150));
-
-        // debug!("waiting for port reset!");
-        // while registers::handle(|r| {
-        //     r.port_register_set
-        //         .read_volatile_at((self.root_port_id).into())
-        //         .portsc
-        //         .port_reset()
-        // }) {}
-
-        // debug!("port {} reset!", self.root_port_id);
-
-        // debug!("enable port after reset!");
-        // registers::handle(|r| {
-        //     r.port_register_set
-        //         .update_volatile_at(self.root_port_id, |prs| {
-        //             prs.portsc.clear_port_enabled_disabled();
-        //         })
-        // });
-
-        // sleep(Duration::from_millis(150));
-
-        // while !registers::handle(|r| {
-        //     r.port_register_set
-        //         .read_volatile_at((self.root_port_id).into())
-        //         .portsc
-        //         .port_enabled_disabled()
-        // }) {}
-        // debug!("port enabled!");
-
-        debug!(
-            "port status {:?}",
-            registers::handle(|r| {
-                r.port_register_set
-                    .read_volatile_at(self.root_port_id)
-                    .portsc
-            })
-        );
-
-        let get_speed = self.get_speed();
-        if get_speed == USBSpeed::USBSpeedUnknown {
-            error!("unknown speed, index:{}", self.root_port_id);
-        }
-        debug!("port speed: {:?}", get_speed);
-
-        debug!("initializing device: {:?}", get_speed);
-
-        if let Ok(device) = XHCIUSBDevice::new(self.root_port_id as u8) {
-            debug!("writing ...");
-            self.device_inited = true;
-            unsafe {
-                Arc::get_mut(&mut self.device) //TODO assert device allocated
-                    .unwrap()
-                    .write(device)
-                    .initialize()
-            };
-            debug!("writing complete");
-        }
-        debug!("initialize complete");
-    }
-
-    // fn reset_device_and_slot(slot_id: u8) {
-    //     debug!("reset device and slot");
-    //     let mut manager = COMMAND_MANAGER.get().unwrap().lock();
-    //     match manager.disable_slot(slot_id) {
-    //         CommandResult::Success(trb) => Ok(()),
-    //         other => {
-    //             debug!("disable slot failed! {:?}", other);
-    //             Err(())
-    //         }
-    //     }
-    //     .and_then(|_| match manager.reset_device(slot_id) {
-    //         CommandResult::Success(trb) => Ok(()),
-    //         other => {
-    //             debug!("reset device failed! {:?}", other);
-    //             Err(())
-    //         }
-    //     });
-    //     debug!("reset device and slot complete");
-    // }
-
-    pub fn status_changed(&self) {
-        // 检查MMIO（内存映射I/O），确保索引在有效范围内
-        assert!(self.root_port_id < XHCI_CONFIG_MAX_PORTS);
-        debug!("port {} status changed", self.root_port_id);
-        //LETS JUST DO NOTHING
-        // registers::handle(|r| {
-        //     r.port_register_set
-        //         .update_volatile_at(self.root_port_id, |port_register_set| {
-        //             // TODO: check here
-        //             if port_register_set.portsc.port_enabled_disabled() {
-        //                 port_register_set.portsc.clear_port_enabled_disabled(); //TODO high or low?
-        //             }
-        //         });
-        //     // TODO: is plug and play support
-        //     //
-        //     //if self.device_inited
-        //     //* and if is plug and play? assume is! */
-        //     //&& r.port_register_set.read_volatile_at(self.root_port_id).portsc.current_connect_status()
-        //     //{
-        //     //    unsafe { self.device.assume_init().status_changed() };
-        //     //}
-        // })
-    }
-
-    fn get_speed(&self) -> USBSpeed {
-        registers::handle(|r| {
-            r.port_register_set
-                .read_volatile_at(self.root_port_id)
-                .portsc
-                .port_speed()
-        })
-        .into()
-    }
-
-    pub fn connected(&self) -> bool {
-        registers::handle(|r| {
-            r.port_register_set
-                .read_volatile_at(self.root_port_id)
-                .portsc
-                .current_connect_status()
-        })
-    }
-}
 
 pub struct Roothub {
     ports: usize,
@@ -221,25 +57,6 @@ impl Roothub {
                 arc.lock().configure();
             });
     }
-
-    fn reset_device_and_slot(slot_id: u8) {
-        let mut manager = COMMAND_MANAGER.get().unwrap().lock();
-        match manager.disable_slot(slot_id) {
-            CommandResult::Success(trb) => Ok(()),
-            other => {
-                // debug!("disable slot failed! {:?}", other);
-                Err(())
-            }
-        };
-        match manager.reset_device(slot_id) {
-            CommandResult::Success(trb) => Ok(()),
-            other => {
-                // debug!("reset device failed! {:?}", other);
-                Err(())
-            }
-        };
-        // debug!("reset device and slot complete");
-    }
 }
 
 // 当接收到根端口状态变化的通知时调用
@@ -270,41 +87,34 @@ pub(crate) fn status_changed(uch_port_id: u8) {
 }
 
 pub(crate) fn new() {
+    let number_of_ports = registers::handle(|r| r.port_register_set.len() as usize);
     // 通过MMIO读取根集线器支持的端口数量
-    registers::handle(|r| {
-        let number_of_ports = r.capability.hcsparams1.read_volatile().number_of_ports() as usize;
-        let mut root_ports = PageBox::new_slice(Arc::new_zeroed(), number_of_ports); //DEBUG: using nocache allocator
-                                                                                     //TODO 这里全都是同一个ARC,共享了内存，导致反复重复复制，需要修改
-        debug!("number of ports:{}", number_of_ports);
-        root_ports
-            .iter_mut()
-            .enumerate()
-            .for_each(|(i, port_uninit)| {
-                debug!("allocating port {i}");
-                //     unsafe { Arc::get_mut_unchecked(port_uninit) }.write(
-                //         Spinlock::new(RootPort {
-                //         root_port_id: i,
-                //         device: Arc::new_uninit(),
-                //         device_inited: false,
-                //     }
-                // ));
-                *port_uninit = Arc::new(MaybeUninit::new(Spinlock::new(RootPort {
-                    root_port_id: i,
-                    device: Arc::new_uninit(),
-                    device_inited: false,
-                })));
-                debug!("assert:{} == {i}", unsafe {
-                    port_uninit.clone().assume_init().lock().root_port_id
-                })
-            });
-        // 初始化ROOT_HUB静态变量
-        ROOT_HUB.init_once(move || {
-            Roothub {
-                ports: number_of_ports as usize,
-                root_ports,
-            }
-            .into()
-        })
+    let mut root_ports = PageBox::new_slice(Arc::new_zeroed(), number_of_ports); //DEBUG: using nocache allocator
+                                                                                 //TODO 这里全都是同一个ARC,共享了内存，导致反复重复复制，需要修改
+    debug!("number of ports:{}", number_of_ports);
+    root_ports
+        .iter_mut()
+        .enumerate()
+        .for_each(|(i, port_uninit)| {
+            debug!("allocating port {i}");
+            dump_port_status(i);
+            *port_uninit = Arc::new(MaybeUninit::new(Spinlock::new(RootPort {
+                root_port_id: i,
+                device: Arc::new_uninit(),
+                device_inited: false,
+            })));
+            debug!("assert:{} == {i}", unsafe {
+                port_uninit.clone().assume_init().lock().root_port_id
+            })
+        });
+    debug!("ended");
+    // 初始化ROOT_HUB静态变量
+    ROOT_HUB.init_once(move || {
+        let mut roothub = Roothub {
+            ports: number_of_ports as usize,
+            root_ports,
+        };
+        roothub.into()
     });
 
     debug!("initialized!");
