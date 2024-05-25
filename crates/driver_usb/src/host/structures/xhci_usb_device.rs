@@ -26,12 +26,12 @@ use xhci::{
 };
 
 use crate::host::structures::{
-    reset_port, transfer_ring::TransferRing, xhci_event_manager, PortLinkState,
+    descriptor, reset_port, transfer_ring::TransferRing, xhci_event_manager, PortLinkState,
 };
 
 use super::{
     context::Context,
-    descriptor, dump_port_status, registers,
+    dump_port_status, registers,
     xhci_command_manager::{CommandResult, COMMAND_MANAGER},
     xhci_slot_manager::SLOT_MANAGER,
 };
@@ -64,16 +64,19 @@ impl XHCIUSBDevice {
 
         dump_port_status(self.port_id as usize);
         self.slot_ctx_init();
+        dump_port_status(self.port_id as usize);
         self.config_endpoint_0();
+        dump_port_status(self.port_id as usize);
         self.assign_device();
+        dump_port_status(self.port_id as usize);
         self.enable_slot();
         dump_port_status(self.port_id as usize);
-        self.dump_ep0();
-        // self.address_device();
-        // dump_port_status(self.port_id as usize);
-        // let get_descriptor = self.get_descriptor(); //damn, just assume speed is same lowest!
-        // debug!("get desc: {:?}", get_descriptor);
-        // dump_port_status(self.port_id as usize);
+        self.address_device();
+        self.dump_ep0(); // only available after address device
+        dump_port_status(self.port_id as usize);
+        let get_descriptor = self.get_descriptor(); //damn, just assume speed is same lowest!
+        debug!("get desc: {:?}", get_descriptor);
+        dump_port_status(self.port_id as usize);
         // // self.check_endpoint();
         // // sleep(Duration::from_millis(2));
 
@@ -113,7 +116,7 @@ impl XHCIUSBDevice {
         input_control.set_add_context_flag(1);
 
         let slot = self.context.input.device_mut().slot_mut();
-        slot.set_root_hub_port_number(self.port_id + 1);
+        slot.set_root_hub_port_number(self.port_id);
         slot.set_route_string(0);
         slot.set_context_entries(1);
         // input_control.clear_add_context_flag(0);
@@ -294,7 +297,6 @@ impl XHCIUSBDevice {
         //    r.port_register_set.read_volatile_at(self.port_id).portli.
         //})
         //
-        self.optional_resume_port_state();
         debug!("checking endpoint!");
         match self.context.input.device_mut().endpoint(1).endpoint_state() {
             xhci::context::EndpointState::Disabled => {
@@ -382,15 +384,15 @@ impl XHCIUSBDevice {
 
         // self.optional_resume_port_state();
 
-        debug!("doorbell ing");
+        self.dump_ep0();
+        dump_port_status(self.port_id as usize);
+        debug!("doorbell ing slot {} target {}", self.slot_id, endpoint_id);
         registers::handle(|r| {
             r.doorbell
                 .update_volatile_at(self.slot_id as usize, |doorbell| {
                     doorbell.set_doorbell_target(endpoint_id); //assume 1
                 })
         });
-
-        sleep(Duration::from_micros(10));
 
         while let handle_event = xhci_event_manager::handle_event() {
             if handle_event.is_ok() {
@@ -405,7 +407,7 @@ impl XHCIUSBDevice {
         &mut self,
         trbs: Vec<transfer::Allowed>,
         endpoint_id: u8,
-    ) -> Vec<[u32; 4]> {
+    ) -> Result<[u32; 4], ()> {
         let size = trbs.len();
         self.transfer_ring.enqueue_trbs(&trbs);
         barrier::dmb(SY);
@@ -418,56 +420,32 @@ impl XHCIUSBDevice {
                 })
         });
 
-        let mut ret = Vec::with_capacity(size);
-        let mut mark = 0;
+        // let mut ret = Vec::with_capacity(size);
+        // let mut mark = 0;
+        // while let handle_event = xhci_event_manager::handle_event() {
+        //     if handle_event.is_ok() {
+        //         debug!(
+        //             "interrupt handler complete! mark={mark} result = {:?}",
+        //             handle_event
+        //         );
+        //         ret.push(handle_event.unwrap());
+        //         mark += 1;
+        //         if mark >= size {
+        //             break;
+        //         }
+        //     }
+        // }
+
         while let handle_event = xhci_event_manager::handle_event() {
             if handle_event.is_ok() {
-                debug!(
-                    "interrupt handler complete! mark={mark} result = {:?}",
-                    handle_event
-                );
-                ret.push(handle_event.unwrap());
-                mark += 1;
-                if mark >= size {
-                    break;
-                }
+                debug!("interrupt handler complete! result = {:?}", handle_event);
+                return handle_event;
             }
         }
-        debug!("trbs complete!");
-        ret
+        Err(())
     }
 
-    fn optional_resume_port_state(&mut self) {
-        //resume if need
-        registers::handle(|r| {
-            if r.port_register_set
-                .read_volatile_at(self.port_id as usize)
-                .portsc
-                .port_link_state()
-                == PortLinkState::U3AkaSuspend.to_u8().unwrap()
-            {
-                debug!("port in suspend mode, resume!");
-                r.port_register_set
-                    .update_volatile_at(self.port_id as usize, |port| {
-                        port.portsc
-                            .set_port_link_state(PortLinkState::Resume.to_u8().unwrap());
-                    });
-
-                // while r
-                //     .port_register_set
-                //     .read_volatile_at(self.port_id as usize)
-                //     .portsc
-                //     .port_link_state()
-                //     == PortLinkState::Resume.to_u8().unwrap()
-                // {}
-                sleep(Duration::from_millis(10));
-            }
-        });
-
-        dump_port_status(self.port_id as usize);
-    }
-
-    fn get_descriptor(&mut self) -> descriptor::Device {
+    fn get_descriptor(&mut self) -> PageBox<super::descriptor::Device> {
         debug!("get descriptor!");
         self.dump_ep0();
 
@@ -476,7 +454,7 @@ impl XHCIUSBDevice {
         let get_input = &mut *self.context.input;
         // debug!("device input ctx: {:?}", get_input);
 
-        let endpoint_id: u8 = {
+        let doorbell_id: u8 = {
             let endpoint = get_input.device_mut().endpoint(1);
             let addr = endpoint.as_ref().as_ptr().addr();
             let endpoint_type = endpoint.endpoint_type();
@@ -487,80 +465,81 @@ impl XHCIUSBDevice {
                 }) as u8
         };
 
-        // debug!("doorbell id: {}", doorbell_id);
-        // let setup_stage = Allowed::SetupStage(
-        //     *SetupStage::default()
-        //         .set_transfer_type(TransferType::In)
-        //         .clear_interrupt_on_completion()
-        //         .set_request_type(0x80)
-        //         .set_request(6)
-        //         .set_value(0x0100)
-        //         .set_length(8),
-        // );
-
-        // let data_stage = Allowed::DataStage(
-        //     *DataStage::default()
-        //         .set_direction(Direction::In)
-        //         .set_trb_transfer_length(8)
-        //         .clear_interrupt_on_completion()
-        //         .set_data_buffer_pointer(buffer.virt_addr().as_usize() as u64),
-        // );
-
-        // let status_stage =
-        //     transfer::Allowed::StatusStage(*StatusStage::default().set_interrupt_on_completion());
-
-        // self.enque_trbs_to_transger(vec![setup_stage, data_stage, status_stage], doorbell_id);
-        // debug!("getted! buffer:{:?}", buffer);
-
-        Ok(Allowed::SetupStage({
-            let mut setup_stage = SetupStage::default(); //TODO check transfer ring
-            setup_stage
+        debug!("doorbell id: {}", doorbell_id);
+        let setup_stage = Allowed::SetupStage(
+            *SetupStage::default()
                 .set_transfer_type(TransferType::In)
                 .clear_interrupt_on_completion()
                 .set_request_type(0x80)
                 .set_request(6)
                 .set_value(0x0100)
-                .set_length(8);
-            debug!("setup stage!");
-            setup_stage
-        }))
-        .and_then(|trb| self.enqueue_trb_to_transfer(trb, endpoint_id))
-        .map(|arg0: [u32; 4]| TransferEvent::try_from(arg0).unwrap())
-        .and_then(|trb| {
-            debug!(
-                "optional data stage! transfer len: {}",
-                trb.trb_transfer_length()
-            );
-            if trb.trb_transfer_length() > 0 {
-                has_data_stage = true;
-                self.enqueue_trb_to_transfer(
-                    transfer::Allowed::DataStage(
-                        *DataStage::default()
-                            .set_direction(Direction::In)
-                            .clear_interrupt_on_completion()
-                            // .set_trb_transfer_length(trb.trb_transfer_length())
-                            .set_trb_transfer_length(8) //device to controller, so use lowest speed to ensure compability
-                            .set_data_buffer_pointer(buffer.virt_addr().as_usize() as u64),
-                    ),
-                    endpoint_id,
-                )
-            } else {
-                Ok(trb.into_raw())
-            }
-        })
-        .map(|arg0: [u32; 4]| TransferEvent::try_from(arg0).unwrap())
-        .and_then(|_| {
-            debug!("status stage for check state!");
-            self.enqueue_trb_to_transfer(
-                transfer::Allowed::StatusStage(
-                    *StatusStage::default().set_interrupt_on_completion(),
-                ),
-                endpoint_id,
-            )
-        })
-        .is_ok();
+                .set_length(8),
+        );
 
-        *buffer
+        let data_stage = Allowed::DataStage(
+            *DataStage::default()
+                .set_direction(Direction::In)
+                .set_trb_transfer_length(8)
+                .clear_interrupt_on_completion()
+                .set_data_buffer_pointer(buffer.virt_addr().as_usize() as u64),
+        );
+
+        let status_stage =
+            transfer::Allowed::StatusStage(*StatusStage::default().set_interrupt_on_completion());
+
+        self.enque_trbs_to_transger(vec![setup_stage, data_stage, status_stage], doorbell_id);
+        debug!("getted! buffer:{:?}", buffer);
+
+        // Ok(Allowed::SetupStage({
+        //     let mut setup_stage = SetupStage::default(); //TODO check transfer ring
+        //     setup_stage
+        //         .set_transfer_type(TransferType::In)
+        //         .clear_interrupt_on_completion()
+        //         .set_request_type(0x80)
+        //         .set_request(6)
+        //         .set_value(0x0100)
+        //         .set_length(8);
+        //     debug!("setup stage!");
+        //     setup_stage
+        // }))
+        // .and_then(|trb| self.enqueue_trb_to_transfer(trb, endpoint_id))
+        // .map(|arg0: [u32; 4]| TransferEvent::try_from(arg0).unwrap())
+        // .and_then(|trb| {
+        //     debug!(
+        //         "optional data stage! transfer len: {}",
+        //         trb.trb_transfer_length()
+        //     );
+        //     if trb.trb_transfer_length() > 0 {
+        //         has_data_stage = true;
+        //         self.enqueue_trb_to_transfer(
+        //             transfer::Allowed::DataStage(
+        //                 *DataStage::default()
+        //                     .set_direction(Direction::In)
+        //                     .clear_interrupt_on_completion()
+        //                     // .set_trb_transfer_length(trb.trb_transfer_length())
+        //                     .set_trb_transfer_length(8) //device to controller, so use lowest speed to ensure compability
+        //                     .set_data_buffer_pointer(buffer.virt_addr().as_usize() as u64),
+        //             ),
+        //             endpoint_id,
+        //         )
+        //     } else {
+        //         Ok(trb.into_raw())
+        //     }
+        // })
+        // .map(|arg0: [u32; 4]| TransferEvent::try_from(arg0).unwrap())
+        // .and_then(|_| {
+        //     debug!("status stage for check state!");
+        //     self.enqueue_trb_to_transfer(
+        //         transfer::Allowed::StatusStage(
+        //             *StatusStage::default().set_interrupt_on_completion(),
+        //         ),
+        //         endpoint_id,
+        //     )
+        // })
+        // .is_ok();
+
+        debug!("return!");
+        buffer
     }
 
     fn set_endpoint_speed(&mut self, speed: u16) {

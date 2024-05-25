@@ -1498,11 +1498,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ab1bc2a289d34bd04a330323ac98a1b4bc82c9d9fcb1e66b63caa84da26b575"
 
 [[package]]
+name = "os_units"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "76f5d56adacad84b1031b481722ddd4ec261ba0b5c420d45855248918b21dff3"
+dependencies = [
+ "x86_64",
+]
+
+[[package]]
 name = "page_box"
 version = "0.1.0"
 dependencies = [
  "axalloc",
  "axhal",
+ "os_units",
  "page_table",
  "page_table_entry",
 ]

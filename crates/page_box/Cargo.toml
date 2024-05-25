@@ -12,3 +12,4 @@ axhal = {path = "../../modules/axhal"}
 axalloc = {path = "../../modules/axalloc"}
 page_table = {path = "../page_table"}
 page_table_entry = {path = "../page_table_entry"}
+os_units = "0.4.0"

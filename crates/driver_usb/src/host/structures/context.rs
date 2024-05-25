@@ -17,8 +17,8 @@ pub(crate) struct Context {
 impl Default for Context {
     fn default() -> Self {
         let mut context = Self {
-            input: Input::default().into(),
-            output: Device::default().into(),
+            input: PageBox::new_4k_aligned(Input::default()),
+            output: PageBox::new_4k_aligned(Device::default().into()),
         };
         debug!("debug input: {:?}", (*context.input).dump_device_state());
         context
@@ -87,7 +87,12 @@ pub(crate) enum Device {
 impl Default for Device {
     fn default() -> Self {
         if csz() {
-            Self::Byte64(Device64Byte::default().into())
+            Self::Byte64({
+                // let mut dev = Device64Byte::new_64byte();
+                // into.zeroed();
+                // into
+                unsafe { Box::new_zeroed().assume_init() }
+            })
         } else {
             Self::Byte32(Device32Byte::default().into())
         }

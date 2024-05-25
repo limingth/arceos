@@ -15,7 +15,9 @@ use core::{
     slice,
 };
 
+use axalloc::global_no_cache_allocator;
 use axhal::mem::{virt_to_phys, PhysAddr, VirtAddr};
+use os_units::Bytes;
 use page_table::PageSize;
 
 pub struct PageBox<T: ?Sized> {
@@ -29,6 +31,35 @@ impl<T> PageBox<T> {
         // allocated, and is page-aligned.
         unsafe {
             ptr::write(self.virt.as_mut_ptr() as *mut T, x);
+        }
+    }
+
+    pub fn new_4k_aligned(x: T) -> PageBox<T> {
+        let bytes = Bytes::from(core::mem::size_of::<T>());
+        let align = 4096.max(core::mem::align_of::<T>());
+
+        let layout = Layout::from_size_align(bytes.as_usize(), align);
+        let layout = layout.unwrap_or_else(|_| {
+            panic!(
+                "Failed to create a layout for {} bytes with {} bytes alignment",
+                bytes.as_usize(),
+                align
+            )
+        });
+
+        // SAFETY: `Layout::from_size_align` guarantees that the layout is valid.
+        let addr = global_no_cache_allocator()
+            .allocate_zeroed(layout)
+            .unwrap()
+            .as_ptr() as *mut T;
+
+        // SAFETY: Safe as the address is well-aligned.
+        unsafe { core::ptr::write(addr, x) };
+
+        Self {
+            virt: addr.addr().into(),
+            bytes: bytes.as_usize(),
+            _marker: PhantomData,
         }
     }
 

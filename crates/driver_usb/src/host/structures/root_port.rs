@@ -11,7 +11,7 @@ use log::{debug, error};
 
 pub struct RootPort {
     pub(crate) root_port_id: usize,
-    pub(crate) device: XHCIUSBDevice,
+    pub(crate) device: Arc<MaybeUninit<XHCIUSBDevice>>,
     pub(crate) device_inited: bool,
 }
 
@@ -42,6 +42,8 @@ impl RootPort {
             error!("unknown speed, index:{}", self.root_port_id);
         }
         debug!("port speed: {:?}", get_speed);
+
+        debug!("initializing device: {:?}", get_speed);
 
         if let Ok(mut device) = XHCIUSBDevice::new(self.root_port_id as u8) {
             debug!("writing ...");

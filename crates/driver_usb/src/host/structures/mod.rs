@@ -99,7 +99,7 @@ enum PortLinkState {
 pub fn dump_port_status(port_id: usize) {
     registers::handle(|r| {
         debug!(
-            "dumped port state: {:?}",
+            "----dumped port state: {:?}",
             r.port_register_set.read_volatile_at(port_id).portsc,
             // self.context.get_input().device_mut().
         )

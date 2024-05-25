@@ -69,13 +69,13 @@ pub(crate) fn new() {
         });
 
         let slot_manager = SlotManager {
-            dcbaa: PageBox::new_slice(VirtAddr::from(0 as usize), XHCI_CONFIG_MAX_SLOTS + 1),
+            dcbaa: PageBox::new_zeroed_slice(VirtAddr::from(0 as usize), XHCI_CONFIG_MAX_SLOTS + 1),
             // device: PageBox::new_slice(Device::new_64byte(), XHCI_CONFIG_MAX_SLOTS + 1),
         };
 
         r.operational
             .dcbaap
-            .update_volatile(|d| d.set(slot_manager.dcbaa.as_ptr() as u64));
+            .update_volatile(|d| d.set(slot_manager.dcbaa.virt_addr().as_usize() as u64));
 
         SLOT_MANAGER
             .try_init_once(move || Spinlock::new(slot_manager))
