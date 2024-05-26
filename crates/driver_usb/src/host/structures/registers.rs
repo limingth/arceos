@@ -1,21 +1,23 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+use crate::mapper::Mapper;
+use conquer_once::spin::OnceCell;
+use core::convert::TryInto;
+use spinning_top::Spinlock;
+use xhci::Registers;
 
-use {
-    crate::host::xhci::MemoryMapper, conquer_once::spin::OnceCell, core::convert::TryInto,
-    log::info, spinning_top::Spinlock, xhci::Registers,
-};
+static REGISTERS: OnceCell<Spinlock<Registers<Mapper>>> = OnceCell::uninit();
 
-static REGISTERS: OnceCell<Spinlock<Registers<MemoryMapper>>> = OnceCell::uninit();
+/// # Safety
+///
+/// `mmio_base` must be the correct one.
+pub(crate) unsafe fn init(mmio_base: VirtAddr) {
+    let mmio_base: usize = mmio_base.as_u64().try_into().unwrap();
 
-pub(crate) unsafe fn init(mmio_base: usize) {
     REGISTERS
-        .try_init_once(|| Spinlock::new(unsafe { Registers::new(mmio_base, MemoryMapper {}) }))
-        .expect("Failed to initialize `REGISTERS`.");
+        .try_init_once(|| Spinlock::new(Registers::new(mmio_base, Mapper)))
+        .expect("Failed to initialize `REGISTERS`.")
 }
 
 /// Handle xHCI registers.
-///
-/// warning! do not call this method inside the closure in any form!
 ///
 /// To avoid deadlocking, this method takes a closure. Caller is supposed not to call this method
 /// inside the closure, otherwise a deadlock will happen.
@@ -25,7 +27,7 @@ pub(crate) unsafe fn init(mmio_base: usize) {
 /// deadlocks.
 pub(crate) fn handle<T, U>(f: T) -> U
 where
-    T: FnOnce(&mut Registers<MemoryMapper>) -> U,
+    T: FnOnce(&mut Registers<Mapper>) -> U,
 {
     let mut r = REGISTERS.try_get().unwrap().lock();
     f(&mut r)

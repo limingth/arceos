@@ -1025,7 +1025,7 @@ dependencies = [
  "log",
  "num-derive 0.4.2",
  "num-traits",
- "page_box",
+ "os_units",
  "page_table",
  "page_table_entry",
  "spinlock",
@@ -1504,19 +1504,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "76f5d56adacad84b1031b481722ddd4ec261ba0b5c420d45855248918b21dff3"
 dependencies = [
  "x86_64",
-]
-
-[[package]]
-name = "page_box"
-version = "0.1.0"
-dependencies = [
- "axalloc",
- "axhal",
- "lazy_static",
- "log",
- "os_units",
- "page_table",
- "page_table_entry",
 ]
 
 [[package]]

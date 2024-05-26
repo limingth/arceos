@@ -1,11 +1,29 @@
+// A workaround for the `derive_builder` crate.
+#![allow(clippy::default_trait_access)]
+
+use self::structures::{extended_capabilities, registers};
+
+mod exchanger;
+mod mapper;
+mod page_box;
+mod port;
 mod structures;
-pub mod xhci;
-use axhal::mem::PhysAddr;
-use driver_common::BaseDriverOps;
+mod xhc;
 
-/// The information of the graphics device.
-#[derive(Debug, Clone, Copy)]
-pub struct USBHostInfo {}
+pub fn init_statics(base_addr: usize) {
+    // SAFETY: BAR 0 address is passed.
+    unsafe {
+        registers::init(base_addr);
+        extended_capabilities::init(base_addr);
+    }
+}
 
-/// Operations that require a graphics device driver to implement.
-pub trait USBHostDriverOps: BaseDriverOps {}
+pub fn init_xhci() {
+    xhc::init();
+}
+
+pub fn enum_port() {
+    port::enum_all_connected_port();
+
+    // multitask::add(Task::new_poll(event::task()));
+}

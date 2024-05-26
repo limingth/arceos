@@ -18,29 +18,39 @@ default = []
 phytium-xhci = []
 
 
-
 [dependencies]
 driver_common = { path = "../driver_common" }
 driver_pci = { path = "../driver_pci" }
 xhci = "0.9"
-log="0.4"
-axhal = {path = "../../modules/axhal"}
-axtask = {path = "../../modules/axtask",features = ["multitask","sched_fifo"]}
-axsync = {path="../../modules/axsync",features = ["multitask"]}
-axconfig = {path = "../../modules/axconfig"}
-page_table = {path = "../page_table"}
-page_box = {path = "../page_box"}
-page_table_entry = {path = "../page_table_entry"}
+log = "0.4"
+axhal = { path = "../../modules/axhal" }
+axtask = { path = "../../modules/axtask", features = [
+  "multitask",
+  "sched_fifo",
+] }
+axsync = { path = "../../modules/axsync", features = ["multitask"] }
+axconfig = { path = "../../modules/axconfig" }
+os_units = "0.4.0"
+page_table = { path = "../page_table" }
+page_table_entry = { path = "../page_table_entry" }
 spinlock = { path = "../../crates/spinlock" }
 tock-registers = "0.9.0"
 bit_field = "0.10"
-axalloc = {path="../../modules/axalloc"}
-futures-util = { version = "0.3.28", features = ["alloc"], default-features = false }
-futures-intrusive = { version = "0.5.0", features = ["alloc"], default-features = false }
+axalloc = { path = "../../modules/axalloc" }
+futures-util = { version = "0.3.28", features = [
+  "alloc",
+], default-features = false }
+futures-intrusive = { version = "0.5.0", features = [
+  "alloc",
+], default-features = false }
 spinning_top = { version = "0.3.0" }
 conquer-once = { version = "0.4.0", default-features = false }
-derive_builder = { version = "0.20.0",features = ["alloc"], default-features = false }
-crossbeam-queue = { version = "0.3.8", features = ["alloc"], default-features = false }
+derive_builder = { version = "0.20.0", features = [
+  "alloc",
+], default-features = false }
+crossbeam-queue = { version = "0.3.8", features = [
+  "alloc",
+], default-features = false }
 num-derive = "0.4.0"
 num-traits = { version = "0.2.16", default-features = false }
 byteorder = { version = "1.4.3", default-features = false }
