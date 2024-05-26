@@ -1,9 +1,15 @@
-use axhal::mem::{self, VirtAddr};
+use core::alloc::Layout;
+
+use alloc::vec::Vec;
+use axalloc::{global_no_cache_allocator, GlobalNoCacheAllocator};
+use axhal::mem::{self, phys_to_virt, VirtAddr};
 use conquer_once::spin::OnceCell;
 use futures_intrusive::buffer;
 use log::debug;
 use page_box::PageBox;
 use spinning_top::Spinlock;
+
+use crate::host::structures::scratchpad;
 
 use super::{
     registers,
@@ -14,49 +20,70 @@ use super::{
 pub(crate) static SCRATCH_PAD: OnceCell<Spinlock<ScratchPad>> = OnceCell::uninit();
 
 struct ScratchPad {
-    buffer: PageBox<[[usize; mem::PAGE_SIZE_4K]]>,
-    buffer_indexs: PageBox<[VirtAddr]>,
+    // buffer: PageBox<[[usize; mem::PAGE_SIZE_4K]]>,
+    array: PageBox<[VirtAddr]>,
+    bufs: Vec<PageBox<[u8]>, GlobalNoCacheAllocator>,
+}
+
+impl ScratchPad {
+    fn allocate_buffers(&mut self) {
+        let layout = Layout::from_size_align(Self::page_size(), Self::page_size());
+        let layout = layout.unwrap_or_else(|_| {
+            panic!(
+                "Failed to create a layout for {} bytes with {} bytes alignment",
+                Self::page_size(),
+                Self::page_size()
+            )
+        });
+
+        for _ in 0..num_of_buffers() {
+            let b = PageBox::from_layout_zeroed(layout);
+
+            self.bufs.push(b);
+        }
+    }
+
+    fn write_buffer_addresses(&mut self) {
+        let page_size = Self::page_size();
+        for (x, buf) in self.array.iter_mut().zip(self.bufs.iter()) {
+            *x = buf.virt_addr().align_up(page_size);
+        }
+    }
+
+    fn page_size() -> usize {
+        registers::handle(|r| r.operational.pagesize.read_volatile().get()) as usize
+    }
+
+    fn register_with_dcbaa(&self) {
+        SLOT_MANAGER
+            .get()
+            .unwrap()
+            .lock()
+            .assign_device(0, self.array.virt_addr())
+    }
 }
 
 pub fn new() {
-    registers::handle(|r| {
-        let max_scratchpad_buffers = r
-            .capability
-            .hcsparams2
-            .read_volatile()
-            .max_scratchpad_buffers();
-        let mut scratch_pad = ScratchPad {
-            buffer: PageBox::alloc_pages(
-                max_scratchpad_buffers.try_into().unwrap(),
-                [0 as usize; mem::PAGE_SIZE_4K],
-            ),
-            buffer_indexs: PageBox::new_slice(
-                VirtAddr::from(0),
-                max_scratchpad_buffers.try_into().unwrap(),
-            ),
-        };
+    let max_scratch_pad_buffers = num_of_buffers();
+    let mut scratchpad = ScratchPad {
+        array: PageBox::new_slice(VirtAddr::default(), max_scratch_pad_buffers),
+        bufs: Vec::new_in(global_no_cache_allocator()),
+    };
 
-        unsafe {
-            scratch_pad
-                .buffer
-                .iter()
-                .zip(scratch_pad.buffer_indexs.iter_mut())
-                .for_each(|(l, r)| {
-                    debug!("check this add is not zero? {:x}", l.as_ptr().addr());
-                    // (*r) = VirtAddr::from(*l as usize);
-                    (*r) = VirtAddr::from(l.as_ptr().addr());
-                })
-        }
+    scratchpad.allocate_buffers();
+    scratchpad.write_buffer_addresses();
+    scratchpad.register_with_dcbaa();
 
-        SCRATCH_PAD.init_once(move || Spinlock::new(scratch_pad));
-        assign_scratchpad_into_dcbaa();
-    });
+    SCRATCH_PAD.init_once(move || Spinlock::new(scratchpad));
 
     debug!("initialized!");
 }
 
-pub fn assign_scratchpad_into_dcbaa() {
-    xhci_slot_manager::set_dcbaa(&SCRATCH_PAD.get().unwrap().lock().buffer_indexs); //SUS
-                                                                                    //TODO Redundent design, simplify it.
-    debug!("initialized!");
+fn num_of_buffers() -> usize {
+    registers::handle(|r| {
+        r.capability
+            .hcsparams2
+            .read_volatile()
+            .max_scratchpad_buffers()
+    }) as usize
 }

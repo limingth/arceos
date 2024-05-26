@@ -62,21 +62,19 @@ impl XHCIUSBDevice {
     pub fn initialize(&mut self) {
         debug!("initialize/enum this device! port={}", self.port_id);
 
-        dump_port_status(self.port_id as usize);
-        self.slot_ctx_init();
-        dump_port_status(self.port_id as usize);
-        self.config_endpoint_0();
-        dump_port_status(self.port_id as usize);
-        self.assign_device();
-        dump_port_status(self.port_id as usize);
         self.enable_slot();
-        dump_port_status(self.port_id as usize);
-        self.address_device();
-        self.dump_ep0(); // only available after address device
-        dump_port_status(self.port_id as usize);
-        let get_descriptor = self.get_descriptor(); //damn, just assume speed is same lowest!
-        debug!("get desc: {:?}", get_descriptor);
-        dump_port_status(self.port_id as usize);
+        self.address_device(true);
+        self.dump_ep0();
+        // self.slot_ctx_init();
+        // self.config_endpoint_0();
+        self.assign_device();
+        // self.address_device(false);
+        // self.dump_ep0();
+        // dump_port_status(self.port_id as usize);
+        // only available after address device
+        // let get_descriptor = self.get_descriptor(); //damn, just assume speed is same lowest!
+        // debug!("get desc: {:?}", get_descriptor);
+        // dump_port_status(self.port_id as usize);
         // // self.check_endpoint();
         // // sleep(Duration::from_millis(2));
 
@@ -116,7 +114,7 @@ impl XHCIUSBDevice {
         input_control.set_add_context_flag(1);
 
         let slot = self.context.input.device_mut().slot_mut();
-        slot.set_root_hub_port_number(self.port_id);
+        slot.set_root_hub_port_number(self.port_id + 1);
         slot.set_route_string(0);
         slot.set_context_entries(1);
         // input_control.clear_add_context_flag(0);
@@ -156,25 +154,21 @@ impl XHCIUSBDevice {
             .device_mut()
             .endpoint_mut(1)
             .set_endpoint_type(EndpointType::Control);
-        self.dump_ep0();
         self.context
             .input
             .device_mut()
             .endpoint_mut(1)
             .set_max_packet_size(s);
-        self.dump_ep0();
         self.context
             .input
             .device_mut()
             .endpoint_mut(1)
             .set_max_burst_size(0);
-        self.dump_ep0();
         self.context
             .input
             .device_mut()
             .endpoint_mut(1)
             .set_tr_dequeue_pointer(self.transfer_ring.get_ring_addr().as_usize() as u64);
-        self.dump_ep0();
         if (self.transfer_ring.cycle_state() != 0) {
             self.context
                 .input
@@ -188,27 +182,22 @@ impl XHCIUSBDevice {
                 .endpoint_mut(1)
                 .clear_dequeue_cycle_state();
         }
-        self.dump_ep0();
         self.context
             .input
             .device_mut()
             .endpoint_mut(1)
             .set_interval(0);
-        self.dump_ep0();
         self.context
             .input
             .device_mut()
             .endpoint_mut(1)
             .set_max_primary_streams(0);
-        self.dump_ep0();
         self.context.input.device_mut().endpoint_mut(1).set_mult(0);
-        self.dump_ep0();
         self.context
             .input
             .device_mut()
             .endpoint_mut(1)
             .set_error_count(3);
-        self.dump_ep0();
         // ep_0.set_endpoint_state(EndpointState::Disabled);
 
         //confitional compile needed
@@ -217,8 +206,9 @@ impl XHCIUSBDevice {
 
     fn dump_ep0(&mut self) {
         debug!(
-            "endpoint 0 state: {:?}",
-            self.context.input.device_mut().endpoint(1).endpoint_state()
+            "endpoint 0 state: {:?}, slot state: {:?}",
+            self.context.input.device_mut().endpoint(1).endpoint_state(),
+            self.context.input.device_mut().slot().slot_state()
         )
     }
 
@@ -231,19 +221,10 @@ impl XHCIUSBDevice {
             .lock()
             .assign_device(self.slot_id, virt_addr);
 
-        // match &(*self.context.output) {
-        //     crate::host::structures::context::Device::Byte64(dev) => {
-        //         SLOT_MANAGER.get().unwrap().lock().assign_device(
-        //             self.slot_id,
-        //             (dev.as_ref() as *const Device64Byte).addr().into(), //SUS
-        //         );
-        //     }
-        //     crate::host::structures::context::Device::Byte32(_) => todo!(),
-        // }
         barrier::dmb(SY);
     }
 
-    fn address_device(&mut self) {
+    fn address_device(&mut self, bsr: bool) {
         debug!("addressing device");
         let input_addr = self.context.input.virt_addr();
         // let ring_addr = self.transfer_ring.get_ring_addr();
@@ -264,7 +245,7 @@ impl XHCIUSBDevice {
             .get()
             .unwrap()
             .lock()
-            .address_device(input_addr, self.slot_id, false)
+            .address_device(input_addr, self.slot_id, bsr)
         {
             CommandResult::Success(trb) => {
                 debug!("addressed device at slot id {}", self.slot_id);
@@ -451,7 +432,7 @@ impl XHCIUSBDevice {
 
         let buffer = PageBox::from(descriptor::Device::default());
         let mut has_data_stage = false;
-        let get_input = &mut *self.context.input;
+        let get_input = &mut self.context.input;
         // debug!("device input ctx: {:?}", get_input);
 
         let doorbell_id: u8 = {
@@ -543,7 +524,7 @@ impl XHCIUSBDevice {
     }
 
     fn set_endpoint_speed(&mut self, speed: u16) {
-        let mut binding = &mut *self.context.input;
+        let mut binding = &mut self.context.input;
         let ep_0 = binding.device_mut().endpoint_mut(1);
 
         ep_0.set_max_packet_size(speed);
@@ -551,7 +532,7 @@ impl XHCIUSBDevice {
 
     fn evaluate_context_enable_ep0(&mut self) {
         debug!("eval ctx and enable ep0!");
-        let input = &mut *self.context.input;
+        let input = &mut self.context.input;
         match COMMAND_MANAGER
             .get()
             .unwrap()

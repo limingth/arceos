@@ -1,5 +1,5 @@
 use crate::host::structures::{
-    registers, reset_port, xhci_slot_manager::SLOT_MANAGER, XHCI_CONFIG_MAX_PORTS,
+    dump_port_status, registers, reset_port, xhci_slot_manager::SLOT_MANAGER, XHCI_CONFIG_MAX_PORTS,
 };
 
 use super::{xhci_usb_device::XHCIUSBDevice, USBSpeed};
@@ -8,10 +8,11 @@ use core::mem::MaybeUninit;
 
 use alloc::sync::Arc;
 use log::{debug, error};
+use spinning_top::Spinlock;
 
 pub struct RootPort {
     pub(crate) root_port_id: usize,
-    pub(crate) device: Arc<MaybeUninit<XHCIUSBDevice>>,
+    pub(crate) device: MaybeUninit<XHCIUSBDevice>,
     pub(crate) device_inited: bool,
 }
 
@@ -27,15 +28,7 @@ impl RootPort {
         debug!("port {} connected, continue", self.root_port_id);
 
         reset_port(self.root_port_id);
-
-        debug!(
-            "port status {:?}",
-            registers::handle(|r| {
-                r.port_register_set
-                    .read_volatile_at(self.root_port_id)
-                    .portsc
-            })
-        );
+        dump_port_status(self.root_port_id);
 
         let get_speed = self.get_speed();
         if get_speed == USBSpeed::USBSpeedUnknown {
@@ -48,14 +41,11 @@ impl RootPort {
         if let Ok(mut device) = XHCIUSBDevice::new(self.root_port_id as u8) {
             debug!("writing ...");
             self.device_inited = true;
-            unsafe {
-                Arc::get_mut(&mut self.device) //TODO assert device allocated
-                    .unwrap()
-                    .write(device)
-                    .initialize()
-            };
+            unsafe { self.device.write(device) };
             debug!("writing complete");
         }
+
+        unsafe { self.device.assume_init_mut().initialize() };
         debug!("initialize complete");
     }
 

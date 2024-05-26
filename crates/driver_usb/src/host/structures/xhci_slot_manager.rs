@@ -17,11 +17,11 @@ pub(crate) struct SlotManager {
 }
 
 impl SlotManager {
-    pub fn assign_device(&mut self, valid_slot_id: u8, device: VirtAddr) {
-        debug!("assign device: {:?} to dcbaa {}", device, valid_slot_id);
+    pub fn assign_device(&mut self, port_id: u8, device: VirtAddr) {
+        debug!("assign device: {:?} to dcbaa {}", device, port_id);
 
         // self.device[valid_slot_id as usize - 1] = device;
-        self.dcbaa[valid_slot_id as usize] = device
+        self.dcbaa[port_id as usize] = device
         //TODO 需要考虑内存同步问题
         //TODO 内存位置可能不对
     }
@@ -69,7 +69,7 @@ pub(crate) fn new() {
         });
 
         let slot_manager = SlotManager {
-            dcbaa: PageBox::new_zeroed_slice(VirtAddr::from(0 as usize), XHCI_CONFIG_MAX_SLOTS + 1),
+            dcbaa: PageBox::new_slice(VirtAddr::from(0 as usize), XHCI_CONFIG_MAX_SLOTS + 1),
             // device: PageBox::new_slice(Device::new_64byte(), XHCI_CONFIG_MAX_SLOTS + 1),
         };
 

@@ -131,22 +131,17 @@ pub(crate) fn handle_event() -> Result<TypeXhciTrb, ()> {
                     }
                 }
                 EventAllowed::CommandCompletion(complete) => {
-                    debug!("step into command completion.\n");
-                    let trb_array = trb.into_raw();
+                    // let trb_array = trb.into_raw();
                     return command_completed(complete);
                 }
-                EventAllowed::PortStatusChange(_) => {
+                EventAllowed::PortStatusChange(change) => {
                     debug!("step into port status change.\n");
-                    let trb_array = trb.into_raw();
-                    assert!(
-                        trb_array[2] >> XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT
-                            == CompletionCode::Success as u32
-                    );
-                    status_changed(
-                        (trb_array[0] >> XHCI_PORT_STATUS_EVENT_TRB_PARAMETER1_PORTID_SHIFT)
-                            .try_into()
-                            .unwrap(),
-                    );
+                    // let trb_array = trb.into_raw();
+                    // assert!(
+                    //     trb_array[2] >> XHCI_EVENT_TRB_STATUS_COMPLETION_CODE_SHIFT
+                    //         == CompletionCode::Success as u32
+                    // );
+                    status_changed((change));
                 }
                 EventAllowed::BandwidthRequest(_) => todo!(),
                 EventAllowed::Doorbell(_) => todo!(),

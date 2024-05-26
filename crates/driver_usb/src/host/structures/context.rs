@@ -11,21 +11,21 @@ use xhci::context::{
 };
 
 pub(crate) struct Context {
-    pub(crate) input: PageBox<Input>,
-    pub(crate) output: PageBox<Device>,
+    pub(crate) input: Input,
+    pub(crate) output: Device,
 }
 impl Default for Context {
     fn default() -> Self {
         let mut context = Self {
-            input: PageBox::new_4k_aligned(Input::default()),
-            output: PageBox::new_4k_aligned(Device::default().into()),
+            input: Input::default(),
+            output: Device::default(),
         };
-        debug!("debug input: {:?}", (*context.input).dump_device_state());
+        debug!("debug input: {:?}", context.input.dump_device_state());
         context
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub(crate) enum Input {
     Byte64(PageBox<Input64Byte>),
     Byte32(PageBox<Input32Byte>),
@@ -52,13 +52,6 @@ impl Input {
         }
     }
 
-    pub(crate) fn phys_addr(&self) -> PhysAddr {
-        match self {
-            Self::Byte32(b32) => b32.phys_addr(),
-            Self::Byte64(b64) => b64.phys_addr(),
-        }
-    }
-
     pub(crate) fn virt_addr(&self) -> VirtAddr {
         match self {
             Self::Byte32(b32) => b32.virt_addr(),
@@ -71,7 +64,6 @@ impl Default for Input {
         if csz() {
             Self::Byte64({
                 let mut into: PageBox<Input64Byte> = Input64Byte::new_64byte().into();
-                into.zeroed();
                 into
             })
         } else {
@@ -81,20 +73,24 @@ impl Default for Input {
 }
 
 pub(crate) enum Device {
-    Byte64(Box<Device64Byte>),
-    Byte32(Box<Device32Byte>),
+    Byte64(PageBox<Device64Byte>),
+    Byte32(PageBox<Device32Byte>),
 }
 impl Default for Device {
     fn default() -> Self {
         if csz() {
-            Self::Byte64({
-                // let mut dev = Device64Byte::new_64byte();
-                // into.zeroed();
-                // into
-                unsafe { Box::new_zeroed().assume_init() }
-            })
+            Self::Byte64(Device64Byte::default().into())
         } else {
             Self::Byte32(Device32Byte::default().into())
+        }
+    }
+}
+
+impl Device {
+    pub fn virt_addr(&self) -> VirtAddr {
+        match self {
+            Self::Byte32(b32) => unimplemented!(),
+            Self::Byte64(b64) => b64.virt_addr(),
         }
     }
 }
