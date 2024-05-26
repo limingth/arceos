@@ -1,6 +1,8 @@
+use crate::host::page_box::PageBox;
+
 use super::CycleBit;
-use crate::page_box::PageBox;
 use alloc::vec::Vec;
+use axhal::mem::VirtAddr;
 use trb::Link;
 
 use xhci::ring::{trb, trb::transfer};
@@ -15,8 +17,8 @@ impl Ring {
         Self { raw: Raw::new() }
     }
 
-    pub(crate) fn phys_addr(&self) -> VirtAddr {
-        self.raw.phys_addr()
+    pub(crate) fn virt_addr(&self) -> VirtAddr {
+        self.raw.virt_addr()
     }
 
     pub(crate) fn enqueue(&mut self, trbs: &[transfer::Allowed]) -> Vec<VirtAddr> {
@@ -56,11 +58,11 @@ impl Raw {
     }
 
     fn addr_to_enqueue_ptr(&self) -> VirtAddr {
-        self.phys_addr() + trb::BYTES * self.enq_p
+        self.virt_addr() + trb::BYTES * self.enq_p
     }
 
-    fn phys_addr(&self) -> VirtAddr {
-        self.ring.phys_addr()
+    fn virt_addr(&self) -> VirtAddr {
+        self.ring.virt_addr()
     }
 
     fn increment_enqueue_ptr(&mut self) {
@@ -78,7 +80,7 @@ impl Raw {
     }
 
     fn append_link_trb(&mut self) {
-        let t = *Link::default().set_ring_segment_pointer(self.phys_addr().as_u64());
+        let t = *Link::default().set_ring_segment_pointer(self.virt_addr().as_usize() as u64);
         let mut t = transfer::Allowed::Link(t);
         self.set_cycle_bit(&mut t);
         self.ring[self.enq_p] = t.into_raw();

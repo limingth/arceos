@@ -1,8 +1,9 @@
-use crate::page_box::PageBox;
+use crate::host::page_box::PageBox;
 
 use super::registers;
 use alloc::boxed::Box;
 
+use axhal::mem::VirtAddr;
 use xhci::context::{
     Device32Byte, Device64Byte, DeviceHandler, Input32Byte, Input64Byte, InputControlHandler,
     InputHandler,
@@ -40,10 +41,10 @@ impl Input {
         }
     }
 
-    pub(crate) fn phys_addr(&self) -> VirtAddr {
+    pub(crate) fn virt_addr(&self) -> VirtAddr {
         match self {
-            Self::Byte32(b32) => b32.phys_addr(),
-            Self::Byte64(b64) => b64.phys_addr(),
+            Self::Byte32(b32) => b32.virt_addr(),
+            Self::Byte64(b64) => b64.virt_addr(),
         }
     }
 }

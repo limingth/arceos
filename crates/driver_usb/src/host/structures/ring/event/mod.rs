@@ -1,22 +1,11 @@
 use super::CycleBit;
-use crate::{exchanger::receiver, page_box::PageBox, port, structures::registers};
 use alloc::vec::Vec;
 use bit_field::BitField;
 use conquer_once::spin::OnceCell;
-use core::{
-    convert::TryInto,
-    pin::Pin,
-    task::{Context, Poll},
-};
-use futures_util::{stream::Stream, StreamExt};
+use core::{convert::TryInto, pin::Pin};
 use log::{debug, info, warn};
-use qemu_print::qemu_println;
 use segment_table::SegmentTable;
 use spinning_top::Spinlock;
-use x86_64::{
-    structures::paging::{PageSize, Size4KiB},
-    VirtAddr,
-};
 use xhci::ring::{
     trb,
     trb::event::{self, CompletionCode},

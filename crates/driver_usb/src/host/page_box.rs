@@ -48,7 +48,7 @@ impl<T: ?Sized> PageBox<T> {
         }
     }
 
-    pub fn phys_addr(&self) -> VirtAddr {
+    pub fn virt_addr(&self) -> VirtAddr {
         // We assume the identity mapping set up by UEFI firmware.
         VirtAddr::from(self.addr.as_usize())
     }

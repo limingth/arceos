@@ -1,5 +1,7 @@
+use crate::host::mapper::Mapper;
+
 use super::registers;
-use crate::mapper::Mapper;
+use axhal::mem::VirtAddr;
 use conquer_once::spin::OnceCell;
 use core::convert::TryInto;
 use spinning_top::Spinlock;
@@ -18,7 +20,7 @@ pub(crate) unsafe fn init(mmio_base: VirtAddr) {
     EXTENDED_CAPABILITIES
         .try_init_once(|| {
             Spinlock::new(extended_capabilities::List::new(
-                mmio_base.as_u64().try_into().unwrap(),
+                mmio_base.as_usize(),
                 hccparams1,
                 Mapper,
             ))

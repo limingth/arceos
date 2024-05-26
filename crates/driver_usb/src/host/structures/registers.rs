@@ -1,8 +1,10 @@
-use crate::mapper::Mapper;
+use axhal::mem::VirtAddr;
 use conquer_once::spin::OnceCell;
 use core::convert::TryInto;
 use spinning_top::Spinlock;
 use xhci::Registers;
+
+use crate::host::mapper::Mapper;
 
 static REGISTERS: OnceCell<Spinlock<Registers<Mapper>>> = OnceCell::uninit();
 
@@ -10,7 +12,7 @@ static REGISTERS: OnceCell<Spinlock<Registers<Mapper>>> = OnceCell::uninit();
 ///
 /// `mmio_base` must be the correct one.
 pub(crate) unsafe fn init(mmio_base: VirtAddr) {
-    let mmio_base: usize = mmio_base.as_u64().try_into().unwrap();
+    let mmio_base: usize = mmio_base.as_usize();
 
     REGISTERS
         .try_init_once(|| Spinlock::new(Registers::new(mmio_base, Mapper)))

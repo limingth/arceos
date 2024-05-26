@@ -1,6 +1,7 @@
-use crate::page_box::PageBox;
+use crate::host::page_box::PageBox;
 
 use super::registers;
+use axhal::mem::VirtAddr;
 use conquer_once::spin::OnceCell;
 use core::ops::DerefMut;
 use spinning_top::Spinlock;
@@ -12,7 +13,7 @@ pub fn init() {
 
     registers::handle(|r| {
         r.operational.dcbaap.update_volatile(|d| {
-            d.set(lock().phys_addr().as_u64());
+            d.set(lock().virt_addr().as_usize() as u64);
         })
     })
 }

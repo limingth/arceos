@@ -1,7 +1,8 @@
 use crate::host::page_box::PageBox;
 
-use super::dcbaa;
+use super::{dcbaa, registers};
 use alloc::vec::Vec;
+use axhal::mem::VirtAddr;
 use conquer_once::spin::OnceCell;
 use core::alloc::Layout;
 use core::convert::TryInto;
@@ -47,7 +48,7 @@ impl Scratchpad {
     }
 
     fn register_with_dcbaa(&self) {
-        dcbaa::register_device_context_addr(0, self.arr.phys_addr());
+        dcbaa::register_device_context_addr(0, self.arr.virt_addr());
     }
 
     fn allocate_buffers(&mut self) {
@@ -69,9 +70,9 @@ impl Scratchpad {
     }
 
     fn write_buffer_addresses(&mut self) {
-        let page_size: u64 = Self::page_size().as_usize().try_into().unwrap();
+        let page_size: usize = Self::page_size().as_usize();
         for (x, buf) in self.arr.iter_mut().zip(self.bufs.iter()) {
-            *x = buf.phys_addr().align_up(page_size);
+            *x = buf.virt_addr().align_up(page_size);
         }
     }
 
