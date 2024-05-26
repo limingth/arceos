@@ -20,7 +20,6 @@ impl Default for Context {
             input: Input::default(),
             output: Device::default(),
         };
-        debug!("debug input: {:?}", context.input.dump_device_state());
         context
     }
 }
@@ -42,13 +41,6 @@ impl Input {
         match self {
             Self::Byte32(b32) => b32.device_mut(),
             Self::Byte64(b64) => b64.device_mut(),
-        }
-    }
-
-    pub(crate) fn dump_device_state(&mut self) -> &mut xhci::context::Input<16> {
-        match self {
-            Self::Byte32(b32) => unimplemented!(),
-            Self::Byte64(b64) => &mut (**b64),
         }
     }
 
@@ -89,7 +81,7 @@ impl Default for Device {
 impl Device {
     pub fn virt_addr(&self) -> VirtAddr {
         match self {
-            Self::Byte32(b32) => unimplemented!(),
+            Self::Byte32(b32) => b32.virt_addr(),
             Self::Byte64(b64) => b64.virt_addr(),
         }
     }
@@ -97,4 +89,5 @@ impl Device {
 
 fn csz() -> bool {
     registers::handle(|r| r.capability.hccparams1.read_volatile().context_size())
+    // false
 }

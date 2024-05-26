@@ -64,15 +64,13 @@ impl XHCIUSBDevice {
 
         // self.address_device(true);
         self.enable_slot();
-        self.dump_ep0();
         self.slot_ctx_init();
-        self.check_input();
         self.config_endpoint_0();
-        self.check_input();
+        // self.check_input();
         self.assign_device();
         self.address_device(false);
-        // self.dump_ep0();
-        // dump_port_status(self.port_id as usize);
+        self.dump_ep0();
+        dump_port_status(self.port_id as usize);
         // only available after address device
         // let get_descriptor = self.get_descriptor(); //damn, just assume speed is same lowest!
         // debug!("get desc: {:?}", get_descriptor);
@@ -103,12 +101,11 @@ impl XHCIUSBDevice {
         input_control.set_add_context_flag(1);
 
         let slot = self.context.input.device_mut().slot_mut();
-        slot.set_root_hub_port_number(self.port_id + 1);
+        slot.set_root_hub_port_number(self.port_id);
         slot.set_route_string(0);
         slot.set_context_entries(1);
         // input_control.clear_add_context_flag(0);
         // input_control.clear_add_context_flag(1);
-        barrier::dmb(SY);
     }
 
     fn get_max_len(&mut self) -> u16 {
@@ -155,7 +152,6 @@ impl XHCIUSBDevice {
         // ep_0.set_endpoint_state(EndpointState::Disabled);
 
         //confitional compile needed
-        barrier::dmb(SY);
     }
 
     fn dump_ep0(&mut self) {
@@ -311,7 +307,8 @@ impl XHCIUSBDevice {
     }
 
     fn check_input(&mut self) {
-        debug!("device state: {:?}", self.context.input.dump_device_state());
+        debug!("input addr: {:x}", self.context.input.virt_addr());
+        // debug!("input state: {:?}", self.context.input.dump_device_state());
     }
 
     fn enqueue_trb_to_transfer(
