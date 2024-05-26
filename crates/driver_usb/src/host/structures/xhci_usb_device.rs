@@ -62,13 +62,15 @@ impl XHCIUSBDevice {
     pub fn initialize(&mut self) {
         debug!("initialize/enum this device! port={}", self.port_id);
 
+        // self.address_device(true);
         self.enable_slot();
-        self.address_device(true);
         self.dump_ep0();
-        // self.slot_ctx_init();
-        // self.config_endpoint_0();
+        self.slot_ctx_init();
+        self.check_input();
+        self.config_endpoint_0();
+        self.check_input();
         self.assign_device();
-        // self.address_device(false);
+        self.address_device(false);
         // self.dump_ep0();
         // dump_port_status(self.port_id as usize);
         // only available after address device
@@ -83,19 +85,6 @@ impl XHCIUSBDevice {
     }
 
     fn enable_slot(&mut self) {
-        // if let Some(manager) = COMMAND_MANAGER.get() {
-        //     match manager.lock().enable_slot() {
-        //         CommandResult::Success(succedd_trb) => {
-        //             debug!("enable slot success!");
-        //         }
-        //         //需要让device分配在指定的内存空间中
-        //         err => Err({
-        //             error!("failed to enable slot!\n {:?}", err);
-        //         }),
-        //     }
-        // } else {
-        //     Err({ error!("command manager not initialized! it should not happen!") })
-        // }
         match COMMAND_MANAGER.get().unwrap().lock().enable_slot() {
             CommandResult::Success(succedd_trb) => {
                 debug!("enable slot success! {:?}", succedd_trb);
@@ -149,55 +138,20 @@ impl XHCIUSBDevice {
         debug!("config ep0");
         self.dump_ep0();
 
-        self.context
-            .input
-            .device_mut()
-            .endpoint_mut(1)
-            .set_endpoint_type(EndpointType::Control);
-        self.context
-            .input
-            .device_mut()
-            .endpoint_mut(1)
-            .set_max_packet_size(s);
-        self.context
-            .input
-            .device_mut()
-            .endpoint_mut(1)
-            .set_max_burst_size(0);
-        self.context
-            .input
-            .device_mut()
-            .endpoint_mut(1)
-            .set_tr_dequeue_pointer(self.transfer_ring.get_ring_addr().as_usize() as u64);
+        let endpoint_mut = self.context.input.device_mut().endpoint_mut(1);
+        endpoint_mut.set_endpoint_type(EndpointType::Control);
+        endpoint_mut.set_max_packet_size(s);
+        endpoint_mut.set_max_burst_size(0);
+        endpoint_mut.set_tr_dequeue_pointer(self.transfer_ring.get_ring_addr().as_usize() as u64);
         if (self.transfer_ring.cycle_state() != 0) {
-            self.context
-                .input
-                .device_mut()
-                .endpoint_mut(1)
-                .set_dequeue_cycle_state();
+            endpoint_mut.set_dequeue_cycle_state();
         } else {
-            self.context
-                .input
-                .device_mut()
-                .endpoint_mut(1)
-                .clear_dequeue_cycle_state();
+            endpoint_mut.clear_dequeue_cycle_state();
         }
-        self.context
-            .input
-            .device_mut()
-            .endpoint_mut(1)
-            .set_interval(0);
-        self.context
-            .input
-            .device_mut()
-            .endpoint_mut(1)
-            .set_max_primary_streams(0);
-        self.context.input.device_mut().endpoint_mut(1).set_mult(0);
-        self.context
-            .input
-            .device_mut()
-            .endpoint_mut(1)
-            .set_error_count(3);
+        endpoint_mut.set_interval(0);
+        endpoint_mut.set_max_primary_streams(0);
+        endpoint_mut.set_mult(0);
+        endpoint_mut.set_error_count(3);
         // ep_0.set_endpoint_state(EndpointState::Disabled);
 
         //confitional compile needed
@@ -227,6 +181,7 @@ impl XHCIUSBDevice {
     fn address_device(&mut self, bsr: bool) {
         debug!("addressing device");
         let input_addr = self.context.input.virt_addr();
+        debug!("address to input {:?}", input_addr);
         // let ring_addr = self.transfer_ring.get_ring_addr();
         // debug!("request address!");
         // match COMMAND_MANAGER
@@ -353,6 +308,10 @@ impl XHCIUSBDevice {
                 }
             }
         }
+    }
+
+    fn check_input(&mut self) {
+        debug!("device state: {:?}", self.context.input.dump_device_state());
     }
 
     fn enqueue_trb_to_transfer(

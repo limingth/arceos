@@ -65,19 +65,32 @@ fn do_ldr(args: &str) {
     }
 
     fn ldr_one(addr: &str) -> io::Result<()> {
-        println!("addr = {}", addr);
+        // println!("addr = {}", addr);
 
         if let Ok(parsed_addr) = u64::from_str_radix(addr, 16) {
             let address: *const u64 = parsed_addr as *const u64; // 强制转换为合适的指针类型
+            if address.is_aligned() {
+                let value: u64;
+                // println!("Parsed address: {:p}", address); // 打印地址时使用 %p 格式化符号
 
-            let value: u64;
-            println!("Parsed address: {:p}", address); // 打印地址时使用 %p 格式化符号
+                unsafe {
+                    value = *address;
+                }
 
-            unsafe {
-                value = *address;
+                let le_bytes = value.to_le_bytes();
+
+                // println!("Value at address {}: 0x{:X}", addr, value); // 使用输入的地址打印值
+                println!("value at address{} = 0x{:X}: ", addr, value);
+                for chunk in le_bytes.chunks(4) {
+                    let mut chunk_value: u32 = 0;
+                    for (i, byte) in chunk.iter().enumerate() {
+                        chunk_value |= (*byte as u32) << (i * 8);
+                    }
+                    println!("{:032b}", chunk_value);
+                }
+            } else {
+                println!("addr not aligned!");
             }
-
-            println!("Value at address {}: 0x{:X}", addr, value); // 使用输入的地址打印值
         } else {
             println!("Failed to parse address.");
         }

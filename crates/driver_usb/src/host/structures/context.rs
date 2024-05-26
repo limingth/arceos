@@ -2,7 +2,7 @@ use super::registers;
 use alloc::{boxed::Box, sync::Arc};
 use axalloc::{global_no_cache_allocator, GlobalNoCacheAllocator};
 use axhal::mem::{PhysAddr, VirtAddr};
-use log::debug;
+use log::{debug, error};
 use page_box::PageBox;
 use spinning_top::Spinlock;
 use xhci::context::{
