@@ -1,14 +1,18 @@
+use crate::host::{exchanger::receiver, page_box::PageBox, port, structures::registers};
+
 use super::CycleBit;
 use alloc::vec::Vec;
+use axhal::mem::VirtAddr;
 use bit_field::BitField;
 use conquer_once::spin::OnceCell;
 use core::{convert::TryInto, pin::Pin};
 use log::{debug, info, warn};
+use page_table::PageSize;
 use segment_table::SegmentTable;
 use spinning_top::Spinlock;
-use xhci::ring::{
-    trb,
-    trb::event::{self, CompletionCode},
+use xhci::ring::trb::{
+    self,
+    event::{self, CompletionCode},
 };
 
 mod segment_table;
@@ -24,16 +28,16 @@ pub fn init() {
         .expect("`EVENT_RING` is initialized more than once.");
 }
 
-pub(crate) async fn task() {
+//TODO use this
+pub(crate) fn poll() {
     debug!("This is the Event ring task.");
 
-    while let Some(trb) = EVENT_RING
+    let trb = EVENT_RING
         .get()
         .expect("The event ring is not initialized")
         .try_lock()
         .expect("Failed to lock the event ring.")
-        .next()
-        .await
+        .next();
     {
         if let event::Allowed::CommandCompletion(x) = trb {
             assert_eq!(x.completion_code(), Ok(CompletionCode::Success));
@@ -50,7 +54,7 @@ pub(crate) async fn task() {
 }
 
 #[allow(clippy::cast_possible_truncation)]
-const MAX_NUM_OF_TRB_IN_QUEUE: u16 = Size4KiB::SIZE as u16 / trb::BYTES as u16;
+const MAX_NUM_OF_TRB_IN_QUEUE: u16 = PageSize::Size4K as u16 / trb::BYTES as u16;
 
 pub(crate) struct Ring {
     segment_table: SegmentTable,
@@ -80,8 +84,8 @@ impl Ring {
         self.raw.update_deq_p_with_xhci()
     }
 
-    fn phys_addr_to_segment_table(&self) -> VirtAddr {
-        self.segment_table.phys_addr()
+    fn virt_addr_to_segment_table(&self) -> VirtAddr {
+        self.segment_table.virt_addr()
     }
 
     fn init_tbl(&mut self) {
@@ -100,13 +104,13 @@ impl Ring {
         self.segment_table.iter_mut()
     }
 }
-impl Stream for Ring {
-    type Item = event::Allowed;
-
-    fn poll_next(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        Pin::into_inner(self)
-            .try_dequeue()
-            .map_or_else(|| Poll::Pending, |trb| Poll::Ready(Some(trb)))
+impl Ring {
+    pub fn next(&mut self) -> event::Allowed {
+        loop {
+            if let Some(allowed) = self.try_dequeue() {
+                return allowed;
+            }
+        }
     }
 }
 
@@ -202,17 +206,17 @@ impl Raw {
                 .interrupter_mut(0)
                 .erdp
                 .update_volatile(|r| {
-                    r.set_event_ring_dequeue_pointer(self.next_trb_addr().as_u64())
+                    r.set_event_ring_dequeue_pointer(self.next_trb_addr().as_usize() as u64)
                 });
         });
     }
 
     fn next_trb_addr(&self) -> VirtAddr {
-        self.rings[self.deq_p_seg].phys_addr() + trb::BYTES * self.deq_p_trb
+        self.rings[self.deq_p_seg].virt_addr() + trb::BYTES * self.deq_p_trb
     }
 
     fn head_addrs(&self) -> Vec<VirtAddr> {
-        self.rings.iter().map(PageBox::phys_addr).collect()
+        self.rings.iter().map(PageBox::virt_addr).collect()
     }
 }
 
@@ -256,13 +260,13 @@ impl<'a> SegTblInitializer<'a> {
                 .interrupter_mut(0)
                 .erstba
                 .update_volatile(|r| {
-                    r.set(a.as_u64());
+                    r.set(a.as_usize() as u64);
                 })
         });
     }
 
     fn tbl_addr(&self) -> VirtAddr {
-        self.ring.phys_addr_to_segment_table()
+        self.ring.virt_addr_to_segment_table()
     }
 
     fn tbl_len(&self) -> usize {

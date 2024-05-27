@@ -1,14 +1,13 @@
+use crate::host::{page_box::PageBox, structures::registers};
+
 use super::CycleBit;
-use crate::{page_box::PageBox, registers};
+use axhal::mem::VirtAddr;
+use page_table::PageSize;
 use trb::Link;
-use x86_64::{
-    structures::paging::{PageSize, Size4KiB},
-    VirtAddr,
-};
 use xhci::ring::{trb, trb::command};
 
 #[allow(clippy::cast_possible_truncation)]
-const NUM_OF_TRBS: usize = Size4KiB::SIZE as usize / trb::BYTES;
+const NUM_OF_TRBS: usize = PageSize::Size4K as usize / trb::BYTES;
 
 pub(crate) struct Ring {
     raw: Raw,
@@ -86,7 +85,7 @@ impl Raw {
 
     fn enq_link(&mut self) {
         // Don't call `enqueue`. It will return an `Err` value as there is no space for link TRB.
-        let t = *Link::default().set_ring_segment_pointer(self.head_addr().as_u64());
+        let t = *Link::default().set_ring_segment_pointer(self.head_addr().as_usize() as u64);
         let mut t = command::Allowed::Link(t);
         self.set_cycle_bit(&mut t);
         self.raw[self.enq_p] = t.into_raw();
@@ -102,7 +101,7 @@ impl Raw {
     }
 
     fn head_addr(&self) -> VirtAddr {
-        self.raw.phys_addr()
+        self.raw.virt_addr()
     }
 
     fn len(&self) -> usize {
@@ -133,7 +132,7 @@ impl<'a> Initializer<'a> {
             // Do not split this closure to avoid read-modify-write bug. Reading fields may return
             // 0, this will cause writing 0 to fields.
             r.operational.crcr.update_volatile(|c| {
-                c.set_command_ring_pointer(a.as_u64());
+                c.set_command_ring_pointer(a.as_usize() as u64);
                 c.set_ring_cycle_state();
             });
         })

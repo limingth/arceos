@@ -1,5 +1,6 @@
+use crate::host::structures::registers;
+
 use super::slot_structures_initializer::SlotStructuresInitializer;
-use crate::structures::registers;
 use xhci::registers::PortRegisterSet;
 
 pub(super) struct Resetter {
@@ -14,10 +15,10 @@ impl Resetter {
         self.port_number
     }
 
-    pub(super) async fn reset(self) -> SlotStructuresInitializer {
+    pub(super) fn reset(self) -> SlotStructuresInitializer {
         self.start_resetting();
         self.wait_until_reset_is_completed();
-        SlotStructuresInitializer::new(self).await
+        SlotStructuresInitializer::new(self)
     }
 
     fn start_resetting(&self) {

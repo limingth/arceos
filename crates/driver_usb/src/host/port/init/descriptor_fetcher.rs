@@ -1,10 +1,7 @@
+use crate::host::{page_box::PageBox, port::endpoint, structures::context::Context};
+
 use super::{
     endpoints_initializer::EndpointsInitializer, max_packet_size_setter::MaxPacketSizeSetter,
-};
-use crate::{
-    page_box::PageBox,
-    port::endpoint,
-    structures::{context::Context, descriptor, descriptor::Descriptor},
 };
 use alloc::{sync::Arc, vec::Vec};
 use log::debug;
@@ -31,8 +28,8 @@ impl DescriptorFetcher {
         }
     }
 
-    pub(super) async fn fetch(mut self) -> EndpointsInitializer {
-        let r = self.get_raw_descriptors().await;
+    pub(super) fn fetch(mut self) -> EndpointsInitializer {
+        let r = self.get_raw_descriptors();
         let ds = RawDescriptorParser::new(r).parse();
         EndpointsInitializer::new(self, ds)
     }
@@ -53,8 +50,8 @@ impl DescriptorFetcher {
         self.ep0
     }
 
-    async fn get_raw_descriptors(&mut self) -> PageBox<[u8]> {
-        self.ep0.get_raw_configuration_descriptors().await
+    fn get_raw_descriptors(&mut self) -> PageBox<[u8]> {
+        self.ep0.get_raw_configuration_descriptors()
     }
 }
 

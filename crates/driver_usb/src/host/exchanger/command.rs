@@ -4,6 +4,7 @@ use super::{
 };
 use crate::{Futurelock, FuturelockGuard};
 use alloc::sync::Arc;
+use axhal::mem::VirtAddr;
 use command_trb::{AddressDevice, ConfigureEndpoint, EnableSlot, EvaluateContext};
 use conquer_once::spin::OnceCell;
 use event::CompletionCode;
@@ -12,7 +13,7 @@ use spinning_top::Spinlock;
 
 use xhci::ring::trb::{command as command_trb, event};
 
-static SENDER: OnceCell<Futurelock<Sender>> = OnceCell::uninit();
+static SENDER: OnceCell<Spinlock<Sender>> = OnceCell::uninit();
 
 pub(crate) fn init() {
     let ring = Arc::new(Spinlock::new(command::Ring::new()));
@@ -20,29 +21,29 @@ pub(crate) fn init() {
     ring.lock().init();
 
     SENDER
-        .try_init_once(|| Futurelock::new(Sender::new(ring), true))
+        .try_init_once(|| Spinlock::new(Sender::new(ring)))
         .expect("`Sender` is initialized more than once.")
 }
 
-pub(crate) async fn enable_device_slot() -> u8 {
-    lock().await.enable_device_slot().await
+pub(crate) fn enable_device_slot() -> u8 {
+    lock().enable_device_slot()
 }
 
-pub(crate) async fn address_device(input_cx: VirtAddr, slot: u8) {
-    lock().await.address_device(input_cx, slot).await;
+pub(crate) fn address_device(input_cx: VirtAddr, slot: u8) {
+    lock().address_device(input_cx, slot);
 }
 
-pub(crate) async fn configure_endpoint(cx: VirtAddr, slot: u8) {
-    lock().await.configure_endpoint(cx, slot).await;
+pub(crate) fn configure_endpoint(cx: VirtAddr, slot: u8) {
+    lock().configure_endpoint(cx, slot);
 }
 
-pub(crate) async fn evaluate_context(cx: VirtAddr, slot: u8) {
-    lock().await.evaluate_context(cx, slot).await;
+pub(crate) fn evaluate_context(cx: VirtAddr, slot: u8) {
+    lock().evaluate_context(cx, slot);
 }
 
-async fn lock() -> FuturelockGuard<'static, Sender> {
+fn lock() -> spinning_top::lock_api::MutexGuard<'static, spinning_top::RawSpinlock, Sender> {
     let s = SENDER.try_get().expect("`SENDER` is not initialized.");
-    s.lock().await
+    s.lock()
 }
 
 struct Sender {
@@ -55,9 +56,9 @@ impl Sender {
         }
     }
 
-    async fn enable_device_slot(&mut self) -> u8 {
+    fn enable_device_slot(&mut self) -> u8 {
         let t = EnableSlot::default();
-        let completion = self.send_and_receive(t.into()).await;
+        let completion = self.send_and_receive(t.into());
         panic_on_error("Enable Device Slot", completion);
         if let event::Allowed::CommandCompletion(c) = completion {
             c.slot_id()
@@ -66,32 +67,32 @@ impl Sender {
         }
     }
 
-    async fn address_device(&mut self, input_context_addr: VirtAddr, slot_id: u8) {
+    fn address_device(&mut self, input_context_addr: VirtAddr, slot_id: u8) {
         let t = *AddressDevice::default()
-            .set_input_context_pointer(input_context_addr.as_u64())
+            .set_input_context_pointer(input_context_addr.as_usize() as u64)
             .set_slot_id(slot_id);
-        let c = self.send_and_receive(t.into()).await;
+        let c = self.send_and_receive(t.into());
         panic_on_error("Address Device", c);
     }
 
-    async fn configure_endpoint(&mut self, context_addr: VirtAddr, slot_id: u8) {
+    fn configure_endpoint(&mut self, context_addr: VirtAddr, slot_id: u8) {
         let t = *ConfigureEndpoint::default()
-            .set_input_context_pointer(context_addr.as_u64())
+            .set_input_context_pointer(context_addr.as_usize() as u64)
             .set_slot_id(slot_id);
-        let c = self.send_and_receive(t.into()).await;
+        let c = self.send_and_receive(t.into());
         panic_on_error("Configure Endpoint", c);
     }
 
-    async fn evaluate_context(&mut self, cx: VirtAddr, slot: u8) {
+    fn evaluate_context(&mut self, cx: VirtAddr, slot: u8) {
         let t = *EvaluateContext::default()
-            .set_input_context_pointer(cx.as_u64())
+            .set_input_context_pointer(cx.as_usize() as u64)
             .set_slot_id(slot);
-        let c = self.send_and_receive(t.into()).await;
+        let c = self.send_and_receive(t.into());
         panic_on_error("Evaluate Context", c);
     }
 
-    async fn send_and_receive(&mut self, t: command_trb::Allowed) -> event::Allowed {
-        self.channel.send_and_receive(t).await
+    fn send_and_receive(&mut self, t: command_trb::Allowed) -> event::Allowed {
+        self.channel.send_and_receive(t)
     }
 }
 
@@ -107,18 +108,18 @@ impl Channel {
         }
     }
 
-    async fn send_and_receive(&mut self, t: command_trb::Allowed) -> event::Allowed {
+    fn send_and_receive(&mut self, t: command_trb::Allowed) -> event::Allowed {
         let a = self.ring.lock().enqueue(t);
         self.register_with_receiver(a);
-        self.get_trb(a).await
+        self.get_trb(a)
     }
 
     fn register_with_receiver(&mut self, trb_a: VirtAddr) {
         receiver::add_entry(trb_a, self.waker.clone()).expect("Sender is already registered.");
     }
 
-    async fn get_trb(&mut self, trb_a: VirtAddr) -> event::Allowed {
-        ReceiveFuture::new(trb_a, self.waker.clone()).await
+    fn get_trb(&mut self, trb_a: VirtAddr) -> event::Allowed {
+        ReceiveFuture::new(trb_a).poll()
     }
 }
 

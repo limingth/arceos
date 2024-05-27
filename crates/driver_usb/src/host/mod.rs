@@ -3,7 +3,7 @@
 
 use self::structures::{extended_capabilities, registers};
 
-mod exchanger;
+pub(crate) mod exchanger;
 mod mapper;
 mod page_box;
 mod port;
@@ -13,8 +13,8 @@ mod xhc;
 pub fn init_statics(base_addr: usize) {
     // SAFETY: BAR 0 address is passed.
     unsafe {
-        registers::init(base_addr);
-        extended_capabilities::init(base_addr);
+        registers::init(base_addr.into());
+        extended_capabilities::init(base_addr.into());
     }
 }
 

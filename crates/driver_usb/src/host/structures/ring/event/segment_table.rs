@@ -2,21 +2,20 @@ use core::{
     ops::{Index, IndexMut},
     slice,
 };
-use qemu_print::qemu_println;
 
+use axhal::mem::VirtAddr;
 
-use crate::page_box::PageBox;
+use crate::host::page_box::PageBox;
 
 #[derive(Debug)]
 pub struct SegmentTable(PageBox<[Entry]>);
 impl SegmentTable {
     pub fn new(len: usize) -> Self {
-        qemu_println!("SegmentTable::new({})", len);
         Self(PageBox::new_slice(Entry::null(), len))
     }
 
-    pub fn phys_addr(&self) -> VirtAddr {
-        self.0.phys_addr()
+    pub fn virt_addr(&self) -> VirtAddr {
+        self.0.virt_addr()
     }
 
     pub fn len(&self) -> usize {
@@ -57,7 +56,7 @@ pub struct Entry {
 impl Entry {
     // Although the size of segment_size is u64, bits 16:63 are reserved.
     pub fn set(&mut self, addr: VirtAddr, size: u16) {
-        self.base_address = addr.as_u64();
+        self.base_address = addr.as_usize() as u64;
         self.segment_size = size.into();
     }
 

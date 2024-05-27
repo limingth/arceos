@@ -1,6 +1,7 @@
-use crate::{exchanger::transfer, page_box::PageBox, structures::descriptor};
-
+use axhal::mem::VirtAddr;
 use xhci::context::EndpointType;
+
+use crate::host::{exchanger::transfer, page_box::PageBox, structures::descriptor};
 
 pub(super) struct Default {
     sender: transfer::Sender,
@@ -14,30 +15,28 @@ impl Default {
         self.sender.ring_addr()
     }
 
-    pub(super) async fn get_max_packet_size(&mut self) -> u16 {
-        self.sender
-            .get_max_packet_size_from_device_descriptor()
-            .await
+    pub(super) fn get_max_packet_size(&mut self) -> u16 {
+        self.sender.get_max_packet_size_from_device_descriptor()
     }
 
-    pub(super) async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
-        self.sender.get_configuration_descriptor().await
+    pub(super) fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
+        self.sender.get_configuration_descriptor()
     }
 
-    pub(super) async fn set_configuration(&mut self, config_val: u8) {
-        self.sender.set_configure(config_val).await;
+    pub(super) fn set_configuration(&mut self, config_val: u8) {
+        self.sender.set_configure(config_val);
     }
 
-    pub(super) async fn set_idle(&mut self) {
-        self.sender.set_idle().await;
+    pub(super) fn set_idle(&mut self) {
+        self.sender.set_idle();
     }
 
-    pub(super) async fn set_boot_protocol(&mut self) {
-        self.sender.set_boot_protocol().await;
+    pub(super) fn set_boot_protocol(&mut self) {
+        self.sender.set_boot_protocol();
     }
 
-    pub(super) async fn issue_nop_trb(&mut self) {
-        self.sender.issue_nop_trb().await;
+    pub(super) fn issue_nop_trb(&mut self) {
+        self.sender.issue_nop_trb();
     }
 }
 
@@ -62,8 +61,8 @@ impl NonDefault {
         self.desc.ty()
     }
 
-    pub(super) async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
-        self.sender.issue_normal_trb(b).await
+    pub(super) fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
+        self.sender.issue_normal_trb(b)
     }
 }
 

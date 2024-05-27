@@ -8,11 +8,11 @@ mod max_packet_size_setter;
 mod resetter;
 mod slot_structures_initializer;
 
-pub(super) async fn init(port_number: u8) -> FullyOperational {
+pub(super) fn init(port_number: u8) -> FullyOperational {
     let resetter = Resetter::new(port_number);
-    let slot_structures_initializer = resetter.reset().await;
-    let max_packet_size_setter = slot_structures_initializer.init().await;
-    let descriptor_fetcher = max_packet_size_setter.set().await;
-    let endpoints_initializer = descriptor_fetcher.fetch().await;
+    let slot_structures_initializer = resetter.reset();
+    let max_packet_size_setter = slot_structures_initializer.init();
+    let descriptor_fetcher = max_packet_size_setter.set();
+    let endpoints_initializer = descriptor_fetcher.fetch();
     endpoints_initializer.init().await
 }

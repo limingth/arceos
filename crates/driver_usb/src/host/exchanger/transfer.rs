@@ -1,7 +1,11 @@
-use super::receiver::{self, ReceiveFuture};
-use crate::page_box::PageBox;
-use crate::structures::{descriptor, registers, ring::transfer};
+use crate::host::{
+    page_box::PageBox,
+    structures::{descriptor, registers, ring::transfer},
+};
+
+use super::receiver::{self, receive, ReceiveFuture};
 use alloc::{sync::Arc, vec::Vec};
+use axhal::mem::VirtAddr;
 use core::convert::TryInto;
 use futures_util::task::AtomicWaker;
 use log::debug;
@@ -26,7 +30,7 @@ impl Sender {
         self.channel.ring_addr()
     }
 
-    pub(crate) async fn get_max_packet_size_from_device_descriptor(&mut self) -> u16 {
+    pub(crate) fn get_max_packet_size_from_device_descriptor(&mut self) -> u16 {
         let b = PageBox::from(descriptor::Device::default());
 
         let setup = *transfer_trb::SetupStage::default()
@@ -41,17 +45,16 @@ impl Sender {
             .set_direction(Direction::In)
             .set_trb_transfer_length(8)
             .clear_interrupt_on_completion()
-            .set_data_buffer_pointer(b.phys_addr().as_u64());
+            .set_data_buffer_pointer(b.virt_addr().as_usize() as u64);
 
         let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion();
 
-        self.issue_trbs(&[setup.into(), data.into(), status.into()])
-            .await;
+        self.issue_trbs(&[setup.into(), data.into(), status.into()]);
 
         b.max_packet_size()
     }
 
-    pub(crate) async fn set_configure(&mut self, config_val: u8) {
+    pub(crate) fn set_configure(&mut self, config_val: u8) {
         let setup = *transfer_trb::SetupStage::default()
             .set_transfer_type(TransferType::No)
             .clear_interrupt_on_completion()
@@ -62,10 +65,10 @@ impl Sender {
 
         let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion();
 
-        self.issue_trbs(&[setup.into(), status.into()]).await;
+        self.issue_trbs(&[setup.into(), status.into()]);
     }
 
-    pub(crate) async fn set_idle(&mut self) {
+    pub(crate) fn set_idle(&mut self) {
         let setup = *transfer_trb::SetupStage::default()
             .set_transfer_type(TransferType::No)
             .clear_interrupt_on_completion()
@@ -76,10 +79,10 @@ impl Sender {
 
         let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion();
 
-        self.issue_trbs(&[setup.into(), status.into()]).await;
+        self.issue_trbs(&[setup.into(), status.into()]);
     }
 
-    pub(crate) async fn set_boot_protocol(&mut self) {
+    pub(crate) fn set_boot_protocol(&mut self) {
         let setup = *transfer_trb::SetupStage::default()
             .set_transfer_type(TransferType::No)
             .clear_interrupt_on_completion()
@@ -90,10 +93,10 @@ impl Sender {
 
         let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion();
 
-        self.issue_trbs(&[setup.into(), status.into()]).await;
+        self.issue_trbs(&[setup.into(), status.into()]);
     }
 
-    pub(crate) async fn get_configuration_descriptor(&mut self) -> PageBox<[u8]> {
+    pub(crate) fn get_configuration_descriptor(&mut self) -> PageBox<[u8]> {
         let b = PageBox::new_slice(0, 4096);
 
         let (setup, data, status) = Self::trbs_for_getting_descriptors(
@@ -101,24 +104,24 @@ impl Sender {
             DescTyIdx::new(descriptor::Ty::Configuration, 0),
         );
 
-        self.issue_trbs(&[setup, data, status]).await;
+        self.issue_trbs(&[setup, data, status]);
         debug!("Got TRBs");
         b
     }
 
-    pub(crate) async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
+    pub(crate) fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
         let t = *Normal::default()
-            .set_data_buffer_pointer(b.phys_addr().as_u64())
+            .set_data_buffer_pointer(b.virt_addr().as_usize() as u64)
             .set_trb_transfer_length(b.bytes().as_usize().try_into().unwrap())
             .set_interrupt_on_completion();
         debug!("Normal TRB: {:X?}", t);
-        self.issue_trbs(&[t.into()]).await;
+        self.issue_trbs(&[t.into()]);
     }
 
-    pub(crate) async fn issue_nop_trb(&mut self) {
+    pub(crate) fn issue_nop_trb(&mut self) {
         let t = Noop::default();
 
-        self.issue_trbs(&[t.into()]).await;
+        self.issue_trbs(&[t.into()]);
     }
 
     fn trbs_for_getting_descriptors<T: ?Sized>(
@@ -137,7 +140,7 @@ impl Sender {
             .set_transfer_type(TransferType::In);
 
         let data = *transfer_trb::DataStage::default()
-            .set_data_buffer_pointer(b.phys_addr().as_u64())
+            .set_data_buffer_pointer(b.virt_addr().as_usize() as u64)
             .set_trb_transfer_length(b.bytes().as_usize().try_into().unwrap())
             .set_direction(Direction::In);
 
@@ -146,8 +149,8 @@ impl Sender {
         (setup.into(), data.into(), status.into())
     }
 
-    async fn issue_trbs(&mut self, ts: &[transfer_trb::Allowed]) -> Vec<Option<event::Allowed>> {
-        self.channel.send_and_receive(ts).await
+    fn issue_trbs(&mut self, ts: &[transfer_trb::Allowed]) -> Vec<Option<event::Allowed>> {
+        self.channel.send_and_receive(ts)
     }
 }
 
@@ -166,17 +169,14 @@ impl Channel {
     }
 
     fn ring_addr(&self) -> VirtAddr {
-        self.ring.phys_addr()
+        self.ring.virt_addr()
     }
 
-    async fn send_and_receive(
-        &mut self,
-        trbs: &[transfer_trb::Allowed],
-    ) -> Vec<Option<event::Allowed>> {
+    fn send_and_receive(&mut self, trbs: &[transfer_trb::Allowed]) -> Vec<Option<event::Allowed>> {
         let addrs = self.ring.enqueue(trbs);
-        self.register_with_receiver(trbs, &addrs);
+        // self.register_with_receiver(trbs, &addrs);
         self.write_to_doorbell();
-        self.get_trbs(trbs, &addrs).await
+        self.get_trbs(trbs, &addrs)
     }
 
     fn register_with_receiver(&mut self, ts: &[transfer_trb::Allowed], addrs: &[VirtAddr]) {
@@ -195,28 +195,24 @@ impl Channel {
         self.doorbell_writer.write();
     }
 
-    async fn get_trbs(
+    fn get_trbs(
         &mut self,
         ts: &[transfer_trb::Allowed],
         addrs: &[VirtAddr],
     ) -> Vec<Option<event::Allowed>> {
         let mut v = Vec::new();
         for (t, a) in ts.iter().zip(addrs) {
-            v.push(self.get_single_trb(t, *a).await);
+            v.push(self.get_single_trb(t, *a));
         }
         v
     }
 
-    async fn get_single_trb(
+    fn get_single_trb(
         &mut self,
         t: &transfer_trb::Allowed,
         addr: VirtAddr,
     ) -> Option<event::Allowed> {
-        if t.interrupt_on_completion() {
-            Some(ReceiveFuture::new(addr, self.waker.clone()).await)
-        } else {
-            None
-        }
+        Some(ReceiveFuture::new(addr).poll())
     }
 }
 

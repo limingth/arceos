@@ -1,7 +1,8 @@
+use crate::host::{exchanger, port::endpoint, structures::context::Context};
+
 use super::{
     descriptor_fetcher::DescriptorFetcher, slot_structures_initializer::SlotStructuresInitializer,
 };
-use crate::{exchanger, port::endpoint, structures::context::Context};
 use alloc::sync::Arc;
 use spinning_top::Spinlock;
 
@@ -26,10 +27,10 @@ impl MaxPacketSizeSetter {
         }
     }
 
-    pub(super) async fn set(mut self) -> DescriptorFetcher {
-        let s = self.max_packet_size().await;
+    pub(super) fn set(mut self) -> DescriptorFetcher {
+        let s = self.max_packet_size();
         self.set_max_packet_size(s);
-        self.evaluate_context().await;
+        self.evaluate_context();
 
         DescriptorFetcher::new(self)
     }
@@ -50,8 +51,8 @@ impl MaxPacketSizeSetter {
         self.ep
     }
 
-    async fn max_packet_size(&mut self) -> u16 {
-        self.ep.get_max_packet_size().await
+    fn max_packet_size(&mut self) -> u16 {
+        self.ep.get_max_packet_size()
     }
 
     fn set_max_packet_size(&mut self, s: u16) {
@@ -61,12 +62,12 @@ impl MaxPacketSizeSetter {
         ep_0.set_max_packet_size(s);
     }
 
-    async fn evaluate_context(&self) {
+    fn evaluate_context(&self) {
         let mut cx = self.cx.lock();
         let i = &mut cx.input;
 
         i.control_mut().set_add_context_flag(1);
 
-        exchanger::command::evaluate_context(i.phys_addr(), self.slot_number).await
+        exchanger::command::evaluate_context(i.virt_addr(), self.slot_number)
     }
 }

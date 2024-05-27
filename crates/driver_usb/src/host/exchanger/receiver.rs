@@ -1,4 +1,5 @@
 use alloc::{collections::BTreeMap, sync::Arc};
+use axhal::mem::VirtAddr;
 use conquer_once::spin::Lazy;
 use core::{
     future::Future,
@@ -6,7 +7,7 @@ use core::{
     task::{Context, Poll},
 };
 use futures_util::task::AtomicWaker;
-use spinning_top::{Spinlock, SpinlockGuard};
+use spinning_top::{guard::SpinlockGuard, Spinlock};
 
 use xhci::ring::trb::event;
 
@@ -54,33 +55,21 @@ impl Receiver {
     }
 
     fn receive(&mut self, trb: event::Allowed) {
-        if let Err(e) = self.insert_trb_and_wake_runner(trb) {
+        if let Err(e) = self.insert_trb(trb) {
             panic!("Failed to receive a command completion trb: {:?}", e);
         }
     }
 
-    fn insert_trb_and_wake_runner(&mut self, trb: event::Allowed) -> Result<(), Error> {
-        let addr_to_trb = Self::trb_addr(trb);
-        self.insert_trb(trb)?;
-        self.wake_runner(addr_to_trb)?;
-        Ok(())
-    }
-
     fn insert_trb(&mut self, trb: event::Allowed) -> Result<(), Error> {
         let addr_to_trb = Self::trb_addr(trb);
-        *self
-            .trbs
-            .get_mut(&addr_to_trb)
-            .ok_or(Error::NoSuchAddress)? = Some(trb);
-        Ok(())
-    }
-
-    fn wake_runner(&mut self, addr_to_trb: VirtAddr) -> Result<(), Error> {
-        self.wakers
-            .remove(&addr_to_trb)
-            .ok_or(Error::NoSuchAddress)?
-            .lock()
-            .wake();
+        {
+            let addr_to_trb = Self::trb_addr(trb);
+            *self
+                .trbs
+                .get_mut(&addr_to_trb)
+                .ok_or(Error::NoSuchAddress)? = Some(trb);
+            Ok(())
+        }?;
         Ok(())
     }
 
@@ -100,8 +89,8 @@ impl Receiver {
 
     fn trb_addr(t: event::Allowed) -> VirtAddr {
         VirtAddr::from(match t {
-            event::Allowed::TransferEvent(e) => e.trb_pointer(),
-            event::Allowed::CommandCompletion(c) => c.command_trb_pointer(),
+            event::Allowed::TransferEvent(e) => e.trb_pointer() as usize,
+            event::Allowed::CommandCompletion(c) => c.command_trb_pointer() as usize,
             _ => todo!(),
         })
     }
@@ -115,28 +104,21 @@ pub(crate) enum Error {
 
 pub(crate) struct ReceiveFuture {
     addr_to_trb: VirtAddr,
-    waker: Arc<Spinlock<AtomicWaker>>,
 }
 impl ReceiveFuture {
-    pub(crate) fn new(addr_to_trb: VirtAddr, waker: Arc<Spinlock<AtomicWaker>>) -> Self {
-        Self { addr_to_trb, waker }
+    pub(crate) fn new(addr_to_trb: VirtAddr) -> Self {
+        Self { addr_to_trb }
     }
-}
-impl Future for ReceiveFuture {
-    type Output = event::Allowed;
 
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        let waker = self.waker.clone();
+    pub fn poll(&mut self) -> event::Allowed {
+        crate::host::structures::ring::event::poll();
         let addr = self.addr_to_trb;
         let mut r = lock();
 
-        waker.lock().register(cx.waker());
-        if r.trb_arrives(addr) {
-            waker.lock().take();
-            let trb = r.remove_entry(addr).unwrap();
-            Poll::Ready(trb)
-        } else {
-            Poll::Pending
+        loop {
+            if r.trb_arrives(addr) {
+                return r.remove_entry(addr).unwrap();
+            }
         }
     }
 }

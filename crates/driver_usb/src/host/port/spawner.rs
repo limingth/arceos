@@ -1,6 +1,4 @@
-use crate::multitask;
 use alloc::collections::BTreeSet;
-use multitask::task::Task;
 use spinning_top::Spinlock;
 
 static SPAWN_STATUS: Spinlock<BTreeSet<usize>> = Spinlock::new(BTreeSet::new());
@@ -27,7 +25,7 @@ fn spawn(p: u8) {
 }
 
 fn add_task_for_port(p: u8) {
-    multitask::add(Task::new(super::main(p)));
+    super::main(p);
 }
 
 fn spawnable(p: u8) -> bool {

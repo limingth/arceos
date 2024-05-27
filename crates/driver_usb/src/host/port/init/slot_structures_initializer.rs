@@ -1,11 +1,14 @@
-use super::{max_packet_size_setter::MaxPacketSizeSetter, resetter::Resetter};
-use crate::{
-    exchanger,
+use crate::host::{
+    exchanger::{
+        self,
+        transfer::{self, DoorbellWriter},
+    },
     port::endpoint,
     structures::{context::Context, dcbaa, registers},
 };
+
+use super::{max_packet_size_setter::MaxPacketSizeSetter, resetter::Resetter};
 use alloc::sync::Arc;
-use exchanger::{transfer, transfer::DoorbellWriter};
 use spinning_top::Spinlock;
 use xhci::context::EndpointType;
 
@@ -16,8 +19,8 @@ pub(super) struct SlotStructuresInitializer {
     ep: endpoint::Default,
 }
 impl SlotStructuresInitializer {
-    pub(super) async fn new(r: Resetter) -> Self {
-        let slot_number = exchanger::command::enable_device_slot().await;
+    pub(super) fn new(r: Resetter) -> Self {
+        let slot_number = exchanger::command::enable_device_slot();
         let cx = Arc::new(Spinlock::new(Context::default()));
         let dbl_writer = DoorbellWriter::new(slot_number, 1);
 
@@ -29,11 +32,11 @@ impl SlotStructuresInitializer {
         }
     }
 
-    pub(super) async fn init(self) -> MaxPacketSizeSetter {
+    pub(super) fn init(self) -> MaxPacketSizeSetter {
         self.init_input_context();
         self.init_endpoint0_context();
         self.register_with_dcbaa();
-        self.issue_address_device().await;
+        self.issue_address_device();
 
         MaxPacketSizeSetter::new(self)
     }
@@ -63,13 +66,13 @@ impl SlotStructuresInitializer {
     }
 
     fn register_with_dcbaa(&self) {
-        let a = self.cx.lock().output.phys_addr();
+        let a = self.cx.lock().output.virt_addr();
         dcbaa::register_device_context_addr(self.slot_number.into(), a);
     }
 
-    async fn issue_address_device(&self) {
-        let cx_addr = self.cx.lock().input.phys_addr();
-        exchanger::command::address_device(cx_addr, self.slot_number).await;
+    fn issue_address_device(&self) {
+        let cx_addr = self.cx.lock().input.virt_addr();
+        exchanger::command::address_device(cx_addr, self.slot_number);
     }
 }
 
@@ -123,7 +126,7 @@ impl<'a> Ep0ContextInitializer<'a> {
 
         ep_0.set_endpoint_type(EndpointType::Control);
         ep_0.set_max_packet_size(s);
-        ep_0.set_tr_dequeue_pointer(self.ep.ring_addr().as_u64());
+        ep_0.set_tr_dequeue_pointer(self.ep.ring_addr().as_usize() as u64);
         ep_0.set_dequeue_cycle_state();
         ep_0.set_error_count(3);
     }
