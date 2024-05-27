@@ -1,4 +1,11 @@
-use crate::host::{page_box::PageBox, port::endpoint, structures::context::Context};
+use crate::host::{
+    page_box::PageBox,
+    port::endpoint,
+    structures::{
+        context::Context,
+        descriptor::{self, Descriptor},
+    },
+};
 
 use super::{
     endpoints_initializer::EndpointsInitializer, max_packet_size_setter::MaxPacketSizeSetter,

@@ -1,11 +1,16 @@
-use super::{descriptor_fetcher::DescriptorFetcher, fully_operational::FullyOperational};
-use crate::{
-    exchanger,
-    exchanger::transfer,
+use crate::host::{
+    exchanger::{self, transfer},
     port::endpoint,
-    structures::{context::Context, descriptor, descriptor::Descriptor, registers},
+    structures::{
+        context::Context,
+        descriptor::{self, Descriptor},
+        registers,
+    },
 };
+
+use super::{descriptor_fetcher::DescriptorFetcher, fully_operational::FullyOperational};
 use alloc::{sync::Arc, vec::Vec};
+use axhal::mem::VirtAddr;
 use bit_field::BitField;
 use core::convert::TryInto;
 use num_derive::FromPrimitive;
@@ -41,10 +46,10 @@ impl EndpointsInitializer {
         }
     }
 
-    pub(super) async fn init(mut self) -> FullyOperational {
+    pub(super) fn init(mut self) -> FullyOperational {
         self.init_contexts();
         self.set_context_entries();
-        self.configure_endpoint().await;
+        self.configure_endpoint();
         FullyOperational::new(self)
     }
 
@@ -73,9 +78,9 @@ impl EndpointsInitializer {
         cx.input.device_mut().slot_mut().set_context_entries(31);
     }
 
-    async fn configure_endpoint(&mut self) {
-        let a = self.cx.lock().input.phys_addr();
-        exchanger::command::configure_endpoint(a, self.slot_number).await;
+    fn configure_endpoint(&mut self) {
+        let a = self.cx.lock().input.virt_addr();
+        exchanger::command::configure_endpoint(a, self.slot_number);
     }
 }
 
@@ -152,7 +157,7 @@ impl<'a> ContextInitializer<'a> {
 
         c.set_max_packet_size(sz);
         c.set_error_count(3);
-        c.set_tr_dequeue_pointer(a.as_u64());
+        c.set_tr_dequeue_pointer(a.as_usize() as u64);
         c.set_dequeue_cycle_state();
     }
 
@@ -167,7 +172,7 @@ impl<'a> ContextInitializer<'a> {
         c.set_max_burst_size(0);
         c.set_error_count(3);
         c.set_max_primary_streams(0);
-        c.set_tr_dequeue_pointer(a.as_u64());
+        c.set_tr_dequeue_pointer(a.as_usize() as u64);
         c.set_dequeue_cycle_state();
     }
 
@@ -197,7 +202,7 @@ impl<'a> ContextInitializer<'a> {
         } else {
             c.set_error_count(3);
         }
-        c.set_tr_dequeue_pointer(a.as_u64());
+        c.set_tr_dequeue_pointer(a.as_usize() as u64);
         c.set_dequeue_cycle_state();
     }
 

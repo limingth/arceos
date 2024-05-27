@@ -1,18 +1,16 @@
-use super::endpoints_initializer::EndpointsInitializer;
-use crate::{
+use crate::host::{
     page_box::PageBox,
-    port::{
-        endpoint,
-        endpoint::{Error, NonDefault},
-    },
+    port::endpoint::{self, Error, NonDefault},
     structures::descriptor::Descriptor,
 };
+
+use super::endpoints_initializer::EndpointsInitializer;
 use alloc::vec::Vec;
 use core::slice;
 use log::debug;
 use xhci::context::EndpointType;
 
-pub(in crate::port) struct FullyOperational {
+pub struct FullyOperational {
     descriptors: Vec<Descriptor>,
     def_ep: endpoint::Default,
     eps: Vec<NonDefault>,
@@ -41,14 +39,14 @@ impl FullyOperational {
         unreachable!("HID class must have at least one interface descriptor");
     }
 
-    pub(in super::super) async fn issue_normal_trb(
+    pub(in super::super) fn issue_normal_trb(
         &mut self,
         b: &PageBox<impl ?Sized>,
         ty: EndpointType,
     ) -> Result<(), Error> {
         for ep in &mut self.eps {
             if ep.ty() == ty {
-                ep.issue_normal_trb(b).await;
+                ep.issue_normal_trb(b);
                 return Ok(());
             }
         }
@@ -56,20 +54,20 @@ impl FullyOperational {
         Err(Error::NoSuchEndpoint(ty))
     }
 
-    pub(in super::super) async fn issue_nop_trb(&mut self) {
-        self.def_ep.issue_nop_trb().await;
+    pub(in super::super) fn issue_nop_trb(&mut self) {
+        self.def_ep.issue_nop_trb();
     }
 
-    pub(in super::super) async fn set_configure(&mut self, config_val: u8) {
-        self.def_ep.set_configuration(config_val).await;
+    pub(in super::super) fn set_configure(&mut self, config_val: u8) {
+        self.def_ep.set_configuration(config_val);
     }
 
-    pub(in super::super) async fn set_idle(&mut self) {
-        self.def_ep.set_idle().await;
+    pub(in super::super) fn set_idle(&mut self) {
+        self.def_ep.set_idle();
     }
 
-    pub(in super::super) async fn set_boot_protocol(&mut self) {
-        self.def_ep.set_boot_protocol().await;
+    pub(in super::super) fn set_boot_protocol(&mut self) {
+        self.def_ep.set_boot_protocol();
     }
 
     pub(in super::super) fn descriptors(&self) -> &[Descriptor] {

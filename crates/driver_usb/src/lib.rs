@@ -27,11 +27,11 @@ pub(crate) type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 pub(crate) type FuturelockGuard<'a, T> = GenericMutexGuard<'a, RawSpinlock, T>;
 
 pub fn try_init(mmio_base_paddr: usize) {
-    host::init_statics(0xffff_0000_31a0_8000 as usize)
+    host::init_statics(0xffff_0000_31a0_8000 as usize);
     host::init_xhci();
     enum_port();
 }
 
-pub fn enum_port(){
+pub fn enum_port() {
     host::enum_port();
 }

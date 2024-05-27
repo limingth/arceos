@@ -14,5 +14,5 @@ pub(super) fn init(port_number: u8) -> FullyOperational {
     let max_packet_size_setter = slot_structures_initializer.init();
     let descriptor_fetcher = max_packet_size_setter.set();
     let endpoints_initializer = descriptor_fetcher.fetch();
-    endpoints_initializer.init().await
+    endpoints_initializer.init()
 }

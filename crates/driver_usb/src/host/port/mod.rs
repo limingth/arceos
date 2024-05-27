@@ -8,7 +8,6 @@ use spinning_top::Spinlock;
 
 use super::structures::registers;
 
-mod class_driver;
 mod endpoint;
 mod init;
 mod spawner;

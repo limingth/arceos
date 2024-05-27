@@ -40,7 +40,7 @@ impl Default {
     }
 }
 
-pub(super) struct NonDefault {
+pub struct NonDefault {
     desc: descriptor::Endpoint,
     sender: transfer::Sender,
 }
