@@ -9,6 +9,7 @@ use command_trb::{AddressDevice, ConfigureEndpoint, EnableSlot, EvaluateContext}
 use conquer_once::spin::OnceCell;
 use event::CompletionCode;
 use futures_util::task::AtomicWaker;
+use log::debug;
 use spinning_top::Spinlock;
 
 use xhci::ring::trb::{command as command_trb, event};
@@ -109,6 +110,7 @@ impl Channel {
     }
 
     fn send_and_receive(&mut self, t: command_trb::Allowed) -> event::Allowed {
+        debug!("send and receive: {:?}", t);
         let a = self.ring.lock().enqueue(t);
         self.register_with_receiver(a);
         self.get_trb(a)

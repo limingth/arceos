@@ -7,6 +7,7 @@ use core::{
     task::{Context, Poll},
 };
 use futures_util::task::AtomicWaker;
+use log::debug;
 use spinning_top::{guard::SpinlockGuard, Spinlock};
 
 use xhci::ring::trb::event;
@@ -113,9 +114,12 @@ impl ReceiveFuture {
     pub fn poll(&mut self) -> event::Allowed {
         crate::host::structures::ring::event::poll();
         let addr = self.addr_to_trb;
+        debug!("lock...?");
         let mut r = lock();
+        debug!("LOCK!");
 
         loop {
+            debug!("waiting for trb!");
             if r.trb_arrives(addr) {
                 return r.remove_entry(addr).unwrap();
             }

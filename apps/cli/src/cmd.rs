@@ -1,7 +1,5 @@
 use std::io::{self};
 
-use driver_usb::host::xhci::MemoryMapper;
-
 #[cfg(all(not(feature = "axstd"), unix))]
 
 macro_rules! print_err {
@@ -22,11 +20,16 @@ const CMD_TABLE: &[(&str, CmdHandler)] = &[
     ("ldr", do_ldr),
     ("str", do_str),
     ("test_xhci", test_xhci),
+    ("enum_port", enum_port),
 ];
 
 fn test_xhci(_args: &str) {
     driver_usb::try_init(0x31a08000 as usize)
     // unsafe { xhci::Registers::new(0xffff_0000_31a0_8000 as usize, MemoryMapper {}) };
+}
+
+fn enum_port(_args: &str) {
+    driver_usb::enum_port()
 }
 
 fn do_uname(_args: &str) {

@@ -1,7 +1,10 @@
+use core::alloc::Allocator;
+
 use super::{
     exchanger,
     structures::{dcbaa, extended_capabilities, registers, ring::event, scratchpad},
 };
+use driver_common::{BaseDriverOps, DeviceType};
 use xhci::extended_capabilities::ExtendedCapability;
 
 /// Initializes the host controller according to 4.2 of the xHCI specification.

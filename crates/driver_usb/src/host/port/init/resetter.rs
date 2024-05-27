@@ -1,6 +1,7 @@
 use crate::host::structures::registers;
 
 use super::slot_structures_initializer::SlotStructuresInitializer;
+use log::debug;
 use xhci::registers::PortRegisterSet;
 
 pub(super) struct Resetter {
@@ -22,13 +23,22 @@ impl Resetter {
     }
 
     fn start_resetting(&self) {
-        self.update_port_register(|r| {
-            r.portsc.set_port_reset();
+        self.update_port_register(|port| {
+            debug!("before reset Port, status: {:?}", port.portsc);
+            port.portsc.set_0_port_enabled_disabled();
+            port.portsc.set_port_reset();
         });
     }
 
     fn wait_until_reset_is_completed(&self) {
         while !self.reset_completed() {}
+        // self.update_port_register(|p| {
+        //     // p.portsc.clear_port_reset_change();
+        // });
+        debug!(
+            "reset complete, state: {:?}",
+            self.read_port_register(|port| { port.portsc })
+        );
     }
 
     fn reset_completed(&self) -> bool {

@@ -82,7 +82,10 @@ impl RawDescriptorParser {
         let mut v = Vec::new();
         while self.current < self.len && self.raw[self.current] > 0 {
             match self.parse_first_descriptor() {
-                Ok(t) => v.push(t),
+                Ok(t) => {
+                    debug!("desc : {:?}", t);
+                    v.push(t);
+                }
                 Err(e) => debug!("Unrecognized USB descriptor: {:?}", e),
             }
         }

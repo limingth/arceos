@@ -92,8 +92,8 @@ cfg_if::cfg_if! {
     if #[cfg(usb_host_dev = "phytium-xhci")] {
         use axalloc::GlobalNoCacheAllocator;
         pub struct VL805Driver;
-        register_usb_host_driver!(VL805Driver, driver_usb::host::xhci::vl805::VL805<GlobalNoCacheAllocator>);
-        use driver_usb::host::xhci::vl805::VL805;
+        register_usb_host_driver!(VL805Driver, driver_usb::host::VL805<GlobalNoCacheAllocator>);
+        // use driver_usb::host::xhci::vl805::VL805;
 
         impl DriverProbe for VL805Driver {
             fn probe_pci(
@@ -102,9 +102,10 @@ cfg_if::cfg_if! {
                     dev_info: &DeviceFunctionInfo,
                     cfg: &ConfigSpace,
                 ) -> Option<AxDeviceEnum> {
-                debug!("probing!");
+                debug!("xhci probing!(actualy do nothing now)");
 
-                VL805::probe_pci(cfg, global_no_cache_allocator()).map(|d| AxDeviceEnum::from_usb_host(d))
+                // VL805::probe_pci(cfg, global_no_cache_allocator()).map(|d| AxDeviceEnum::from_usb_host(d))
+                None
             }
         }
     }

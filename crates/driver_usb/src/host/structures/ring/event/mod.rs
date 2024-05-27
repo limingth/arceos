@@ -32,23 +32,30 @@ pub fn init() {
 pub(crate) fn poll() {
     debug!("This is the Event ring task.");
 
-    let trb = EVENT_RING
-        .get()
-        .expect("The event ring is not initialized")
-        .try_lock()
-        .expect("Failed to lock the event ring.")
-        .next();
-    {
-        if let event::Allowed::CommandCompletion(x) = trb {
-            assert_eq!(x.completion_code(), Ok(CompletionCode::Success));
+    loop {
+        let trb = EVENT_RING
+            .get()
+            .expect("The event ring is not initialized")
+            .try_lock()
+            .expect("Failed to lock the event ring.")
+            .next();
+        {
+            if let event::Allowed::CommandCompletion(x) = trb {
+                debug!("complete ! {:?}", x);
+                assert_eq!(x.completion_code(), Ok(CompletionCode::Success));
 
-            receiver::receive(trb);
-        } else if let event::Allowed::TransferEvent(x) = trb {
-            assert_eq!(x.completion_code(), Ok(CompletionCode::Success));
+                receiver::receive(trb);
+                return;
+            } else if let event::Allowed::TransferEvent(x) = trb {
+                debug!("transfer! {:?}", x);
+                assert_eq!(x.completion_code(), Ok(CompletionCode::Success));
 
-            receiver::receive(trb);
-        } else if let event::Allowed::PortStatusChange(p) = trb {
-            let _ = port::try_spawn(p.port_id());
+                receiver::receive(trb);
+            } else if let event::Allowed::PortStatusChange(p) = trb {
+                debug!("status change! {:?}", p);
+                let _ = port::try_spawn(p.port_id());
+                debug!("evt spawnned!");
+            }
         }
     }
 }

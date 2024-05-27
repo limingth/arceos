@@ -3,7 +3,7 @@ use conquer_once::spin::Lazy;
 use core::{future::Future, pin::Pin, task::Poll};
 use futures_util::task::AtomicWaker;
 use init::fully_operational::FullyOperational;
-use log::{info, warn};
+use log::{debug, info, warn};
 use spinning_top::Spinlock;
 
 use super::structures::registers;
@@ -42,6 +42,7 @@ pub(crate) fn try_spawn(port_idx: u8) -> Result<(), spawner::PortNotConnected> {
 }
 
 fn main(port_number: u8) {
+    debug!("get op!");
     let mut fully_operational = init_port_and_slot_exclusively(port_number);
 
     fully_operational.issue_nop_trb();
@@ -49,9 +50,12 @@ fn main(port_number: u8) {
 
 fn init_port_and_slot_exclusively(port_number: u8) -> FullyOperational {
     let reset_waiter = ResetWaiterFuture;
+    debug!("waiting reset!");
     reset_waiter.poll();
 
+    debug!("init!");
     let fully_operational = init::init(port_number);
+    debug!("complete reset!");
     CURRENT_RESET_PORT.lock().complete_reset();
     info!("Port {} reset completed.", port_number);
     fully_operational
@@ -71,6 +75,17 @@ fn connected(port_number: u8) -> bool {
             .read_volatile_at((port_number - 1).into())
             .portsc
             .current_connect_status()
+    })
+}
+
+fn dump_port_status(port_number: u8) {
+    registers::handle(|r| {
+        debug!(
+            "port sttaus: {:?}",
+            r.port_register_set
+                .read_volatile_at((port_number - 1) as usize)
+                .portsc
+        )
     })
 }
 
