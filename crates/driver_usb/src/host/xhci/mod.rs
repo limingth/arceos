@@ -189,6 +189,11 @@ where
         debug!("{TAG} Writing CRCR: {:X}", crcr);
         regs.regs.operational.crcr.update_volatile(|r| {
             r.set_command_ring_pointer(crcr);
+            if (self.ring.lock().cycle) {
+                r.set_ring_cycle_state();
+            } else {
+                r.clear_ring_cycle_state();
+            }
         });
 
         Ok(())
@@ -273,14 +278,15 @@ where
     fn post_cmd(&self, mut trb: Allowed) -> Result<ring::trb::event::CommandCompletion> {
         {
             let mut cr = self.ring.lock();
-            let (buff, cycle) = cr.next_data();
-            if cycle {
+            let addr = trb.as_ref().as_ptr().addr();
+            if cr.cycle {
                 trb.set_cycle_bit();
+            } else {
+                trb.clear_cycle_bit();
             }
+            cr.enque_trb(trb.into_raw());
 
-            let ptr = &buff[0] as *const u32 as usize;
-
-            debug!("{TAG} Post cmd {:?} @{:X}", trb, ptr);
+            debug!("{TAG} Post cmd {:?} @{:X}", trb, addr);
 
             let mut regs = self.regs.lock();
 
@@ -304,7 +310,7 @@ where
                             c.cycle_bit()
                         );
 
-                        return  Ok(c);
+                        return Ok(c);
                     }
                     _ => warn!("event: {:?}", event),
                 }

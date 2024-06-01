@@ -41,6 +41,11 @@ impl<O: OsDep> Ring<O> {
         self.get_trb().as_ptr() as usize as u64
     }
 
+    pub fn enque_trb(&mut self, mut trb: TrbData) {
+        self.trbs[self.i] = trb;
+        self.next_index();
+    }
+
     fn next_index(&mut self) -> usize {
         let mut i;
         loop {
