@@ -39,14 +39,15 @@ where
     pub fn new(max_slots: u8, os: O) -> Self {
         let a = os.dma_alloc();
 
-        let mut dcbaa = DMA::new([0u64; 256], 64, a);
+        let mut dcbaa = DMA::new([0u64; 256], 4096, a);
         let mut out_context_list = Vec::with_capacity(max_slots as _);
         let mut in_context_list = Vec::with_capacity(max_slots as _);
         for i in 0..max_slots as usize {
-            let out_context = DMA::new(Device::new_64byte(), 4096, os.dma_alloc());
+            let out_context = DMA::new(Device::new_64byte(), 4096, os.dma_alloc()).fill_zero();
             dcbaa[i] = out_context.addr() as u64;
             out_context_list.push(out_context);
-            in_context_list.push(DMA::new(Input64Byte::new_64byte(), 4096, os.dma_alloc()));
+            in_context_list
+                .push(DMA::new(Input64Byte::new_64byte(), 4096, os.dma_alloc()).fill_zero());
         }
 
         Self {

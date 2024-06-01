@@ -55,6 +55,11 @@ where
             __marker: PhantomData::default(),
         }
     }
+
+    pub fn fill_zero(mut self) -> Self {
+        unsafe { self.data.as_mut().iter_mut().for_each(|u| *u = 0u8) }
+        self
+    }
 }
 
 impl<T, A> DMA<T, A>
