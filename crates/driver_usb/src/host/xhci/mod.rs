@@ -10,10 +10,10 @@ use core::{
 use log::*;
 use spinlock::SpinNoIrq;
 use xhci::{
-    context::{Slot, Slot64Byte},
+    context::{Input, InputHandler, Slot, Slot64Byte},
     registers::PortRegisterSet,
     ring::trb::{
-        command::{Allowed, EnableSlot, Noop},
+        command::{AddressDevice, Allowed, EnableSlot, Noop},
         event::CommandCompletion,
     },
 };
@@ -295,6 +295,9 @@ where
                 r.set_doorbell_target(0);
             });
         }
+
+        O::force_sync_cache();
+
         debug!("{TAG} Wait result");
         {
             let mut er = self.primary_event_ring.lock();
@@ -420,13 +423,95 @@ where
             }
         }
         for port_id in port_id_list {
-            self.device_slot_assignment(port_id)?;
+            let slot = self.device_slot_assignment(port_id);
+            self.address_device(slot, port_id);
         }
 
         Ok(())
     }
 
-    fn device_slot_assignment(&self, port: usize) -> Result {
+    fn get_psi(&self, port: usize) -> u8 {
+        self.regs
+            .lock()
+            .regs
+            .port_register_set
+            .read_volatile_at(port)
+            .portsc
+            .port_speed()
+    }
+
+    fn get_speed(&self, port: usize) -> u16 {
+        match self.get_psi(port) {
+            1 | 3 => 64,
+            2 => 8,
+            4 => 512,
+            v => unimplemented!("PSI: {}", v),
+        }
+    }
+
+    fn address_device(&self, slot: u8, port: usize) -> Result {
+        let index = self
+            .dev_ctx
+            .lock()
+            .attached_set
+            .get(&(slot as usize))
+            .unwrap()
+            .address;
+        let mut binding = self.dev_ctx.lock();
+
+        let transfer_ring_0_addr = binding
+            .attached_set
+            .get(&index)
+            .unwrap()
+            .transfer_rings
+            .get(0)
+            .unwrap()
+            .register();
+
+        let context_mut = binding
+            .device_input_context_list
+            .get_mut(index)
+            .unwrap()
+            .deref_mut();
+
+        let control_context = context_mut.control_mut();
+        control_context.set_add_context_flag(0);
+        control_context.set_add_context_flag(1);
+
+        let slot_context = context_mut.device_mut().slot_mut();
+        slot_context.clear_multi_tt();
+        slot_context.clear_hub();
+        slot_context.set_context_entries(1);
+        slot_context.set_max_exit_latency(0);
+        slot_context.set_root_hub_port_number((port) as u8); //todo: to use port number
+        slot_context.set_number_of_ports(0);
+        slot_context.set_parent_hub_slot_id(0);
+        slot_context.set_tt_think_time(0);
+        slot_context.set_interrupter_target(0);
+
+        let endpoint_0 = context_mut.device_mut().endpoint_mut(1);
+        endpoint_0.set_error_count(3);
+        endpoint_0.set_endpoint_type(xhci::context::EndpointType::Control);
+        endpoint_0.set_host_initiate_disable();
+        endpoint_0.set_max_burst_size(0);
+        endpoint_0.set_max_packet_size(self.get_speed(port));
+        endpoint_0.set_tr_dequeue_pointer(transfer_ring_0_addr);
+
+        debug!("{TAG} CMD: address device");
+        O::force_sync_cache();
+
+        let result = self.post_cmd(Allowed::AddressDevice(
+            *AddressDevice::new()
+                .set_slot_id(slot)
+                .set_input_context_pointer((context_mut as *const Input<16>).addr() as u64),
+        ))?;
+
+        debug!("{TAG} Result: {:?}", result);
+
+        Ok(())
+    }
+
+    fn device_slot_assignment(&self, port: usize) -> u8 {
         // enable slot
         let mut cmd = EnableSlot::new();
         let slot_type = {
@@ -450,12 +535,17 @@ where
 
         debug!("{TAG} CMD: enable slot");
 
-        let result = self.post_cmd(cmd)?;
+        let result = self.post_cmd(cmd).unwrap();
 
         let slot_id = result.slot_id();
-        debug!("{TAG} Result: {:?}", result);
+        debug!("{TAG} Result: {:?}, slot id: {slot_id}", result);
 
-        Ok(())
+        self.dev_ctx
+            .lock()
+            .new_slot(slot_id as usize, 0, port, 16)
+            .unwrap(); //assume 16
+
+        slot_id
     }
 
     fn control(&self, slot: u8, direction: Direction, src: &mut [u8]) -> Result {
@@ -463,7 +553,7 @@ where
         {
             let mut dev_ctx = self.dev_ctx.lock();
 
-            let ctx = &mut dev_ctx.context_list[slot];
+            let ctx = &mut dev_ctx.device_out_context_list[slot];
             let ep0 = ctx.endpoint_mut(0);
         }
 

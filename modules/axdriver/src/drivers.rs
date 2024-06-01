@@ -106,6 +106,14 @@ cfg_if::cfg_if! {
             fn dma_alloc(&self)->Self::DMA {
                 axalloc::global_no_cache_allocator()
             }
+
+            fn force_sync_cache() {
+                unsafe{
+                core::arch::asm!("
+                    dc cisw
+                ")
+            }
+            }
         }
 
         register_usb_host_driver!(VL805Driver, USBHost<OsDepImp>);

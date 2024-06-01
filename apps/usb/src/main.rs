@@ -22,6 +22,8 @@ impl OsDep for OsDepImp {
     fn dma_alloc(&self) -> Self::DMA {
         axalloc::global_no_cache_allocator()
     }
+
+    fn force_sync_cache() {}
 }
 
 #[cfg_attr(feature = "axstd", no_mangle)]

@@ -1,24 +1,24 @@
-use core::borrow::BorrowMut;
-use core::num;
-use alloc::collections::BTreeMap;
-use alloc::format;
+use crate::err::*;
 use crate::{dma::DMA, OsDep};
 use alloc::alloc::Allocator;
+use alloc::collections::BTreeMap;
+use alloc::format;
 use alloc::{boxed::Box, vec::Vec};
+use core::borrow::BorrowMut;
+use core::num;
+use xhci::context::Input64Byte;
 pub use xhci::context::{Device, Device64Byte, DeviceHandler};
-use crate::err::*;
 const NUM_EPS: usize = 32;
 
-
-
 pub struct DeviceAttached<O>
-where O:OsDep
+where
+    O: OsDep,
 {
-    hub: i32,
-    port: i32,
-    num_endp: i32,
-    address: i32,
-    transfer_rings: Vec<Ring<O>>,
+    pub hub: usize,
+    pub port: usize,
+    pub num_endp: usize,
+    pub address: usize,
+    pub transfer_rings: Vec<Ring<O>>,
 }
 
 pub struct DeviceContextList<O>
@@ -26,9 +26,10 @@ where
     O: OsDep,
 {
     pub dcbaa: DMA<[u64; 256], O::DMA>,
-    pub context_list: Vec<DMA<Device64Byte, O::DMA>>,
+    pub device_out_context_list: Vec<DMA<Device64Byte, O::DMA>>,
+    pub device_input_context_list: Vec<DMA<Input64Byte, O::DMA>>,
     pub attached_set: BTreeMap<usize, DeviceAttached<O>>,
-    os : O,
+    os: O,
 }
 
 impl<O> DeviceContextList<O>
@@ -39,20 +40,21 @@ where
         let a = os.dma_alloc();
 
         let mut dcbaa = DMA::new([0u64; 256], 64, a);
-        let mut context_list = Vec::with_capacity(max_slots as _);
+        let mut out_context_list = Vec::with_capacity(max_slots as _);
+        let mut in_context_list = Vec::with_capacity(max_slots as _);
         for i in 0..max_slots as usize {
-            let a = os.dma_alloc();
-            let context = DMA::new(Device::new_64byte(), 64, a);
-            
-            dcbaa[i] = context.addr() as u64;
-            context_list.push(context);
+            let out_context = DMA::new(Device::new_64byte(), 4096, os.dma_alloc());
+            dcbaa[i] = out_context.addr() as u64;
+            out_context_list.push(out_context);
+            in_context_list.push(DMA::new(Input64Byte::new_64byte(), 4096, os.dma_alloc()));
         }
 
         Self {
             dcbaa,
-            context_list,
+            device_out_context_list: out_context_list,
+            device_input_context_list: in_context_list,
             attached_set: BTreeMap::new(),
-            os
+            os,
         }
     }
 
@@ -60,14 +62,34 @@ where
         self.dcbaa.as_ptr() as _
     }
 
-
-    pub fn new_slot(&mut self, slot: usize, hub: i32, port: i32, num_ep: i32)-> Result<&mut DeviceAttached<O>>{
-        if slot > self.context_list.len(){
-            return  Err(Error::Param(format!("slot {} > max {}", slot, self.context_list.len())));
+    pub fn new_slot(
+        &mut self,
+        slot: usize,
+        hub: usize,
+        port: usize,
+        num_ep: usize, // cannot lesser than 0, and consider about alignment, use usize
+    ) -> Result<&mut DeviceAttached<O>> {
+        if slot > self.device_out_context_list.len() {
+            return Err(Error::Param(format!(
+                "slot {} > max {}",
+                slot,
+                self.device_out_context_list.len()
+            )));
         }
-        let trs = (0..num_ep).into_iter().map(|_| Ring::new(self.os.clone(), 16, true).unwrap());
-        self.attached_set.insert(slot, DeviceAttached { hub, port, num_endp: 0, address: slot as i32, transfer_rings: trs.collect() });
-                
+        let trs = (0..num_ep)
+            .into_iter()
+            .map(|_| Ring::new(self.os.clone(), 16, true).unwrap());
+
+        self.attached_set.insert(
+            slot,
+            DeviceAttached {
+                hub,
+                port,
+                num_endp: 0,
+                address: slot,
+                transfer_rings: trs.collect(),
+            },
+        );
 
         Ok(self.attached_set.get_mut(&slot).unwrap())
     }
@@ -103,9 +125,7 @@ where
     pub pages: Vec<DMA<[u8], O::DMA>>,
 }
 
-unsafe impl      <O: OsDep> Sync for ScratchpadBufferArray<O>{
-    
-}
+unsafe impl<O: OsDep> Sync for ScratchpadBufferArray<O> {}
 
 impl<O> ScratchpadBufferArray<O>
 where

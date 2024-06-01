@@ -8,21 +8,18 @@
 use core::alloc::Allocator;
 
 extern crate alloc;
-pub(crate) mod dma;
 pub(crate) mod addr;
 pub(crate) mod device_types;
-pub mod host;
+pub(crate) mod dma;
 pub mod err;
+pub mod host;
 
-#[cfg(feature="arceos")]
+#[cfg(feature = "arceos")]
 pub mod ax;
-
-
 
 pub trait OsDep: Clone + Send + Sync {
     const PAGE_SIZE: usize;
     type DMA: Allocator + Send + Sync;
-    fn dma_alloc(&self)->Self::DMA;
+    fn dma_alloc(&self) -> Self::DMA;
+    fn force_sync_cache();
 }
-
-

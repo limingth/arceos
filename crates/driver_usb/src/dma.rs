@@ -55,8 +55,6 @@ where
             __marker: PhantomData::default(),
         }
     }
-
-
 }
 
 impl<T, A> DMA<T, A>
@@ -69,8 +67,6 @@ where
         self.data.addr().into()
     }
 }
-
-
 
 impl<T, A> DMA<[T], A>
 where
