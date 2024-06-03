@@ -1,4 +1,4 @@
-use core::ptr;
+use core::{any::Any, ptr};
 
 use alloc::vec::Vec;
 use axalloc::GlobalNoCacheAllocator;
@@ -7,8 +7,8 @@ use desc_device::Device;
 use desc_endpoint::Endpoint;
 use desc_interface::Interface;
 use log::debug;
-use num_derive::FromPrimitive;
-use num_traits::FromPrimitive;
+use num_derive::{FromPrimitive, ToPrimitive};
+use num_traits::{FromPrimitive, ToPrimitive};
 
 use crate::dma::DMA;
 
@@ -25,7 +25,7 @@ pub(crate) enum Descriptor {
     Hid,
 }
 
-#[derive(FromPrimitive, Copy, Clone, Debug)]
+#[derive(FromPrimitive, ToPrimitive, Copy, Clone, Debug)]
 #[allow(non_camel_case_types)]
 pub(crate) enum Type {
     //USB 1.1: 9.4 Standard Device Requests, Table 9-5. Descriptor Types
@@ -60,6 +60,11 @@ pub(crate) struct RawDescriptorParser {
     raw: DMA<[u8], GlobalNoCacheAllocator>,
     current: usize,
     len: usize,
+}
+
+pub(crate) struct DescriptionTypeIndexPairForControlTransfer {
+    ty: Type,
+    i: u8,
 }
 
 impl Descriptor {
@@ -119,5 +124,20 @@ impl RawDescriptorParser {
         let v = self.raw[self.current..(self.current + len)].to_vec();
         self.current += len;
         v
+    }
+}
+
+impl Type {
+    pub(crate) fn value_for_transfer_control_index(
+        self,
+        index: u8,
+    ) -> DescriptionTypeIndexPairForControlTransfer {
+        DescriptionTypeIndexPairForControlTransfer { ty: self, i: index }
+    }
+}
+
+impl DescriptionTypeIndexPairForControlTransfer {
+    pub(crate) fn bits(self) -> u16 {
+        (self.ty as u16) << 8 | u16::from(self.i)
     }
 }

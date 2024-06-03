@@ -1,6 +1,7 @@
-use crate::{addr::VirtAddr, err::*, OsDep};
-use alloc::{borrow::ToOwned, format, vec::Vec};
-use axhal::irq::IrqHandler;
+use crate::{addr::VirtAddr, dma::DMA, err::*, OsDep};
+use alloc::{borrow::ToOwned, format, vec, vec::Vec};
+use axalloc::global_no_cache_allocator;
+use axhal::{irq::IrqHandler, paging::PageSize};
 use core::{
     alloc::Allocator,
     borrow::BorrowMut,
@@ -13,8 +14,9 @@ use xhci::{
     context::{Input, InputHandler, Slot, Slot64Byte},
     registers::PortRegisterSet,
     ring::trb::{
-        command::{AddressDevice, Allowed, EnableSlot, Noop},
+        command::{AddressDevice, Allowed, EnableSlot, EvaluateContext, Noop},
         event::CommandCompletion,
+        transfer::{self, DataStage, SetupStage, StatusStage, TransferType},
     },
 };
 
@@ -25,7 +27,7 @@ mod context;
 mod event;
 pub(crate) mod ring;
 use self::{context::*, event::EventRing, ring::Ring};
-use super::{Controller, USBHostConfig};
+use super::{usb::descriptors, Controller, USBHostConfig};
 use crate::host::device::*;
 use alloc::sync::Arc;
 use core::mem;
@@ -321,6 +323,59 @@ where
         }
     }
 
+    fn post_control_transfer(
+        &self,
+        (setup, status, data): (transfer::Allowed, transfer::Allowed, transfer::Allowed),
+        transfer_ring: &mut Ring<O>,
+        dci: u8,
+        slot_id: usize,
+    ) -> Result<ring::trb::event::TransferEvent> {
+        let collect = vec![setup, status, data]
+            .iter_mut()
+            .map(|trb| {
+                if self.ring.lock().cycle {
+                    trb.set_cycle_bit();
+                } else {
+                    trb.clear_cycle_bit();
+                }
+                trb.into_raw()
+            })
+            .collect();
+        transfer_ring.enque_trbs(collect);
+
+        debug!("{TAG} Post control transfer!");
+
+        let mut regs = self.regs.lock();
+
+        regs.regs.doorbell.update_volatile_at(slot_id, |r| {
+            r.set_doorbell_target(dci);
+        });
+
+        O::force_sync_cache();
+
+        debug!("{TAG} Wait result");
+        {
+            let mut er = self.primary_event_ring.lock();
+
+            loop {
+                let event = er.next();
+                match event {
+                    xhci::ring::trb::event::Allowed::TransferEvent(c) => {
+                        while c.completion_code().is_err() {}
+                        debug!(
+                            "{TAG} Transfer @{:X} got result, cycle {}",
+                            c.trb_pointer(),
+                            c.cycle_bit()
+                        );
+
+                        return Ok(c);
+                    }
+                    _ => warn!("event: {:?}", event),
+                }
+            }
+        }
+    }
+
     fn test_cmd(&self) -> Result {
         debug!("{TAG} Test command ring");
         for _ in 0..3 {
@@ -374,6 +429,7 @@ where
             }
         });
     }
+
     fn reset_ports(&self) {
         let mut g = self.regs.lock();
 
@@ -425,6 +481,7 @@ where
         for port_id in port_id_list {
             let slot = self.device_slot_assignment(port_id);
             self.address_device(slot, port_id);
+            self.set_ep0_packet_size(slot);
         }
 
         Ok(())
@@ -447,6 +504,55 @@ where
             4 => 512,
             v => unimplemented!("PSI: {}", v),
         }
+    }
+
+    fn set_ep0_packet_size(&self, slot: u8) -> Result {
+        let buffer = DMA::new_singleton_page4k(
+            descriptors::desc_device::Device::default(),
+            self.config.os.dma_alloc(),
+        );
+        let mut binding = self.dev_ctx.lock();
+        let dev = binding.attached_set.get_mut(&(slot as usize)).unwrap();
+        let index = dev.address;
+        let transfer = self.construct_control_transfer_req(
+            &buffer,
+            0x80,
+            6,
+            descriptors::Type::Device.value_for_transfer_control_index(0),
+            0,
+            (TransferType::In, Direction::In),
+        );
+
+        debug!("{TAG} CMD: get endpoint0 packet size");
+        let command_completion = self.post_control_transfer(
+            transfer,
+            &mut dev.transfer_rings.get_mut(0).unwrap(),
+            1, //TODO: calculate dci
+            slot as usize,
+        )?;
+        debug!("{TAG} Result: {:?}", command_completion);
+
+        let max_packet_size = buffer.max_packet_size();
+
+        let input = binding
+            .device_input_context_list
+            .get_mut(index)
+            .unwrap()
+            .deref_mut();
+        input
+            .device_mut()
+            .endpoint_mut(1) //dci=1: endpoint 0
+            .set_max_packet_size(max_packet_size);
+
+        debug!("{TAG} CMD: evaluating context for set endpoint0 packet size");
+        let eval_ctx = self.post_cmd(Allowed::EvaluateContext(
+            *EvaluateContext::default()
+                .set_slot_id(slot)
+                .set_input_context_pointer((input as *mut Input<16>).addr() as u64),
+        ))?;
+        debug!("{TAG} Result: {:?}", eval_ctx);
+
+        Ok(())
     }
 
     fn address_device(&self, slot: u8, port: usize) -> Result {
@@ -566,15 +672,30 @@ where
         slot_id
     }
 
-    fn control(&self, slot: u8, direction: Direction, src: &mut [u8]) -> Result {
-        let slot = slot as usize;
-        {
-            let mut dev_ctx = self.dev_ctx.lock();
+    fn construct_control_transfer_req<T>(
+        &self,
+        buffer: &DMA<T, O::DMA>,
+        request_type: u8,
+        request: u8,
+        value: descriptors::DescriptionTypeIndexPairForControlTransfer,
+        index: u16,
+        transfertype_direction: (TransferType, Direction),
+    ) -> (transfer::Allowed, transfer::Allowed, transfer::Allowed) {
+        let setup = *transfer::SetupStage::default()
+            .set_request_type(request_type)
+            .set_request(request) //get_desc
+            .set_value(value.bits())
+            .set_length(buffer.length_for_bytes().try_into().unwrap())
+            .set_transfer_type(transfertype_direction.0)
+            .set_index(index);
 
-            let ctx = &mut dev_ctx.device_out_context_list[slot];
-            let ep0 = ctx.endpoint_mut(0);
-        }
+        let data = *transfer::DataStage::default()
+            .set_data_buffer_pointer(buffer.addr() as u64)
+            .set_trb_transfer_length(buffer.length_for_bytes().try_into().unwrap())
+            .set_direction(transfertype_direction.1);
 
-        Ok(())
+        let status = *transfer::StatusStage::default().set_interrupt_on_completion();
+
+        (setup.into(), data.into(), status.into())
     }
 }

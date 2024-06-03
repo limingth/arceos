@@ -7,6 +7,7 @@ use crate::err::*;
 use crate::OsDep;
 use alloc::boxed::Box;
 use alloc::slice;
+use alloc::vec::Vec;
 use log::debug;
 pub use xhci::ring::trb;
 use xhci::ring::trb::command::Allowed;
@@ -42,8 +43,16 @@ impl<O: OsDep> Ring<O> {
     }
 
     pub fn enque_trb(&mut self, mut trb: TrbData) {
+        debug!("enqueue trb into {}", self.i);
         self.trbs[self.i] = trb;
-        self.next_index();
+        let next_index = self.next_index();
+        debug!("enqueued,next index: {next_index}")
+    }
+
+    pub fn enque_trbs(&mut self, trb: Vec<TrbData>) {
+        for ele in trb {
+            self.enque_trb(ele)
+        }
     }
 
     fn next_index(&mut self) -> usize {
@@ -53,8 +62,10 @@ impl<O: OsDep> Ring<O> {
             self.i += 1;
             if self.i >= self.trbs.len() {
                 self.i = 0;
+                debug!("reset index!");
 
                 if self.link {
+                    debug!("link!");
                     let address = self.trbs[self.i].as_ptr() as usize;
                     let mut link = Link::new();
                     link.set_ring_segment_pointer(address as u64)
