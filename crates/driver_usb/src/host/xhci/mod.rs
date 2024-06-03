@@ -467,6 +467,14 @@ where
             .get(0)
             .unwrap()
             .register();
+        let ring_cycle_bit = binding
+            .attached_set
+            .get(&index)
+            .unwrap()
+            .transfer_rings
+            .get(0)
+            .unwrap()
+            .cycle;
 
         let context_mut = binding
             .device_input_context_list
@@ -481,21 +489,31 @@ where
         let slot_context = context_mut.device_mut().slot_mut();
         slot_context.clear_multi_tt();
         slot_context.clear_hub();
+        slot_context.set_route_string(0); // for now, not support more hub ,so hardcode as 0.//TODO: generate route string
         slot_context.set_context_entries(1);
         slot_context.set_max_exit_latency(0);
-        slot_context.set_root_hub_port_number((port) as u8); //todo: to use port number
+        slot_context.set_root_hub_port_number((port + 1) as u8); //todo: to use port number
         slot_context.set_number_of_ports(0);
         slot_context.set_parent_hub_slot_id(0);
         slot_context.set_tt_think_time(0);
         slot_context.set_interrupter_target(0);
+        slot_context.set_speed(self.get_psi(port));
 
         let endpoint_0 = context_mut.device_mut().endpoint_mut(1);
-        endpoint_0.set_error_count(3);
         endpoint_0.set_endpoint_type(xhci::context::EndpointType::Control);
-        endpoint_0.set_host_initiate_disable();
-        endpoint_0.set_max_burst_size(0);
         endpoint_0.set_max_packet_size(self.get_speed(port));
+        endpoint_0.set_max_burst_size(0);
+        endpoint_0.set_error_count(3);
         endpoint_0.set_tr_dequeue_pointer(transfer_ring_0_addr);
+        if ring_cycle_bit {
+            endpoint_0.set_dequeue_cycle_state();
+        } else {
+            endpoint_0.clear_dequeue_cycle_state();
+        }
+        endpoint_0.set_interval(0);
+        endpoint_0.set_max_primary_streams(0);
+        endpoint_0.set_mult(0);
+        endpoint_0.set_error_count(3);
 
         debug!("{TAG} CMD: address device");
         O::force_sync_cache();

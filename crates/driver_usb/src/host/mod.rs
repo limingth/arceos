@@ -1,3 +1,4 @@
+pub mod usb;
 pub mod xhci;
 pub mod device;
 use core::alloc::Allocator;
