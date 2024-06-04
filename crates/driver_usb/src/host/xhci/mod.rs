@@ -26,6 +26,7 @@ use registers::*;
 mod context;
 mod event;
 pub(crate) mod ring;
+pub(crate) mod xhci_device;
 use self::{context::*, event::EventRing, ring::Ring};
 use super::{usb::descriptors, Controller, USBHostConfig};
 use crate::host::device::*;
@@ -482,7 +483,14 @@ where
             let slot = self.device_slot_assignment(port_id);
             self.address_device(slot, port_id);
             self.set_ep0_packet_size(slot);
+            self.setup_fetch_all_dev_desc(slot);
         }
+
+        self.dev_ctx
+            .lock()
+            .attached_set
+            .iter_mut()
+            .for_each(|dev| {});
 
         Ok(())
     }

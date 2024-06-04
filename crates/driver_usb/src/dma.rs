@@ -67,10 +67,6 @@ where
         unsafe { self.data.as_mut().iter_mut().for_each(|u| *u = 0u8) }
         self
     }
-
-    pub fn length_for_bytes(&self) -> usize {
-        self.layout.size()
-    }
 }
 
 impl<T, A> DMA<T, A>
@@ -81,6 +77,10 @@ where
     /// 返回 [DMA] 地址
     pub fn addr(&self) -> usize {
         self.data.addr().into()
+    }
+
+    pub fn length_for_bytes(&self) -> usize {
+        self.layout.size()
     }
 }
 

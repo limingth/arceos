@@ -11,18 +11,6 @@ use xhci::context::Input64Byte;
 pub use xhci::context::{Device, Device64Byte, DeviceHandler};
 const NUM_EPS: usize = 32;
 
-pub struct DeviceAttached<O>
-where
-    O: OsDep,
-{
-    pub hub: usize,
-    pub port: usize,
-    pub num_endp: usize,
-    pub address: usize,
-    pub transfer_rings: Vec<Ring<O>>,
-    pub descriptors: Vec<descriptors::Descriptor>,
-}
-
 pub struct DeviceContextList<O>
 where
     O: OsDep,
@@ -30,7 +18,7 @@ where
     pub dcbaa: DMA<[u64; 256], O::DMA>,
     pub device_out_context_list: Vec<DMA<Device64Byte, O::DMA>>,
     pub device_input_context_list: Vec<DMA<Input64Byte, O::DMA>>,
-    pub attached_set: BTreeMap<usize, DeviceAttached<O>>,
+    pub attached_set: BTreeMap<usize, xhci_device::DeviceAttached<O>>,
     os: O,
 }
 
@@ -71,7 +59,7 @@ where
         hub: usize,
         port: usize,
         num_ep: usize, // cannot lesser than 0, and consider about alignment, use usize
-    ) -> Result<&mut DeviceAttached<O>> {
+    ) -> Result<&mut xhci_device::DeviceAttached<O>> {
         if slot > self.device_out_context_list.len() {
             return Err(Error::Param(format!(
                 "slot {} > max {}",
@@ -85,7 +73,7 @@ where
 
         self.attached_set.insert(
             slot,
-            DeviceAttached {
+            xhci_device::DeviceAttached {
                 hub,
                 port,
                 num_endp: 0,
@@ -104,7 +92,7 @@ use tock_registers::register_structs;
 use tock_registers::registers::{ReadOnly, ReadWrite, WriteOnly};
 
 use super::ring::Ring;
-use super::Error;
+use super::{xhci_device, Error};
 
 register_structs! {
     ScratchpadBufferEntry{
