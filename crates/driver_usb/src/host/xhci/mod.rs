@@ -1,4 +1,4 @@
-use crate::{addr::VirtAddr, dma::DMA, err::*, OsDep};
+use crate::{addr::VirtAddr, dma::DMA, err::*, host::usb::descriptors::RawDescriptorParser, OsDep};
 use alloc::{borrow::ToOwned, format, vec, vec::Vec};
 use axalloc::global_no_cache_allocator;
 use axhal::{irq::IrqHandler, paging::PageSize};
@@ -506,6 +506,36 @@ where
         }
     }
 
+    fn setup_fetch_all_dev_desc(&self, slot: u8) -> Result {
+        let mut binding = self.dev_ctx.lock();
+        let mut dev = binding.attached_set.get_mut(&(slot as usize)).unwrap();
+        let buffer = DMA::new_vec(
+            0u8,
+            PageSize::Size4K.into(),
+            PageSize::Size4K.into(),
+            self.config.os.dma_alloc(),
+        );
+        let construct_control_transfer_req = self.construct_control_transfer_req(
+            &buffer,
+            0b1000_0000,
+            6u8,
+            descriptors::Type::Configuration.value_for_transfer_control_index(0),
+            0,
+            (TransferType::In, Direction::In),
+        );
+        debug!("{TAG} Transfer Control: Fetching all configs");
+        let post_control_transfer = self.post_control_transfer(
+            construct_control_transfer_req,
+            dev.transfer_rings.get_mut(0).unwrap(),
+            1,
+            slot as usize,
+        )?;
+        debug!("{TAG} Result: {:?}", post_control_transfer);
+        RawDescriptorParser::<O>::new(buffer).parse(&mut dev.descriptors);
+        debug!("fetched descriptors:{:?}", dev.descriptors);
+        Ok(())
+    }
+
     fn set_ep0_packet_size(&self, slot: u8) -> Result {
         let buffer = DMA::new_singleton_page4k(
             descriptors::desc_device::Device::default(),
@@ -672,7 +702,7 @@ where
         slot_id
     }
 
-    fn construct_control_transfer_req<T>(
+    fn construct_control_transfer_req<T: ?Sized>(
         &self,
         buffer: &DMA<T, O::DMA>,
         request_type: u8,

@@ -1,6 +1,6 @@
 use core::{any::Any, ptr};
 
-use alloc::vec::Vec;
+use alloc::{collections::BTreeMap, vec::Vec};
 use axalloc::GlobalNoCacheAllocator;
 use desc_configuration::Configuration;
 use desc_device::Device;
@@ -10,12 +10,14 @@ use log::debug;
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::{FromPrimitive, ToPrimitive};
 
-use crate::dma::DMA;
+use crate::{dma::DMA, OsDep};
 
 pub mod desc_configuration;
 pub mod desc_device;
 pub mod desc_endpoint;
 pub mod desc_interface;
+
+#[derive(Copy, Clone, Debug)]
 pub(crate) enum Descriptor {
     Device(Device),
     Configuration(Configuration),
@@ -56,8 +58,8 @@ pub(crate) enum Error {
     UnrecognizedType(u8),
 }
 
-pub(crate) struct RawDescriptorParser {
-    raw: DMA<[u8], GlobalNoCacheAllocator>,
+pub(crate) struct RawDescriptorParser<O: OsDep> {
+    raw: DMA<[u8], O::DMA>,
     current: usize,
     len: usize,
 }
@@ -92,8 +94,11 @@ impl Descriptor {
     }
 }
 
-impl RawDescriptorParser {
-    pub fn new(raw: DMA<[u8], GlobalNoCacheAllocator>) -> Self {
+impl<O> RawDescriptorParser<O>
+where
+    O: OsDep,
+{
+    pub fn new(raw: DMA<[u8], O::DMA>) -> Self {
         let len = raw.len();
 
         Self {
@@ -103,15 +108,13 @@ impl RawDescriptorParser {
         }
     }
 
-    pub fn parse(&mut self) -> Vec<Descriptor> {
-        let mut v = Vec::new();
+    pub fn parse(&mut self, empty_vec: &mut Vec<Descriptor>) {
         while self.current < self.len && self.raw[self.current] > 0 {
             match self.parse_first_descriptor() {
-                Ok(t) => v.push(t),
+                Ok(t) => empty_vec.push(t),
                 Err(e) => debug!("Unrecognized USB descriptor: {:?}", e),
             }
         }
-        v
     }
 
     fn parse_first_descriptor(&mut self) -> Result<Descriptor, Error> {

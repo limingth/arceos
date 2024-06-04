@@ -1,4 +1,5 @@
 use crate::err::*;
+use crate::host::usb::descriptors;
 use crate::{dma::DMA, OsDep};
 use alloc::alloc::Allocator;
 use alloc::collections::BTreeMap;
@@ -19,6 +20,7 @@ where
     pub num_endp: usize,
     pub address: usize,
     pub transfer_rings: Vec<Ring<O>>,
+    pub descriptors: Vec<descriptors::Descriptor>,
 }
 
 pub struct DeviceContextList<O>
@@ -89,6 +91,7 @@ where
                 num_endp: 0,
                 address: slot,
                 transfer_rings: trs.collect(),
+                descriptors: Vec::new(),
             },
         );
 

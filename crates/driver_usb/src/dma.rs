@@ -31,6 +31,7 @@ where
 
 impl<T, A> DMA<T, A>
 where
+    T: Sized,
     A: Allocator,
 {
     /// 从 `value` `align` 和 `allocator` 创建 DMA，
