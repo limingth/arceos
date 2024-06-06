@@ -4,6 +4,7 @@ use crate::{dma::DMA, OsDep};
 use alloc::alloc::Allocator;
 use alloc::collections::BTreeMap;
 use alloc::format;
+use alloc::sync::Arc;
 use alloc::{boxed::Box, vec::Vec};
 use core::borrow::BorrowMut;
 use core::num;
@@ -19,6 +20,7 @@ where
     pub device_out_context_list: Vec<DMA<Device64Byte, O::DMA>>,
     pub device_input_context_list: Vec<DMA<Input64Byte, O::DMA>>,
     pub attached_set: BTreeMap<usize, xhci_device::DeviceAttached<O>>,
+    pub xhci: Option<Arc<Xhci<O>>>,
     os: O,
 }
 
@@ -46,6 +48,7 @@ where
             device_input_context_list: in_context_list,
             attached_set: BTreeMap::new(),
             os,
+            xhci: None,
         }
     }
 
@@ -80,6 +83,7 @@ where
                 address: slot,
                 transfer_rings: trs.collect(),
                 descriptors: Vec::new(),
+                xhci: self.xhci.as_mut().map(|arc| arc.clone()).unwrap(),
             },
         );
 
@@ -92,7 +96,7 @@ use tock_registers::register_structs;
 use tock_registers::registers::{ReadOnly, ReadWrite, WriteOnly};
 
 use super::ring::Ring;
-use super::{xhci_device, Error};
+use super::{xhci_device, Error, Xhci};
 
 register_structs! {
     ScratchpadBufferEntry{

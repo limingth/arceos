@@ -1,3 +1,5 @@
+use num_derive::{FromPrimitive, ToPrimitive};
+
 #[derive(Copy, Clone, Default, Debug)]
 #[repr(C, packed)]
 pub(crate) struct Device {
@@ -33,4 +35,31 @@ impl Device {
             (cd_usb & 0xff).try_into().unwrap(),
         )
     }
+}
+
+#[derive(FromPrimitive, ToPrimitive, Copy, Clone, Debug)]
+#[repr(u8)]
+pub enum USBDeviceClassCode {
+    InterfaceDescriptor = 0x00,
+    Audio = 0x01,
+    CommunicationsAndCDCControl = 0x02,
+    HID = 0x03,
+    Physical = 0x05,
+    Image = 0x06,
+    Printer = 0x07,
+    MassStorage = 0x08,
+    Hub = 0x09,
+    CDCData = 0x0A,
+    SmartCard = 0x0B,
+    ContentSecurity = 0x0D,
+    Video = 0x0E,
+    PersonalHealthcare = 0x0F,
+    AudioVideoDevices = 0x10,
+    BillboardDeviceClass = 0x11,
+    USBTypeCBridge = 0x12,
+    DiagnosticDevice = 0xDC,
+    WirelessController = 0xE0,
+    Miscellaneous = 0xEF,
+    ApplicationSpecific = 0xFE,
+    VendorSpecific = 0xFF,
 }

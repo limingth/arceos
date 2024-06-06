@@ -5,7 +5,9 @@ use axalloc::GlobalNoCacheAllocator;
 use desc_configuration::Configuration;
 use desc_device::Device;
 use desc_endpoint::Endpoint;
+use desc_hid::Hid;
 use desc_interface::Interface;
+use desc_str::Str;
 use log::debug;
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::{FromPrimitive, ToPrimitive};
@@ -15,21 +17,23 @@ use crate::{dma::DMA, OsDep};
 pub mod desc_configuration;
 pub mod desc_device;
 pub mod desc_endpoint;
+pub mod desc_hid;
 pub mod desc_interface;
+pub mod desc_str;
 
 #[derive(Copy, Clone, Debug)]
 pub(crate) enum Descriptor {
     Device(Device),
     Configuration(Configuration),
-    Str,
+    Str(Str),
     Interface(Interface),
     Endpoint(Endpoint),
-    Hid,
+    Hid(Hid),
 }
 
 #[derive(FromPrimitive, ToPrimitive, Copy, Clone, Debug)]
 #[allow(non_camel_case_types)]
-pub(crate) enum Type {
+pub(crate) enum DescriptorType {
     //USB 1.1: 9.4 Standard Device Requests, Table 9-5. Descriptor Types
     Device = 1,
     Configuration = 2,
@@ -65,7 +69,7 @@ pub(crate) struct RawDescriptorParser<O: OsDep> {
 }
 
 pub(crate) struct DescriptionTypeIndexPairForControlTransfer {
-    ty: Type,
+    ty: DescriptorType,
     i: u8,
 }
 
@@ -78,14 +82,18 @@ impl Descriptor {
                 match t {
                     // SAFETY: This operation is safe because the length of `raw` is equivalent to the
                     // one of the descriptor.
-                    Type::Device => Ok(Self::Device(unsafe { ptr::read(raw.cast()) })),
-                    Type::Configuration => {
+                    DescriptorType::Device => Ok(Self::Device(unsafe { ptr::read(raw.cast()) })),
+                    DescriptorType::Configuration => {
                         Ok(Self::Configuration(unsafe { ptr::read(raw.cast()) }))
                     }
-                    Type::String => Ok(Self::Str),
-                    Type::Interface => Ok(Self::Interface(unsafe { ptr::read(raw.cast()) })),
-                    Type::Endpoint => Ok(Self::Endpoint(unsafe { ptr::read(raw.cast()) })),
-                    Type::Hid => Ok(Self::Hid),
+                    DescriptorType::String => Ok(Self::Str(unsafe { ptr::read(raw.cast()) })),
+                    DescriptorType::Interface => {
+                        Ok(Self::Interface(unsafe { ptr::read(raw.cast()) }))
+                    }
+                    DescriptorType::Endpoint => {
+                        Ok(Self::Endpoint(unsafe { ptr::read(raw.cast()) }))
+                    }
+                    DescriptorType::Hid => Ok(Self::Hid(unsafe { ptr::read(raw.cast()) })),
                     other => unimplemented!("please implement descriptor type:{:?}", other),
                 }
             }
@@ -130,7 +138,7 @@ where
     }
 }
 
-impl Type {
+impl DescriptorType {
     pub(crate) fn value_for_transfer_control_index(
         self,
         index: u8,

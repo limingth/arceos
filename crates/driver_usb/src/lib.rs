@@ -4,6 +4,7 @@
 #![feature(allocator_api)]
 #![feature(strict_provenance)]
 #![allow(warnings)]
+#![feature(auto_traits)]
 
 use core::alloc::Allocator;
 
@@ -17,7 +18,7 @@ pub mod host;
 #[cfg(feature = "arceos")]
 pub mod ax;
 
-pub trait OsDep: Clone + Send + Sync {
+pub trait OsDep: Clone + Send + Sync + Sized {
     const PAGE_SIZE: usize;
     type DMA: Allocator + Send + Sync;
     fn dma_alloc(&self) -> Self::DMA;

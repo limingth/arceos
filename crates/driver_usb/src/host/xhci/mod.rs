@@ -95,6 +95,8 @@ where
             primary_event_ring: SpinNoIrq::new(event),
             scratchpad_buf_arr: None,
         };
+        let self_reference = unsafe { Arc::from_raw(&mut s as *mut Xhci<O>) };
+        s.dev_ctx.lock().xhci = Some(self_reference);
         s.init()?;
         info!("{TAG} Init success");
         Ok(s)
@@ -527,7 +529,7 @@ where
             &buffer,
             0b1000_0000,
             6u8,
-            descriptors::Type::Configuration.value_for_transfer_control_index(0),
+            descriptors::DescriptorType::Configuration.value_for_transfer_control_index(0),
             0,
             (TransferType::In, Direction::In),
         );
@@ -556,7 +558,7 @@ where
             &buffer,
             0x80,
             6,
-            descriptors::Type::Device.value_for_transfer_control_index(0),
+            descriptors::DescriptorType::Device.value_for_transfer_control_index(0),
             0,
             (TransferType::In, Direction::In),
         );
@@ -702,10 +704,8 @@ where
         let slot_id = result.slot_id();
         debug!("{TAG} Result: {:?}, slot id: {slot_id}", result);
 
-        self.dev_ctx
-            .lock()
-            .new_slot(slot_id as usize, 0, port, 16)
-            .unwrap(); //assume 16
+        let mut lock = self.dev_ctx.lock();
+        lock.new_slot(slot_id as usize, 0, port, 16).unwrap(); //assume 16
 
         slot_id
     }

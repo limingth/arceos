@@ -13,7 +13,7 @@ use spinlock::SpinNoIrq;
 #[derive(Debug, Clone, Copy)]
 pub struct USBHostInfo {}
 
-pub trait USBDeviceDriverOps<O: OsDep>: BaseDriverOps {
+pub trait USBDeviceDriverOps<O: OsDep> {
     fn try_create(device: &mut DeviceAttached<O>) -> Option<Arc<SpinNoIrq<Self>>>;
 }
 
