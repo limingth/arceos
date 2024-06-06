@@ -1,6 +1,8 @@
 # 代码结构导读
+
 ## 前情提要
-在之前的代码结构导读中，我们介绍了位于分支"phytium_pi_port"上的代码。目前，随着xhci部分的结束，我们已经将代码重构并迁移到了"phytium_pi_dev"分支，最新的驱动架构能够应对更多复杂情况，但结构也发生了大的变化，因此，我们重新做一遍代码导读。
+
+在之前的代码结构导读中，我们介绍了位于分支"phytium_pi_port"上的代码。目前，随着 xhci 部分的结束，我们已经将代码重构并迁移到了"phytium_pi_dev"分支，最新的驱动架构能够应对更多复杂情况，但结构也发生了大的变化，因此，我们重新做一遍代码导读。
 
 ## 文件结构
 
@@ -33,7 +35,9 @@
 ```
 
 ## 入口
-目前，我们暂时抛弃了原来的cli手动启动，而是将usb模块的引导做成了一个[app](../../../apps/usb/src/main.rs)：
+
+目前，我们暂时抛弃了原来的 cli 手动启动，而是将 usb 模块的引导做成了一个[app](../../../apps/usb/src/main.rs)：
+
 ```rust
 
 #[derive(Clone)]
@@ -64,7 +68,9 @@ fn main() {
     usb.poll();
 }
 ```
+
 让我们看看[USBHostConfig](../src/host/mod.rs)里有什么：
+
 ```rust
 #[derive(Clone)]
 pub struct USBHostConfig<O>
@@ -77,10 +83,12 @@ where O: OsDep
 }
 ```
 
-接下来，是与我们曾经的代码逻辑相似的USBHost(XHCI)初始化流程,也就是[USBHost::new](../src/host/xhci/mod.rs)方法,这部分所做事情与移植之前相差不大，请读者自行比对理解。
+接下来，是与我们曾经的代码逻辑相似的 USBHost(XHCI)初始化流程,也就是[USBHost::new](../src/host/xhci/mod.rs)方法,这部分所做事情与移植之前相差不大，请读者自行比对理解。
 
 ## 深入
-让我们来看看最新的进展，在USBHost创建之后，就会被调用poll方法，这个方法的作用是进行设备的枚举：
+
+让我们来看看最新的进展，在 USBHost 创建之后，就会被调用 poll 方法，这个方法的作用是进行设备的枚举：
+
 ```rust
     fn probe(&self) -> Result {
         let mut port_id_list = Vec::new();
@@ -122,10 +130,12 @@ where O: OsDep
     }
 ```
 
-## 细说：任务分解1-设备描述符
+## 任务分解 1-设备描述符
+
 设备描述符是设备所包含的描述信息，在这里，我们一次性获取所有的描述符信息，并在需要的时候获取对应条目的描述符
 
-设备描述符有许多种类，不同的种类描述了不同的信息，比如device就可能会包含设备的厂家/设备的类型等信息，[参考](../src/host/usb/descriptors/mod.rs):
+设备描述符有许多种类，不同的种类描述了不同的信息，比如 device 就可能会包含设备的厂家/设备的类型等信息，[参考](../src/host/usb/descriptors/mod.rs):
+
 ```rust
 #[derive(FromPrimitive, ToPrimitive, Copy, Clone, Debug)]
 #[allow(non_camel_case_types)]
@@ -154,7 +164,8 @@ pub(crate) enum Type {
 }
 ```
 
-这些类型，每一个都对应了不同的Descriptor，每个Descriptor又有不同的数据结构，好在我们目前暂时不用全部实现，只实现需要的部分即可。我们所需要关心的代码位于这里,
+这些类型，每一个都对应了不同的 Descriptor，每个 Descriptor 又有不同的数据结构，好在我们目前暂时不用全部实现，只实现需要的部分即可。我们所需要关心的代码位于这里,
+
 ```rust
 impl Descriptor {
     pub(crate) fn from_slice(raw: &[u8]) -> Result<Self, Error> {
@@ -184,7 +195,16 @@ impl Descriptor {
 ```
 
 额外的参考资料:
-* [USB中文网-关于设备描述符的部分](https://www.usbzh.com/article/detail-104.html)
-* USB3.2 spec文档：在资料附件中
 
-## 细说-任务分解2：设备配置选择
+- [USB 中文网-关于设备描述符的部分](https://www.usbzh.com/article/detail-104.html)
+- USB3.2 spec 文档：在资料附件中
+
+## 任务分解 2：设备配置选择
+
+在获取到了描述符后，我们要从设备提供的几种配置中选择一种来设置端点（endpoint），参考：[redox 的代码](https://github.com/redox-os/drivers/blob/master/xhcid/src/xhci/scheme.rs#L595)
+
+这部分在我们的代码中应当位于[根据设备描述符查找驱动](../src/host/xhci/xhci_device.rs)时
+
+## 任务分解 3-HID 驱动编写-键盘
+
+先写一个键盘驱动，参考 [redox 代码](https://github.com/redox-os/drivers/tree/master/usbhidd)
