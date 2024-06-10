@@ -11,7 +11,17 @@ pub(crate) struct Endpoint {
     pub(crate) attributes: u8,
     pub(crate) max_packet_size: u16,
     pub(crate) interval: u8,
+    pub(crate) ssc: Option<SuperSpeedCmp>,
 }
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct SuperSpeedCmp {
+    pub kind: u8,
+    pub max_burst: u8,
+    pub attributes: u8,
+    pub bytes_per_interval: u16,
+}
+
 impl Endpoint {
     pub(crate) fn endpoint_type(&self) -> EndpointType {
         EndpointType::from_u8(if self.attributes == 0 {
@@ -27,24 +37,52 @@ impl Endpoint {
         .expect("EndpointType must be convertible from `attributes` and `endpoint_address`.")
     }
 
-    // pub(crate) fn interval(&self) -> u8 {}
+    pub(crate) fn interval(&self) -> u8 {
+        self.interval
+    }
 
     pub(crate) fn max_streams(&self) -> Option<u8> {
         //TODO: complete me
-        // if self.is_bulk_out() {}
-        None
+        if self.is_bulk_out() {
+            Some(self.calculate_max_streams())
+        } else {
+            None
+        }
     }
 
-    pub(crate) fn mult(&self) -> u8 {
-        // if !lec && self.endpoint_type() == EndpointType::IsochOut {
-        //     self.ssc
-        //         .as_ref()
-        //         .map(|ssc| ssc.attributes & 0x3)
-        //         .unwrap_or(0)
-        // } else {
-        //     0
-        // }
-        0 //TODO: complete me
+    pub(crate) fn is_bulk_out(&self) -> bool {
+        self.endpoint_type==EndpointType::BulkOut
+    }
+
+    pub(crate) fn calculate_max_streams(&self) -> u8 {
+        self.ssc
+            .as_ref()
+            .map(|ssc| {
+                if self.is_bulk_out() {
+                    let raw = ssc.attributes & 0x1F;
+                    raw
+                } else {
+                    0
+                }
+            })
+    }
+
+    pub(crate) fn is_superspeedplus(&self) -> bool {
+        false
+    }
+
+    pub(crate) fn mult(&self,lec:bool) -> u8 {
+        if !lec && self.endpoint_type() == EndpointType::IsochOut {
+            if self.is_superspeedplus() {
+                return 0;
+            }
+            self.ssc
+                .as_ref()
+                .map(|ssc| ssc.attributes & 0x3)
+                .unwrap_or(0)
+        } else {
+            0
+        }
     }
 
     pub(crate) fn doorbell_value_aka_dci(&self) -> u32 {
