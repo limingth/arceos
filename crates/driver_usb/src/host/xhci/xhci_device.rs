@@ -90,7 +90,7 @@ where
         control_mut.set_alternate_setting(interface.alternate_setting);
 
         control_mut.set_add_context_flag(1);
-        control_mut.set_drop_context_flag(0);
+        // control_mut.set_drop_context_flag(0);
         // always choose last config here(always only 1 config exist, we assume.), need to change at future
         control_mut.set_configuration_value(self.fetch_desc_configs()[0].config_val());
 
@@ -98,7 +98,7 @@ where
             self.init_endpoint_context(ep, input);
         });
 
-        debug!("{TAG} CMD: address device");
+        debug!("{TAG} CMD: configure endpoint");
         let post_cmd = post_cmd(Allowed::ConfigureEndpoint(
             *ConfigureEndpoint::default()
                 .set_slot_id(self.slot_id as u8)
@@ -137,7 +137,7 @@ where
         // let port_speed = PortSpeed::get(port_number);
         let port_speed = self.get_port_speed();
         let endpoint_type = endpoint_desc.endpoint_type();
-        let interval = endpoint_desc.calc_actual_interval(self.get_port_speed());
+        let interval = endpoint_desc.calc_actual_interval(port_speed);
 
         endpoint_mut.set_interval(interval);
 
@@ -192,17 +192,18 @@ where
 
     fn get_port_speed(&self) -> PortSpeed {
         debug!("get port speed! might deadlock!");
-        PortSpeed::from_u8(
-            self.xhci
-                .regs
-                .lock()
-                .regs
-                .port_register_set
-                .read_volatile_at(self.port)
-                .portsc
-                .port_speed(),
-        )
-        .unwrap()
+
+        let port_speed = self
+            .xhci
+            .regs
+            .lock()
+            .regs
+            .port_register_set
+            .read_volatile_at(self.port)
+            .portsc
+            .port_speed();
+        debug!("fetch port speed: {}", port_speed);
+        PortSpeed::from_u8(port_speed).unwrap()
     }
 
     //consider use marcos to these bunch of methods

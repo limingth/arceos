@@ -483,14 +483,19 @@ where
         }
         for port_id in port_id_list {
             let slot = self.device_slot_assignment(port_id);
+            debug!("assign complete!");
             self.address_device(slot, port_id);
+            debug!("address complete!");
             self.set_ep0_packet_size(slot);
+            debug!("packet size complete!");
             self.setup_fetch_all_dev_desc(slot);
+            debug!("fetch all complete!");
         }
 
         let mut lock = self.dev_ctx.lock();
         let dev_ctx_list = (&mut lock.device_input_context_list as *mut Vec<_>);
         lock.attached_set.iter_mut().for_each(|dev| {
+            debug!("set cfg!");
             dev.1.set_configuration(
                 |allowed| self.post_cmd(allowed),
                 |allowed, ring, dci, slot| self.post_control_transfer(allowed, ring, dci, slot),
@@ -709,6 +714,7 @@ where
         debug!("{TAG} Result: {:?}, slot id: {slot_id}", result);
 
         let mut lock = self.dev_ctx.lock();
+        debug!("new slot!");
         lock.new_slot(slot_id as usize, 0, port, 16).unwrap(); //assume 16
 
         slot_id

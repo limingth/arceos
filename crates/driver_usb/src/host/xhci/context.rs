@@ -8,6 +8,7 @@ use alloc::sync::Arc;
 use alloc::{boxed::Box, vec::Vec};
 use core::borrow::BorrowMut;
 use core::num;
+use log::debug;
 use xhci::context::Input64Byte;
 pub use xhci::context::{Device, Device64Byte, DeviceHandler};
 const NUM_EPS: usize = 32;
@@ -72,7 +73,9 @@ where
         }
         let trs = (0..num_ep)
             .into_iter()
-            .map(|_| Ring::new(self.os.clone(), 16, true).unwrap());
+            .map(|_| Ring::new(self.os.clone(), 16, true).unwrap())
+            .collect();
+        debug!("new rings!");
 
         self.attached_set.insert(
             slot,
@@ -81,11 +84,12 @@ where
                 port,
                 num_endp: 0,
                 slot_id: slot,
-                transfer_rings: trs.collect(),
+                transfer_rings: trs,
                 descriptors: Vec::new(),
                 xhci: self.xhci.as_mut().map(|arc| arc.clone()).unwrap(),
             },
         );
+        debug!("insert complete!");
 
         Ok(self.attached_set.get_mut(&slot).unwrap())
     }
