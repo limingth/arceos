@@ -80,7 +80,7 @@ where
                 hub,
                 port,
                 num_endp: 0,
-                address: slot,
+                slot_id: slot,
                 transfer_rings: trs.collect(),
                 descriptors: Vec::new(),
                 xhci: self.xhci.as_mut().map(|arc| arc.clone()).unwrap(),

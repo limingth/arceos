@@ -3,6 +3,8 @@ pub mod usb;
 pub mod xhci;
 use alloc::{boxed::Box, sync::Arc};
 use core::alloc::Allocator;
+use num_derive::FromPrimitive;
+use num_traits::FromPrimitive;
 use spinlock::SpinNoIrq;
 
 use crate::{addr::VirtAddr, err::*, OsDep};
@@ -65,4 +67,13 @@ where
     pub fn poll(&self) -> Result {
         self.controller.poll()
     }
+}
+
+#[derive(Copy, Clone, FromPrimitive)]
+pub enum PortSpeed {
+    FullSpeed = 1,
+    LowSpeed = 2,
+    HighSpeed = 3,
+    SuperSpeed = 4,
+    SuperSpeedPlus = 5,
 }

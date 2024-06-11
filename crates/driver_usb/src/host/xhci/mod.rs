@@ -488,11 +488,14 @@ where
             self.setup_fetch_all_dev_desc(slot);
         }
 
-        self.dev_ctx
-            .lock()
-            .attached_set
-            .iter_mut()
-            .for_each(|dev| {});
+        let mut lock = self.dev_ctx.lock();
+        let dev_ctx_list = (&mut lock.device_input_context_list as *mut Vec<_>);
+        lock.attached_set.iter_mut().for_each(|dev| {
+            dev.1.set_configuration(
+                |allowed| self.post_cmd(allowed),
+                (unsafe { &mut *dev_ctx_list }), //ugly!
+            );
+        });
 
         Ok(())
     }
@@ -553,7 +556,7 @@ where
         );
         let mut binding = self.dev_ctx.lock();
         let dev = binding.attached_set.get_mut(&(slot as usize)).unwrap();
-        let index = dev.address;
+        let index = dev.slot_id;
         let transfer = self.construct_control_transfer_req(
             &buffer,
             0x80,
@@ -602,7 +605,7 @@ where
             .attached_set
             .get(&(slot as usize))
             .unwrap()
-            .address;
+            .slot_id;
         let mut binding = self.dev_ctx.lock();
 
         let transfer_ring_0_addr = binding
