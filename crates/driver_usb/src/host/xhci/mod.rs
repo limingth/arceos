@@ -493,6 +493,7 @@ where
         lock.attached_set.iter_mut().for_each(|dev| {
             dev.1.set_configuration(
                 |allowed| self.post_cmd(allowed),
+                |allowed, ring, dci, slot| self.post_control_transfer(allowed, ring, dci, slot),
                 (unsafe { &mut *dev_ctx_list }), //ugly!
             );
         });

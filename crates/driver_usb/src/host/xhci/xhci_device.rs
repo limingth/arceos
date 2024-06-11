@@ -9,7 +9,10 @@ use xhci::{
     context::{Endpoint, EndpointType, Input64Byte, InputHandler},
     ring::{
         self,
-        trb::command::{self, Allowed, ConfigureEndpoint},
+        trb::{
+            command::{self, Allowed, ConfigureEndpoint},
+            transfer,
+        },
     },
 };
 
@@ -26,7 +29,10 @@ use crate::{
 
 const TAG: &str = "[XHCI DEVICE]";
 
-use super::{event::Ring, Xhci};
+use super::{
+    event::{self, Ring},
+    Xhci,
+};
 
 pub struct DeviceAttached<O>
 where
@@ -50,12 +56,19 @@ where
         T::try_create(self)
     }
 
-    pub fn set_configuration<F>(
+    pub fn set_configuration<FC, FT>(
         &mut self,
-        mut post_cmd: F,
+        mut post_cmd: FC,
+        mut post_transfer: FT,
         input_ref: &mut Vec<DMA<Input64Byte, O::DMA>>,
     ) where
-        F: FnMut(command::Allowed) -> Result<ring::trb::event::CommandCompletion>,
+        FC: FnMut(command::Allowed) -> Result<ring::trb::event::CommandCompletion>,
+        FT: FnMut(
+            (transfer::Allowed, transfer::Allowed, transfer::Allowed), //setup,data,status
+            &mut Ring<O>,                                              //transfer ring
+            u8,                                                        //dci
+            usize,                                                     //slot
+        ) -> Result<ring::trb::event::TransferEvent>,
     {
         let last_entry = self
             .fetch_desc_endpoints()
@@ -86,12 +99,14 @@ where
         });
 
         debug!("{TAG} CMD: address device");
-        post_cmd(Allowed::ConfigureEndpoint(
+        let post_cmd = post_cmd(Allowed::ConfigureEndpoint(
             *ConfigureEndpoint::default()
                 .set_slot_id(self.slot_id as u8)
                 .set_input_context_pointer((input as *mut Input64Byte).addr() as u64),
         ));
         debug!("{TAG} CMD: result");
+        debug!("{:?}", post_cmd);
+
         // COMMAND_MANAGER.get().unwrap().lock().config_endpoint(
         //     self.slot_id,
         //     self.input.virt_addr(),
