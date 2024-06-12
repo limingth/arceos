@@ -22,35 +22,28 @@ use crate::{
 
 const TAG: &str = "[USB-HID DRIVER]";
 
-pub struct USBDeviceDriverHidMouseExample<O>
-where
-    O: OsDep,
-{
+pub struct USBDeviceDriverHidMouseExample {
     hub: usize,
     port: usize,
     slot: usize,
-    xhci: Arc<Xhci<O>>,
 }
 
-impl<O> USBDeviceDriverHidMouseExample<O>
-where
-    O: OsDep,
-{
-    fn operate_device<F, T>(&self, mut op: F) -> T
+impl USBDeviceDriverHidMouseExample {
+    fn operate_device<F, T, O>(&self, xhci: &Xhci<O>, mut op: F) -> T
     where
         F: Fn(&mut DeviceAttached<O>) -> T,
+        O: OsDep,
     {
-        op(self
-            .xhci
+        op(xhci
             .dev_ctx
             .lock()
             .attached_set
-            .get_mut(&(self.slot - 1))
+            .get_mut(&(self.slot))
             .unwrap())
     }
 }
 
-impl<O> USBDeviceDriverOps<O> for USBDeviceDriverHidMouseExample<O>
+impl<O> USBDeviceDriverOps<O> for USBDeviceDriverHidMouseExample
 where
     O: OsDep,
 {
@@ -74,31 +67,37 @@ where
         //         }
         //     })
         //     .unwrap()
-        if device.has_desc(|desc| {
-            if let Descriptor::Hid(hid) = desc {
-                true
-            } else {
-                false
-            }
-        }) {
-            let arc = Some(Arc::new(SpinNoIrq::new(Self {
-                hub: device.hub,
-                port: device.port,
-                slot: device.slot_id,
-                xhci: device.xhci.clone(),
-            })));
-            debug!("create!");
-            return arc;
-        }
-        debug!("nothing!");
-        None
+        // if device.has_desc(|desc| {
+        //     if let Descriptor::Hid(hid) = desc {
+        //         true
+        //     } else {
+        //         false
+        //     }
+        // }) {
+        //     let arc = Some(Arc::new(SpinNoIrq::new(Self {
+        //         hub: device.hub,
+        //         port: device.port,
+        //         slot: device.slot_id,
+        //     })));
+        //     debug!("create!");
+        //     return arc;
+        // }
+        // debug!("nothing!");
+
+        // None
+        Some(Arc::new(SpinNoIrq::new(Self {
+            hub: device.hub,
+            port: device.port,
+            slot: device.slot_id,
+        })))
     }
 
-    fn work(&self) {
-        let interface_in_use =
-            self.operate_device(|dev| dev.fetch_desc_interfaces()[dev.current_interface].clone());
-        let buffer = DMA::new_singleton_page4k(0u8, self.xhci.config.os.dma_alloc());
-        let idle_req = self.xhci.construct_control_transfer_req(
+    fn work(&self, xhci: &Xhci<O>) {
+        let interface_in_use = self.operate_device(xhci, |dev| {
+            dev.fetch_desc_interfaces()[dev.current_interface].clone()
+        });
+        let buffer = DMA::new_singleton_page4k(0u8, xhci.config.os.dma_alloc());
+        let idle_req = xhci.construct_control_transfer_req(
             &buffer,
             0x0, //CLASS
             0xA, //SET IDLE
@@ -109,8 +108,8 @@ where
 
         {
             debug!("{TAG}: post idle request");
-            let result = self.operate_device(|dev| {
-                self.xhci.post_control_transfer(
+            let result = self.operate_device(xhci, |dev| {
+                xhci.post_control_transfer(
                     idle_req,
                     dev.transfer_rings.get_mut(0).unwrap(),
                     1,
@@ -122,7 +121,7 @@ where
         }
 
         debug!("waiting for event!");
-        let busy_wait_for_event = self.xhci.busy_wait_for_event();
+        let busy_wait_for_event = xhci.busy_wait_for_event();
         debug!("getted: {:?}", busy_wait_for_event);
     }
 }

@@ -21,7 +21,6 @@ where
     pub device_out_context_list: Vec<DMA<Device64Byte, O::DMA>>,
     pub device_input_context_list: Vec<DMA<Input64Byte, O::DMA>>,
     pub attached_set: BTreeMap<usize, xhci_device::DeviceAttached<O>, O::DMA>, //大概需要加锁？
-    pub xhci: Option<Arc<Xhci<O>>>,
     os: O,
 }
 
@@ -49,7 +48,6 @@ where
             device_input_context_list: in_context_list,
             attached_set: BTreeMap::new_in(os.dma_alloc()),
             os,
-            xhci: None, //set value later at outside
         }
     }
 
@@ -89,7 +87,6 @@ where
                     debug!("new desc container");
                     Vec::new()
                 },
-                xhci: self.xhci.as_ref().map(|arc| arc.clone()).unwrap(),
                 current_interface: 0,
             },
         );

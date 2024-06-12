@@ -18,6 +18,7 @@ use core::{
     ops::{Deref, DerefMut},
 };
 use log::*;
+use num_traits::FromPrimitive;
 use spinlock::SpinNoIrq;
 use xhci::{
     context::{Input, InputHandler, Slot, Slot64Byte},
@@ -28,6 +29,7 @@ use xhci::{
         transfer::{self, DataStage, SetupStage, StatusStage, TransferType},
     },
 };
+use xhci_device::DeviceAttached;
 
 pub use xhci::ring::trb::transfer::Direction;
 mod registers;
@@ -47,6 +49,8 @@ use core::mem;
 const ARM_IRQ_PCIE_HOST_INTA: usize = 143 + 32;
 const XHCI_CONFIG_MAX_EVENTS_PER_INTR: usize = 16;
 const TAG: &str = "[XHCI]";
+
+pub static mut drivers: Option<Arc<SpinNoIrq<USBDeviceDriverHidMouseExample>>> = None;
 
 pub struct Xhci<O>
 where
@@ -107,9 +111,7 @@ where
             primary_event_ring: SpinNoIrq::new(event),
             scratchpad_buf_arr: None,
         };
-        let mut self_reference = unsafe { Arc::from_raw((&mut s) as *mut Xhci<O>) };
-        self_reference.dev_ctx.lock().xhci = Some(s);
-        self_reference.init()?;
+        s.init()?;
         info!("{TAG} Init success");
         Ok(s)
     }
@@ -533,22 +535,42 @@ where
         lock.attached_set.iter_mut().for_each(|dev| {
             debug!("set cfg!");
             dev.1.set_configuration(
+                FromPrimitive::from_u8(
+                    self.regs
+                        .lock()
+                        .regs
+                        .port_register_set
+                        .read_volatile_at(dev.1.port)
+                        .portsc
+                        .port_speed()
+                        .into(),
+                )
+                .unwrap(),
                 |allowed| self.post_cmd(allowed),
                 |allowed, ring, dci, slot| self.post_control_transfer(allowed, ring, dci, slot),
                 (unsafe { &mut *dev_ctx_list }), //ugly!
             );
         });
 
-        lock.attached_set.iter_mut().for_each(|dev| {
-            debug!("find driver!");
-            let find_driver_impl = dev
-                .1
-                .find_driver_impl::<USBDeviceDriverHidMouseExample<O>>();
-            if let Some(driver) = find_driver_impl {
-                debug!("found!");
-                driver.lock().work();
-            }
-        });
+        // lock.attached_set.iter_mut().for_each(|dev| {
+        //     debug!("find driver!");
+        //     let find_driver_impl = dev.1.find_driver_impl::<USBDeviceDriverHidMouseExample>();
+        //     if let Some(driver) = find_driver_impl {
+        //         debug!("found!");
+        //         <USBDeviceDriverHidMouseExample as USBDeviceDriverOps<O>>::work( //should create a task
+        //             &driver.lock(),
+        //             self,
+        //         );
+        //     }
+        // });
+
+        let dev = lock.attached_set.get_mut(&1).unwrap(); //从这里开始是实验环节
+        unsafe {
+            drivers = Some(
+                dev.find_driver_impl::<USBDeviceDriverHidMouseExample>()
+                    .unwrap(),
+            )
+        };
 
         Ok(())
     }

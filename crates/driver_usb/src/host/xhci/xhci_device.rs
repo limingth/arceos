@@ -46,7 +46,6 @@ where
     pub slot_id: usize,
     pub transfer_rings: Vec<Ring<O>>,
     pub descriptors: Vec<descriptors::Descriptor>,
-    pub xhci: Arc<Xhci<O>>,
     pub current_interface: usize,
 }
 
@@ -62,6 +61,7 @@ where
 
     pub fn set_configuration<FC, FT>(
         &mut self,
+        port_speed: PortSpeed,
         mut post_cmd: FC,
         mut post_transfer: FT,
         input_ref: &mut Vec<DMA<Input64Byte, O::DMA>>,
@@ -100,7 +100,7 @@ where
         control_mut.set_configuration_value(self.fetch_desc_configs()[0].config_val());
 
         self.fetch_desc_endpoints().iter().for_each(|ep| {
-            self.init_endpoint_context(ep, input);
+            self.init_endpoint_context(port_speed, ep, input);
         });
 
         debug!("{TAG} CMD: configure endpoint");
@@ -114,6 +114,7 @@ where
 
     fn init_endpoint_context(
         &self,
+        port_speed: PortSpeed,
         endpoint_desc: &descriptors::desc_endpoint::Endpoint,
         input_ctx: &mut Input64Byte,
     ) {
@@ -128,7 +129,6 @@ where
             .endpoint_mut(endpoint_desc.doorbell_value_aka_dci() as usize);
         //set interval
         // let port_speed = PortSpeed::get(port_number);
-        let port_speed = self.get_port_speed();
         let endpoint_type = endpoint_desc.endpoint_type();
         let interval = endpoint_desc.calc_actual_interval(port_speed);
 
@@ -181,23 +181,6 @@ where
                 EndpointType::NotValid => unreachable!("Not Valid Endpoint should not exist."),
             }
         }
-    }
-
-    fn get_port_speed(&self) -> PortSpeed {
-        debug!("get port speed at {}! might deadlock!", self.port);
-        // busy_wait_until(Duration::from_millis(100));
-
-        let port_speed = self
-            .xhci
-            .regs
-            .lock()
-            .regs
-            .port_register_set
-            .read_volatile_at(self.port)
-            .portsc
-            .port_speed();
-        debug!("fetch port speed: {}", port_speed);
-        PortSpeed::from_u8(port_speed).unwrap_or(PortSpeed::FullSpeed) //xhci might transfered a clone but not the actual controller, TODO: CHECK
     }
 
     //consider use marcos to these bunch of methods
