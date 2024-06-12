@@ -5,6 +5,7 @@
 #![feature(strict_provenance)]
 #![allow(warnings)]
 #![feature(auto_traits)]
+#![feature(btreemap_alloc)]
 
 use core::alloc::Allocator;
 
@@ -20,7 +21,7 @@ pub mod ax;
 
 pub trait OsDep: Clone + Send + Sync + Sized {
     const PAGE_SIZE: usize;
-    type DMA: Allocator + Send + Sync;
+    type DMA: Allocator + Send + Sync + Clone;
     fn dma_alloc(&self) -> Self::DMA;
     fn force_sync_cache();
 }

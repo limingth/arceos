@@ -1,7 +1,16 @@
-use crate::{addr::VirtAddr, dma::DMA, err::*, host::usb::descriptors::RawDescriptorParser, OsDep};
+use crate::{
+    addr::VirtAddr,
+    ax::USBDeviceDriverOps,
+    dma::DMA,
+    err::*,
+    host::usb::{
+        descriptors::RawDescriptorParser, drivers::driver_usb_hid::USBDeviceDriverHidMouseExample,
+    },
+    OsDep,
+};
 use alloc::{borrow::ToOwned, format, vec, vec::Vec};
 use axalloc::global_no_cache_allocator;
-use axhal::{irq::IrqHandler, paging::PageSize};
+use axhal::{cpu::this_cpu_is_bsp, irq::IrqHandler, paging::PageSize};
 use core::{
     alloc::Allocator,
     borrow::BorrowMut,
@@ -28,7 +37,10 @@ mod event;
 pub(crate) mod ring;
 pub(crate) mod xhci_device;
 use self::{context::*, event::EventRing, ring::Ring};
-use super::{usb::descriptors, Controller, USBHostConfig};
+use super::{
+    usb::{self, descriptors},
+    Controller, USBHostConfig,
+};
 use crate::host::device::*;
 use alloc::sync::Arc;
 use core::mem;
@@ -40,12 +52,12 @@ pub struct Xhci<O>
 where
     O: OsDep,
 {
-    config: USBHostConfig<O>,
+    pub(super) config: USBHostConfig<O>,
     regs: SpinNoIrq<Registers>,
     max_slots: u8,
     max_ports: u8,
     max_irqs: u16,
-    dev_ctx: SpinNoIrq<DeviceContextList<O>>,
+    pub(super) dev_ctx: SpinNoIrq<DeviceContextList<O>>,
     ring: SpinNoIrq<Ring<O>>,
     primary_event_ring: SpinNoIrq<EventRing<O>>,
     scratchpad_buf_arr: Option<ScratchpadBufferArray<O>>,
@@ -95,9 +107,9 @@ where
             primary_event_ring: SpinNoIrq::new(event),
             scratchpad_buf_arr: None,
         };
-        let self_reference = unsafe { Arc::from_raw(&mut s as *mut Xhci<O>) };
-        s.dev_ctx.lock().xhci = Some(self_reference);
-        s.init()?;
+        let mut self_reference = unsafe { Arc::from_raw((&mut s) as *mut Xhci<O>) };
+        self_reference.dev_ctx.lock().xhci = Some(s);
+        self_reference.init()?;
         info!("{TAG} Init success");
         Ok(s)
     }
@@ -280,7 +292,7 @@ where
         Ok(())
     }
 
-    fn post_cmd(&self, mut trb: Allowed) -> Result<ring::trb::event::CommandCompletion> {
+    pub fn post_cmd(&self, mut trb: Allowed) -> Result<ring::trb::event::CommandCompletion> {
         {
             let mut cr = self.ring.lock();
             let addr = trb.as_ref().as_ptr().addr();
@@ -326,7 +338,7 @@ where
         }
     }
 
-    fn post_control_transfer(
+    pub fn post_control_transfer(
         &self,
         (setup, status, data): (transfer::Allowed, transfer::Allowed, transfer::Allowed),
         transfer_ring: &mut Ring<O>,
@@ -356,6 +368,30 @@ where
 
         O::force_sync_cache();
 
+        debug!("{TAG} Wait result");
+        {
+            let mut er = self.primary_event_ring.lock();
+
+            loop {
+                let event = er.next();
+                match event {
+                    xhci::ring::trb::event::Allowed::TransferEvent(c) => {
+                        while c.completion_code().is_err() {}
+                        debug!(
+                            "{TAG} Transfer @{:X} got result, cycle {}",
+                            c.trb_pointer(),
+                            c.cycle_bit()
+                        );
+
+                        return Ok(c);
+                    }
+                    _ => warn!("event: {:?}", event),
+                }
+            }
+        }
+    }
+
+    pub fn busy_wait_for_event(&self) -> Result<ring::trb::event::TransferEvent> {
         debug!("{TAG} Wait result");
         {
             let mut er = self.primary_event_ring.lock();
@@ -488,7 +524,7 @@ where
             debug!("address complete!");
             self.set_ep0_packet_size(slot);
             debug!("packet size complete!");
-            self.setup_fetch_all_dev_desc(slot);
+            self.setup_fetch_all_needed_dev_desc(slot);
             debug!("fetch all complete!");
         }
 
@@ -501,6 +537,17 @@ where
                 |allowed, ring, dci, slot| self.post_control_transfer(allowed, ring, dci, slot),
                 (unsafe { &mut *dev_ctx_list }), //ugly!
             );
+        });
+
+        lock.attached_set.iter_mut().for_each(|dev| {
+            debug!("find driver!");
+            let find_driver_impl = dev
+                .1
+                .find_driver_impl::<USBDeviceDriverHidMouseExample<O>>();
+            if let Some(driver) = find_driver_impl {
+                debug!("found!");
+                driver.lock().work();
+            }
         });
 
         Ok(())
@@ -525,9 +572,19 @@ where
         }
     }
 
-    fn setup_fetch_all_dev_desc(&self, slot: u8) -> Result {
+    fn setup_fetch_all_needed_dev_desc(&self, slot: u8) -> Result {
+        //todo fetch all desc
         let mut binding = self.dev_ctx.lock();
         let mut dev = binding.attached_set.get_mut(&(slot as usize)).unwrap();
+
+        self.fetch_device_desc(dev, slot);
+        self.fetch_config_desc(dev, slot);
+
+        debug!("fetched descriptors:{:?}", dev.descriptors);
+        Ok(())
+    }
+
+    fn fetch_config_desc(&self, dev: &mut xhci_device::DeviceAttached<O>, slot: u8) {
         let buffer = DMA::new_vec(
             0u8,
             PageSize::Size4K.into(),
@@ -543,16 +600,44 @@ where
             (TransferType::In, Direction::In),
         );
         debug!("{TAG} Transfer Control: Fetching all configs");
-        let post_control_transfer = self.post_control_transfer(
-            construct_control_transfer_req,
-            dev.transfer_rings.get_mut(0).unwrap(),
-            1,
-            slot as usize,
-        )?;
+        let post_control_transfer = self
+            .post_control_transfer(
+                construct_control_transfer_req,
+                dev.transfer_rings.get_mut(0).unwrap(),
+                1,
+                slot as usize,
+            )
+            .unwrap();
         debug!("{TAG} Result: {:?}", post_control_transfer);
         RawDescriptorParser::<O>::new(buffer).parse(&mut dev.descriptors);
-        debug!("fetched descriptors:{:?}", dev.descriptors);
-        Ok(())
+    }
+
+    fn fetch_device_desc(&self, dev: &mut xhci_device::DeviceAttached<O>, slot: u8) {
+        let buffer = DMA::new_vec(
+            0u8,
+            PageSize::Size4K.into(),
+            PageSize::Size4K.into(),
+            self.config.os.dma_alloc(),
+        );
+        let construct_control_transfer_req = self.construct_control_transfer_req(
+            &buffer,
+            0b1000_0000,
+            6u8,
+            descriptors::DescriptorType::Device.value_for_transfer_control_index(0),
+            0,
+            (TransferType::In, Direction::In),
+        );
+        debug!("{TAG} Transfer Control: Fetching all configs");
+        let post_control_transfer = self
+            .post_control_transfer(
+                construct_control_transfer_req,
+                dev.transfer_rings.get_mut(0).unwrap(),
+                1,
+                slot as usize,
+            )
+            .unwrap();
+        debug!("{TAG} Result: {:?}", post_control_transfer);
+        RawDescriptorParser::<O>::new(buffer).parse(&mut dev.descriptors);
     }
 
     fn set_ep0_packet_size(&self, slot: u8) -> Result {
@@ -720,7 +805,7 @@ where
         slot_id
     }
 
-    fn construct_control_transfer_req<T: ?Sized>(
+    pub fn construct_control_transfer_req<T: ?Sized>(
         &self,
         buffer: &DMA<T, O::DMA>,
         request_type: u8,

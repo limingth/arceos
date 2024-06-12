@@ -1,6 +1,6 @@
 use core::{fmt::Error, ops::DerefMut, time::Duration};
 
-use alloc::{borrow::ToOwned, sync::Arc, vec::Vec};
+use alloc::{borrow::ToOwned, collections::BTreeSet, sync::Arc, vec::Vec};
 use axhal::time::busy_wait_until;
 use axtask::sleep;
 use log::debug;
@@ -47,6 +47,7 @@ where
     pub transfer_rings: Vec<Ring<O>>,
     pub descriptors: Vec<descriptors::Descriptor>,
     pub xhci: Arc<Xhci<O>>,
+    pub current_interface: usize,
 }
 
 impl<O> DeviceAttached<O>
@@ -54,7 +55,8 @@ where
     O: OsDep,
 {
     pub fn find_driver_impl<T: USBDeviceDriverOps<O>>(&mut self) -> Option<Arc<SpinNoIrq<T>>> {
-        let device = self.fetch_desc_devices()[0]; //only pick first device desc
+        // let device = self.fetch_desc_devices()[0]; //only pick first device desc
+        debug!("try creating!");
         T::try_create(self)
     }
 
@@ -87,7 +89,8 @@ where
 
         let control_mut = input.control_mut();
 
-        let interface = self.fetch_desc_interfaces()[0]; //hardcoded 0 interface
+        let interface = self.fetch_desc_interfaces()[0].clone(); //hardcoded 0 interface
+        self.current_interface = 0;
         control_mut.set_interface_number(interface.interface_number);
         control_mut.set_alternate_setting(interface.alternate_setting);
 
@@ -216,6 +219,13 @@ where
                 _ => None,
             })
             .collect()
+    }
+
+    pub fn has_desc<F>(&mut self, predicate: F) -> bool
+    where
+        F: FnMut(&Descriptor) -> bool,
+    {
+        self.descriptors.iter().any(predicate)
     }
 
     pub fn fetch_desc_interfaces(&mut self) -> Vec<descriptors::desc_interface::Interface> {

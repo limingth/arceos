@@ -15,6 +15,8 @@ pub struct USBHostInfo {}
 
 pub trait USBDeviceDriverOps<O: OsDep> {
     fn try_create(device: &mut DeviceAttached<O>) -> Option<Arc<SpinNoIrq<Self>>>;
+
+    fn work(&self); //should return a process handle, but since our async feature is broken, lets just block the main thread
 }
 
 /// Operations that require a graphics device driver to implement.
