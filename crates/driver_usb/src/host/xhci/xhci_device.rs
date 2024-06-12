@@ -1,6 +1,8 @@
-use core::{fmt::Error, ops::DerefMut};
+use core::{fmt::Error, ops::DerefMut, time::Duration};
 
 use alloc::{borrow::ToOwned, sync::Arc, vec::Vec};
+use axhal::time::busy_wait_until;
+use axtask::sleep;
 use log::debug;
 use num_derive::FromPrimitive;
 use num_traits::{ops::mul_add, FromPrimitive, ToPrimitive};
@@ -104,19 +106,7 @@ where
                 .set_slot_id(self.slot_id as u8)
                 .set_input_context_pointer((input as *mut Input64Byte).addr() as u64),
         ));
-        debug!("{TAG} CMD: result");
-        debug!("{:?}", post_cmd);
-
-        // COMMAND_MANAGER.get().unwrap().lock().config_endpoint(
-        //     self.slot_id,
-        //     self.input.virt_addr(),
-        //     false,
-        // );
-
-        // xhci_event_manager::handle_event();
-
-        // debug!("configure endpoint complete")
-        // })
+        debug!("{TAG} CMD: result:{:?}", post_cmd);
     }
 
     fn init_endpoint_context(
@@ -191,7 +181,8 @@ where
     }
 
     fn get_port_speed(&self) -> PortSpeed {
-        debug!("get port speed! might deadlock!");
+        debug!("get port speed at {}! might deadlock!", self.port);
+        // busy_wait_until(Duration::from_millis(100));
 
         let port_speed = self
             .xhci
@@ -203,7 +194,7 @@ where
             .portsc
             .port_speed();
         debug!("fetch port speed: {}", port_speed);
-        PortSpeed::from_u8(port_speed).unwrap()
+        PortSpeed::from_u8(port_speed).unwrap_or(PortSpeed::FullSpeed) //xhci might transfered a clone but not the actual controller, TODO: CHECK
     }
 
     //consider use marcos to these bunch of methods
