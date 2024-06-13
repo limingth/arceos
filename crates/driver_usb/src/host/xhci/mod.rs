@@ -340,14 +340,34 @@ where
         }
     }
 
-    pub fn post_control_transfer(
+    pub fn post_control_transfer_with_data(
         &self,
-        (setup, status, data): (transfer::Allowed, transfer::Allowed, transfer::Allowed),
+        (setup, data, status): (transfer::Allowed, transfer::Allowed, transfer::Allowed),
         transfer_ring: &mut Ring<O>,
         dci: u8,
         slot_id: usize,
     ) -> Result<ring::trb::event::TransferEvent> {
-        let collect = vec![setup, status, data]
+        self.post_control_transfer(vec![setup, data, status], transfer_ring, dci, slot_id)
+    }
+
+    pub fn post_control_transfer_no_data(
+        &self,
+        (setup, status): (transfer::Allowed, transfer::Allowed),
+        transfer_ring: &mut Ring<O>,
+        dci: u8,
+        slot_id: usize,
+    ) -> Result<ring::trb::event::TransferEvent> {
+        self.post_control_transfer(vec![setup, status], transfer_ring, dci, slot_id)
+    }
+
+    fn post_control_transfer(
+        &self,
+        mut transfer_trbs: Vec<transfer::Allowed>,
+        transfer_ring: &mut Ring<O>,
+        dci: u8,
+        slot_id: usize,
+    ) -> Result<ring::trb::event::TransferEvent> {
+        let collect = transfer_trbs
             .iter_mut()
             .map(|trb| {
                 if self.ring.lock().cycle {
@@ -547,7 +567,9 @@ where
                 )
                 .unwrap(),
                 |allowed| self.post_cmd(allowed),
-                |allowed, ring, dci, slot| self.post_control_transfer(allowed, ring, dci, slot),
+                |allowed, ring, dci, slot| {
+                    self.post_control_transfer_with_data(allowed, ring, dci, slot)
+                },
                 (unsafe { &mut *dev_ctx_list }), //ugly!
             );
         });
@@ -623,7 +645,7 @@ where
         );
         debug!("{TAG} Transfer Control: Fetching all configs");
         let post_control_transfer = self
-            .post_control_transfer(
+            .post_control_transfer_with_data(
                 construct_control_transfer_req,
                 dev.transfer_rings.get_mut(0).unwrap(),
                 1,
@@ -651,7 +673,7 @@ where
         );
         debug!("{TAG} Transfer Control: Fetching all configs");
         let post_control_transfer = self
-            .post_control_transfer(
+            .post_control_transfer_with_data(
                 construct_control_transfer_req,
                 dev.transfer_rings.get_mut(0).unwrap(),
                 1,
@@ -680,7 +702,7 @@ where
         );
 
         debug!("{TAG} CMD: get endpoint0 packet size");
-        let command_completion = self.post_control_transfer(
+        let command_completion = self.post_control_transfer_with_data(
             transfer,
             &mut dev.transfer_rings.get_mut(0).unwrap(),
             1, //TODO: calculate dci
@@ -825,6 +847,26 @@ where
         lock.new_slot(slot_id as usize, 0, port, 16).unwrap(); //assume 16
 
         slot_id
+    }
+
+    pub fn construct_no_data_transfer_req(
+        &self,
+        request_type: u8,
+        request: u8,
+        value: descriptors::DescriptionTypeIndexPairForControlTransfer,
+        index: u16,
+        transfer_type: TransferType,
+    ) -> (transfer::Allowed, transfer::Allowed) {
+        let setup = *transfer::SetupStage::default()
+            .set_request_type(request_type)
+            .set_request(request) //get_desc
+            .set_value(value.bits())
+            .set_length(0)
+            .set_transfer_type(transfer_type)
+            .set_index(index);
+        let status = *transfer::StatusStage::default().set_interrupt_on_completion();
+
+        (setup.into(), status.into())
     }
 
     pub fn construct_control_transfer_req<T: ?Sized>(
