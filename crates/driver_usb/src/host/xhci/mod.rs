@@ -409,6 +409,16 @@ where
         self.post_control_transfer(vec![setup, status], transfer_ring, dci, slot_id)
     }
 
+    pub fn post_transfer_not_control(
+        &self,
+        (data, status): (transfer::Allowed, transfer::Allowed),
+        transfer_ring: &mut Ring<O>,
+        dci: u8,
+        slot_id: usize,
+    ) -> Result<ring::trb::event::TransferEvent> {
+        self.post_control_transfer(vec![data, status], transfer_ring, dci, slot_id)
+    }
+
     fn post_control_transfer(
         &self,
         mut transfer_trbs: Vec<transfer::Allowed>,
@@ -440,26 +450,7 @@ where
         O::force_sync_cache();
 
         debug!("{TAG} Wait result");
-        {
-            let mut er = self.primary_event_ring.lock();
-
-            loop {
-                let event = er.next();
-                match event {
-                    xhci::ring::trb::event::Allowed::TransferEvent(c) => {
-                        while c.completion_code().is_err() {}
-                        debug!(
-                            "{TAG} Transfer @{:X} got result, cycle {}",
-                            c.trb_pointer(),
-                            c.cycle_bit()
-                        );
-
-                        return Ok(c);
-                    }
-                    _ => warn!("event: {:?}", event),
-                }
-            }
-        }
+        self.busy_wait_for_event()
     }
 
     pub fn busy_wait_for_event(&self) -> Result<ring::trb::event::TransferEvent> {
@@ -468,7 +459,8 @@ where
             let mut er = self.primary_event_ring.lock();
 
             loop {
-                if let Some(event) = er.busy_wait_next() {
+                if let Some(_) = er.busy_wait_next() {
+                    let event = er.next();
                     match event {
                         xhci::ring::trb::event::Allowed::TransferEvent(c) => {
                             while c.completion_code().is_err() {}
@@ -689,7 +681,7 @@ where
             &buffer,
             0b1000_0000,
             6u8,
-            descriptors::DescriptorType::Configuration.value_for_transfer_control_index(0),
+            descriptors::DescriptorType::Configuration.forLowBit(0),
             0,
             (TransferType::In, Direction::In),
         );
@@ -717,7 +709,7 @@ where
             &buffer,
             0b1000_0000,
             6u8,
-            descriptors::DescriptorType::Device.value_for_transfer_control_index(0),
+            descriptors::DescriptorType::Device.forLowBit(0),
             0,
             (TransferType::In, Direction::In),
         );
@@ -746,7 +738,7 @@ where
             &buffer,
             0x80,
             6,
-            descriptors::DescriptorType::Device.value_for_transfer_control_index(0),
+            descriptors::DescriptorType::Device.forLowBit(0),
             0,
             (TransferType::In, Direction::In),
         );

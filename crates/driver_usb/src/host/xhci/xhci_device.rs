@@ -176,6 +176,13 @@ where
                         endpoint_mut.set_error_count(3);
                     }
 
+                    if let EndpointType::InterruptIn | EndpointType::InterruptOut = endpoint_type {
+                        debug!(
+                            "set a interrupt endpoint! addr:{}",
+                            endpoint_desc.doorbell_value_aka_dci()
+                        );
+                    }
+
                     endpoint_mut.set_tr_dequeue_pointer(ring_addr);
                     endpoint_mut.set_dequeue_cycle_state();
                 }

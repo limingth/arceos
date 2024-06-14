@@ -3,11 +3,12 @@ use core::{marker::PhantomData, time::Duration};
 use alloc::format;
 use alloc::{collections::BTreeMap, fmt::format, string::String, sync::Arc};
 use axhal::{paging::PageSize, time::busy_wait};
+use axtask::sleep_until;
 use driver_common::BaseDriverOps;
 use log::debug;
 use num_traits::{FromPrimitive, ToPrimitive};
 use spinlock::SpinNoIrq;
-use xhci::ring::trb::transfer::{Direction, TransferType};
+use xhci::ring::trb::transfer::{self, Direction, TransferType};
 
 use crate::{
     ax::USBDeviceDriverOps,
@@ -36,7 +37,7 @@ pub struct USBDeviceDriverHidMouseExample {
 impl USBDeviceDriverHidMouseExample {
     fn operate_device<F, T, O>(&self, xhci: &Xhci<O>, mut op: F) -> T
     where
-        F: Fn(&mut DeviceAttached<O>) -> T,
+        F: FnMut(&mut DeviceAttached<O>) -> T,
         O: OsDep,
     {
         op(xhci
@@ -111,7 +112,7 @@ where
         let idle_req = xhci.construct_no_data_transfer_req(
             0x21, //recipient:00001(interface),Type01:class,Direction:0(HostToDevice) //TODO, MAKE A Tool Module to convert type
             0x0A, //SET IDLE
-            descriptors::DescriptorType::Hid.value_for_transfer_control_index((1 << 8 | 0) as u8), //duration 1, report 0: 1<<8 | 0
+            descriptors::DescriptorType::Hid.forLowBit((1 << 8 | 0) as u8), //duration 1, report 0: 1<<8 | 0
             interface_in_use.interface_number as u16,
             TransferType::No,
         );
@@ -131,7 +132,7 @@ where
             // debug!("{TAG} buffer: {:?}", buffer);
         }
 
-        loop {
+        {
             busy_wait(Duration::from_millis(500));
             //request report rate
             let buffer = DMA::new_vec(
@@ -144,49 +145,74 @@ where
                 &buffer,
                 0x81, //recipient:00001(interface),Type00:standard,Direction:01(DeviceToHost) //TODO, MAKE A Tool Module to convert type
                 0x06, //get descriptor
-                DescriptorType::HIDReport.value_for_transfer_control_index(0), //report descriptor
+                DescriptorType::HIDReport.forLowBit(0), //report descriptor
                 0,    //interface
                 (TransferType::In, Direction::In),
             );
 
             debug!("{TAG}: post report request");
-            let result = self.operate_device(xhci, |dev| {
-                xhci.post_control_transfer_with_data_and_busy_wait(
-                    request_report,
-                    dev.transfer_rings.get_mut(0).unwrap(), //ep0 ring
-                    1,                                      //to ep0
-                    dev.slot_id,
-                )
-            });
+            let result = self
+                .operate_device(xhci, |dev| {
+                    xhci.post_control_transfer_with_data_and_busy_wait(
+                        request_report,
+                        dev.transfer_rings.get_mut(0).unwrap(), //ep0 ring
+                        1,                                      //to ep0
+                        dev.slot_id,
+                    )
+                })
+                .unwrap();
             debug!("{TAG}: result: {:?}", result);
             print_array(&buffer);
 
             // ReportHandler::new(&buffer).unwrap()
-        } //TODO GET Report from interrupt endpoint
+        } //TODO parse Report context
 
-        // {
-        //     // loop {
-        //     //     busy_wait(Duration::from_millis(10));
-        //     //     xhci.regs
-        //     //         .lock()
-        //     //         .regs
-        //     //         .port_register_set
-        //     //         .read_volatile_at(self.port)
-        //     //         .portsc
-        //     //         .port_state
-        //     // }
-        //     let in_dci = self.operate_device(xhci, |dev| {
-        //         dev.operate_endpoint_in(|mut endpoints, rings| {
-        //             endpoints.get_mut(0).unwrap().doorbell_value_aka_dci()
-        //         })
-        //     });
+        loop {
+            busy_wait(Duration::from_secs(1)); //too high, just for debug
 
-        //     // xhci.construct_no_data_transfer_req(request_type, request, value, index, transfer_type)
-        // }
+            // loop { //TODO: check endpoint state to ensure data commit complete
+            //     busy_wait(Duration::from_millis(10));
+            //     xhci.regs
+            //         .lock()
+            //         .regs
+            //         .port_register_set
+            //         .read_volatile_at(self.port)
+            //         .portsc
+            //         .port_state
+            // }
 
-        // debug!("waiting for event!");
-        // let busy_wait_for_event = xhci.busy_wait_for_event();
-        // debug!("getted: {:?}", busy_wait_for_event);
+            self.operate_device(xhci, |dev| {
+                //get input endpoint dci, we only pick endpoint in #0 here
+                dev.operate_endpoint_in(|mut endpoints, rings| {
+                    let in_dci = endpoints.get_mut(0).unwrap().doorbell_value_aka_dci();
+                    let buffer = DMA::new_vec(0u8, 8, 64, xhci.config.os.dma_alloc()); //enough for a mouse Report(should get from report above,but we not parse it yet)
+
+                    let req = {
+                        //for a interrupt transfer, it didn't invove setup stage.
+                        let data = *transfer::DataStage::default()
+                            .set_data_buffer_pointer(buffer.addr() as u64)
+                            .set_direction(Direction::In);
+
+                        let status =
+                            *transfer::StatusStage::default().set_interrupt_on_completion();
+
+                        (data.into(), status.into())
+                    };
+
+                    debug!("{TAG}: post report request");
+                    let result = self.operate_device(xhci, |dev| {
+                        xhci.post_transfer_not_control(
+                            req,
+                            rings.get_mut(in_dci as usize).unwrap(), //ep0 ring
+                            in_dci as u8,                            //to ep0
+                            dev.slot_id,
+                        )
+                    });
+                    debug!("{TAG}: result: {:?}", result);
+                    print_array(&buffer);
+                });
+            })
+        }
     }
 }
 

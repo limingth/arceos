@@ -6,6 +6,7 @@
 #![allow(warnings)]
 #![feature(auto_traits)]
 #![feature(btreemap_alloc)]
+#![feature(if_let_guard)]
 
 use core::alloc::Allocator;
 
