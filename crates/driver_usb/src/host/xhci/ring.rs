@@ -96,4 +96,19 @@ impl<O: OsDep> Ring<O> {
         let i = self.next_index();
         (&mut self.trbs[i], self.cycle)
     }
+
+    pub fn peek_next_data(&mut self) -> (&TrbData, bool) {
+        //may encounter non equal data
+        let mut cycle_flag = self.cycle;
+        let i = {
+            let mut i;
+            i = self.i;
+            if i >= self.trbs.len() {
+                i = 0;
+                cycle_flag = !cycle_flag;
+            }
+            i
+        };
+        (&self.trbs[i], cycle_flag)
+    }
 }

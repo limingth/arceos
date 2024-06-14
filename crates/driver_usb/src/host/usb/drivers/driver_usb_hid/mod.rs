@@ -1,6 +1,8 @@
-use core::marker::PhantomData;
+use core::{marker::PhantomData, time::Duration};
 
-use alloc::sync::Arc;
+use alloc::format;
+use alloc::{collections::BTreeMap, fmt::format, string::String, sync::Arc};
+use axhal::{paging::PageSize, time::busy_wait};
 use driver_common::BaseDriverOps;
 use log::debug;
 use num_traits::{FromPrimitive, ToPrimitive};
@@ -12,8 +14,10 @@ use crate::{
     dma::DMA,
     host::{
         usb::descriptors::{
-            self, desc_device::USBDeviceClassCode, desc_hid::USBHIDSubClassDescriptorType,
-            DescriptionTypeIndexPairForControlTransfer, Descriptor,
+            self,
+            desc_device::{Device, USBDeviceClassCode},
+            desc_hid::{Hid, USBHIDProtocolDescriptorType, USBHIDSubclassDescriptorType},
+            DescriptionTypeIndexPairForControlTransfer, Descriptor, DescriptorType,
         },
         xhci::{xhci_device::DeviceAttached, Xhci},
     },
@@ -26,6 +30,7 @@ pub struct USBDeviceDriverHidMouseExample {
     hub: usize,
     port: usize,
     slot: usize,
+    hid_desc: Hid,
 }
 
 impl USBDeviceDriverHidMouseExample {
@@ -51,8 +56,10 @@ where
         device: &mut DeviceAttached<O>,
     ) -> Option<alloc::sync::Arc<spinlock::SpinNoIrq<Self>>> {
         debug!("creating!");
+        let fetch_desc_hid = &device.fetch_desc_hid();
         match {
             let fetch_desc_devices = &device.fetch_desc_devices();
+            debug!("desc_device: {:?}", fetch_desc_devices);
             let dev_desc = fetch_desc_devices.first().unwrap();
             Some(
                 if dev_desc.class
@@ -76,19 +83,21 @@ where
                 },
             )
             .map(|(class, subclass, protocol)| {
+                debug!("interface csp:{class},{subclass},{protocol}");
                 (
                     USBDeviceClassCode::from_u8(class),
-                    USBHIDSubClassDescriptorType::from_u8(subclass),
-                    protocol,
+                    USBHIDSubclassDescriptorType::from_u8(subclass),
+                    USBHIDProtocolDescriptorType::from_u8(protocol),
                 )
             })
             .unwrap()
         } {
-            (Some(USBDeviceClassCode::HID), Some(USBHIDSubClassDescriptorType::Mouse), _) => {
+            (Some(USBDeviceClassCode::HID), Some(_), Some(USBHIDProtocolDescriptorType::Mouse)) => {
                 Some(Arc::new(SpinNoIrq::new(Self {
                     hub: device.hub,
                     port: device.port,
                     slot: device.slot_id,
+                    hid_desc: fetch_desc_hid[0].clone(),
                 })))
             }
             _ => None,
@@ -108,6 +117,7 @@ where
         );
 
         {
+            //set idle
             debug!("{TAG}: post idle request");
             let result = self.operate_device(xhci, |dev| {
                 xhci.post_control_transfer_no_data(
@@ -121,8 +131,77 @@ where
             // debug!("{TAG} buffer: {:?}", buffer);
         }
 
-        debug!("waiting for event!");
-        let busy_wait_for_event = xhci.busy_wait_for_event();
-        debug!("getted: {:?}", busy_wait_for_event);
+        loop {
+            busy_wait(Duration::from_millis(500));
+            //request report rate
+            let buffer = DMA::new_vec(
+                0u8,
+                self.hid_desc.report_descriptor_len as usize,
+                64,
+                xhci.config.os.dma_alloc(),
+            );
+            let request_report = xhci.construct_control_transfer_req(
+                &buffer,
+                0x81, //recipient:00001(interface),Type00:standard,Direction:01(DeviceToHost) //TODO, MAKE A Tool Module to convert type
+                0x06, //get descriptor
+                DescriptorType::HIDReport.value_for_transfer_control_index(0), //report descriptor
+                0,    //interface
+                (TransferType::In, Direction::In),
+            );
+
+            debug!("{TAG}: post report request");
+            let result = self.operate_device(xhci, |dev| {
+                xhci.post_control_transfer_with_data_and_busy_wait(
+                    request_report,
+                    dev.transfer_rings.get_mut(0).unwrap(), //ep0 ring
+                    1,                                      //to ep0
+                    dev.slot_id,
+                )
+            });
+            debug!("{TAG}: result: {:?}", result);
+            print_array(&buffer);
+
+            // ReportHandler::new(&buffer).unwrap()
+        } //TODO GET Report from interrupt endpoint
+
+        // {
+        //     // loop {
+        //     //     busy_wait(Duration::from_millis(10));
+        //     //     xhci.regs
+        //     //         .lock()
+        //     //         .regs
+        //     //         .port_register_set
+        //     //         .read_volatile_at(self.port)
+        //     //         .portsc
+        //     //         .port_state
+        //     // }
+        //     let in_dci = self.operate_device(xhci, |dev| {
+        //         dev.operate_endpoint_in(|mut endpoints, rings| {
+        //             endpoints.get_mut(0).unwrap().doorbell_value_aka_dci()
+        //         })
+        //     });
+
+        //     // xhci.construct_no_data_transfer_req(request_type, request, value, index, transfer_type)
+        // }
+
+        // debug!("waiting for event!");
+        // let busy_wait_for_event = xhci.busy_wait_for_event();
+        // debug!("getted: {:?}", busy_wait_for_event);
     }
 }
+
+fn print_array(arr: &[u8]) {
+    let mut line = String::new();
+    for (i, &byte) in arr.iter().enumerate() {
+        line.push_str(&format!("{:02x} ", byte));
+        if (i + 1) % 4 == 0 {
+            debug!("{}", line);
+            line.clear();
+        }
+    }
+    if !line.is_empty() {
+        debug!("{}", line);
+    }
+}
+
+struct USBHIDReportMouse {}

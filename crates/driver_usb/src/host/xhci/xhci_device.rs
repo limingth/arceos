@@ -175,6 +175,7 @@ where
                     } else {
                         endpoint_mut.set_error_count(3);
                     }
+
                     endpoint_mut.set_tr_dequeue_pointer(ring_addr);
                     endpoint_mut.set_dequeue_cycle_state();
                 }
@@ -189,6 +190,16 @@ where
             .iter()
             .filter_map(|desc| match desc {
                 Descriptor::Configuration(config) => Some(config.clone()),
+                _ => None,
+            })
+            .collect()
+    }
+
+    pub fn fetch_desc_hid(&mut self) -> Vec<descriptors::desc_hid::Hid> {
+        self.descriptors
+            .iter()
+            .filter_map(|desc| match desc {
+                Descriptor::Hid(hid) => Some(hid.clone()),
                 _ => None,
             })
             .collect()
@@ -235,5 +246,18 @@ where
                 }
             })
             .collect()
+    }
+
+    pub fn operate_endpoint_in<R, F>(&mut self, mapper: F) -> R
+    where
+        F: Fn(Vec<&descriptors::desc_endpoint::Endpoint>, &mut Vec<Ring<O>>) -> R,
+    {
+        mapper(
+            self.fetch_desc_endpoints()
+                .iter()
+                .filter(|endpoint| endpoint.endpoint_type() == EndpointType::InterruptIn)
+                .collect(),
+            &mut self.transfer_rings,
+        )
     }
 }
