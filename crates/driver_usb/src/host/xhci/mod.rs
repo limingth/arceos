@@ -411,12 +411,12 @@ where
 
     pub fn post_transfer_not_control(
         &self,
-        (data, status): (transfer::Allowed, transfer::Allowed),
+        request: transfer::Allowed,
         transfer_ring: &mut Ring<O>,
         dci: u8,
         slot_id: usize,
     ) -> Result<ring::trb::event::TransferEvent> {
-        self.post_control_transfer(vec![data, status], transfer_ring, dci, slot_id)
+        self.post_control_transfer(vec![request], transfer_ring, dci, slot_id)
     }
 
     fn post_control_transfer(
@@ -449,7 +449,6 @@ where
 
         O::force_sync_cache();
 
-        debug!("{TAG} Wait result");
         self.busy_wait_for_event()
     }
 
@@ -459,7 +458,8 @@ where
             let mut er = self.primary_event_ring.lock();
 
             loop {
-                if let Some(_) = er.busy_wait_next() {
+                if let Some(temp) = er.busy_wait_next() {
+                    debug!("received temp!:{:?}", temp);
                     let event = er.next();
                     match event {
                         xhci::ring::trb::event::Allowed::TransferEvent(c) => {
@@ -895,14 +895,14 @@ where
         &self,
         request_type: u8,
         request: u8,
-        value: descriptors::DescriptionTypeIndexPairForControlTransfer,
+        value: u16,
         index: u16,
         transfer_type: TransferType,
     ) -> (transfer::Allowed, transfer::Allowed) {
         let setup = *transfer::SetupStage::default()
             .set_request_type(request_type)
             .set_request(request) //get_desc
-            .set_value(value.bits())
+            .set_value(value)
             .set_length(0)
             .set_transfer_type(transfer_type)
             .set_index(index);

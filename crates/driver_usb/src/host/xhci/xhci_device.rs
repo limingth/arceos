@@ -81,7 +81,7 @@ where
             .unwrap()
             .to_owned();
 
-        debug!("found last entry: {:?}", last_entry.endpoint_address);
+        debug!("found last entry: 0x{:x}", last_entry.endpoint_address);
 
         let input = input_ref.get_mut(self.slot_id).unwrap().deref_mut();
         let slot_mut = input.device_mut().slot_mut();
@@ -90,25 +90,35 @@ where
         let control_mut = input.control_mut();
 
         let interface = self.fetch_desc_interfaces()[0].clone(); //hardcoded 0 interface
+
+        let config_val = self.fetch_desc_configs()[0].config_val();
         self.current_interface = 0;
+
         control_mut.set_interface_number(interface.interface_number);
         control_mut.set_alternate_setting(interface.alternate_setting);
 
         control_mut.set_add_context_flag(1);
+        control_mut.set_add_context_flag(2);
+        control_mut.set_add_context_flag(3);
+        control_mut.set_add_context_flag(4);
         // control_mut.set_drop_context_flag(0);
-        // always choose last config here(always only 1 config exist, we assume.), need to change at future
-        control_mut.set_configuration_value(self.fetch_desc_configs()[0].config_val());
+        //TODO:  always choose last config here(always only 1 config exist, we assume.), need to change at future
+        control_mut.set_configuration_value(config_val);
 
         self.fetch_desc_endpoints().iter().for_each(|ep| {
             self.init_endpoint_context(port_speed, ep, input);
         });
 
         debug!("{TAG} CMD: configure endpoint");
-        let post_cmd = post_cmd(Allowed::ConfigureEndpoint(
-            *ConfigureEndpoint::default()
+        let post_cmd = post_cmd(Allowed::ConfigureEndpoint({
+            let mut configure_endpoint = *ConfigureEndpoint::default()
                 .set_slot_id(self.slot_id as u8)
-                .set_input_context_pointer((input as *mut Input64Byte).addr() as u64),
-        ));
+                .set_input_context_pointer((input as *mut Input64Byte).addr() as u64);
+            if (config_val == 0) {
+                configure_endpoint.set_deconfigure();
+            }
+            configure_endpoint
+        }));
         debug!("{TAG} CMD: result:{:?}", post_cmd);
     }
 
@@ -120,8 +130,6 @@ where
     ) {
         //set add content flag
         let control_mut = input_ctx.control_mut();
-        control_mut.set_add_context_flag(0);
-        control_mut.clear_add_context_flag(1); // See xHCI dev manual 4.6.6.
         control_mut.add_context_flag(endpoint_desc.doorbell_value_aka_dci() as usize);
 
         let endpoint_mut = input_ctx

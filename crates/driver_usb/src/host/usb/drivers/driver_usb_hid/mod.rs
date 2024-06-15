@@ -8,7 +8,8 @@ use driver_common::BaseDriverOps;
 use log::debug;
 use num_traits::{FromPrimitive, ToPrimitive};
 use spinlock::SpinNoIrq;
-use xhci::ring::trb::transfer::{self, Direction, TransferType};
+use xhci::ring::trb::command;
+use xhci::ring::trb::transfer::{self, Direction, Normal, TransferType};
 
 use crate::{
     ax::USBDeviceDriverOps,
@@ -110,16 +111,17 @@ where
             dev.fetch_desc_interfaces()[dev.current_interface].clone()
         });
         let idle_req = xhci.construct_no_data_transfer_req(
-            0x21, //recipient:00001(interface),Type01:class,Direction:0(HostToDevice) //TODO, MAKE A Tool Module to convert type
-            0x0A, //SET IDLE
-            descriptors::DescriptorType::Hid.forLowBit((1 << 8 | 0) as u8), //duration 1, report 0: 1<<8 | 0
+            0b00100001, //recipient:00001(interface),Type01:class,Direction:0(HostToDevice) //TODO, MAKE A Tool Module to convert type
+            0x0A,       //SET IDLE
+            0x00,       //recommended infini idle rate for mice, refer usb Hid 1.1 spec - page 53
+            // upper 8 bit = 0-> infini idle, lower 8 bit = 0-> apply to all report
             interface_in_use.interface_number as u16,
-            TransferType::No,
+            TransferType::No, //no data applied
         );
 
         {
             //set idle
-            debug!("{TAG}: post idle request");
+            debug!("{TAG}: post idle request to control endpoint");
             let result = self.operate_device(xhci, |dev| {
                 xhci.post_control_transfer_no_data(
                     idle_req,
@@ -168,46 +170,36 @@ where
         } //TODO parse Report context
 
         loop {
-            busy_wait(Duration::from_secs(1)); //too high, just for debug
+            busy_wait(Duration::from_millis(500)); //too slow, just for debug
 
-            // loop { //TODO: check endpoint state to ensure data commit complete
-            //     busy_wait(Duration::from_millis(10));
-            //     xhci.regs
-            //         .lock()
-            //         .regs
-            //         .port_register_set
-            //         .read_volatile_at(self.port)
-            //         .portsc
-            //         .port_state
-            // }
+            // loop {} //TODO: check endpoint state to ensure data commit complete
 
             self.operate_device(xhci, |dev| {
                 //get input endpoint dci, we only pick endpoint in #0 here
                 dev.operate_endpoint_in(|mut endpoints, rings| {
-                    let in_dci = endpoints.get_mut(0).unwrap().doorbell_value_aka_dci();
-                    let buffer = DMA::new_vec(0u8, 8, 64, xhci.config.os.dma_alloc()); //enough for a mouse Report(should get from report above,but we not parse it yet)
+                    let in_dci = endpoints.get_mut(0).unwrap().doorbell_value_aka_dci(); //we use first in interrupt endpoint here, in actual environment, there might has multiple.
+                    let buffer = DMA::new_vec(0u8, 4, 32, xhci.config.os.dma_alloc()); //enough for a mouse Report(should get from report above,but we not parse it yet)
 
-                    let req = {
-                        //for a interrupt transfer, it didn't invove setup stage.
-                        let data = *transfer::DataStage::default()
+                    let request = transfer::Allowed::Normal(
+                        // just use normal trb to request interrupt transfer
+                        *Normal::default()
                             .set_data_buffer_pointer(buffer.addr() as u64)
-                            .set_direction(Direction::In);
-
-                        let status =
-                            *transfer::StatusStage::default().set_interrupt_on_completion();
-
-                        (data.into(), status.into())
-                    };
-
-                    debug!("{TAG}: post report request");
+                            .set_interrupt_on_completion()
+                            .set_td_size(0)
+                            .set_trb_transfer_length(buffer.length_for_bytes() as u32)
+                            .clear_interrupt_on_short_packet()
+                            .set_interrupter_target(0), // weird, so xhci actually support multiple interrupter?
+                    );
+                    let req = debug!("{TAG}: post IN Transfer report request");
                     let result = self.operate_device(xhci, |dev| {
                         xhci.post_transfer_not_control(
-                            req,
-                            rings.get_mut(in_dci as usize).unwrap(), //ep0 ring
-                            in_dci as u8,                            //to ep0
+                            request,
+                            rings.get_mut(3 as usize).unwrap(), //ep0 ring
+                            3 as u8,                            //to ep0
                             dev.slot_id,
                         )
                     });
+                    busy_wait(Duration::from_millis(5));
                     debug!("{TAG}: result: {:?}", result);
                     print_array(&buffer);
                 });

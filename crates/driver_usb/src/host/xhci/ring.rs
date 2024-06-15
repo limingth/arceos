@@ -56,6 +56,7 @@ impl<O: OsDep> Ring<O> {
     }
 
     fn next_index(&mut self) -> usize {
+        debug!("next index");
         let mut i;
         loop {
             i = self.i;
