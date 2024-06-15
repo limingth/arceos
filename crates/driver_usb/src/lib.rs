@@ -7,6 +7,7 @@
 #![feature(auto_traits)]
 #![feature(btreemap_alloc)]
 #![feature(if_let_guard)]
+#![feature(get_many_mut)]
 
 use core::alloc::Allocator;
 

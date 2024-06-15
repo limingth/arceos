@@ -1,7 +1,7 @@
 use core::{marker::PhantomData, time::Duration};
 
-use alloc::format;
 use alloc::{collections::BTreeMap, fmt::format, string::String, sync::Arc};
+use alloc::{format, vec};
 use axhal::{paging::PageSize, time::busy_wait};
 use axtask::sleep_until;
 use driver_common::BaseDriverOps;
@@ -11,6 +11,7 @@ use spinlock::SpinNoIrq;
 use xhci::ring::trb::command;
 use xhci::ring::trb::transfer::{self, Direction, Normal, TransferType};
 
+use crate::host::xhci::ring::Ring;
 use crate::{
     ax::USBDeviceDriverOps,
     dma::DMA,
@@ -175,6 +176,7 @@ where
             // loop {} //TODO: check endpoint state to ensure data commit complete
 
             self.operate_device(xhci, |dev| {
+                let slot_id = dev.slot_id;
                 //get input endpoint dci, we only pick endpoint in #0 here
                 dev.operate_endpoint_in(|mut endpoints, rings| {
                     let in_dci = endpoints.get_mut(0).unwrap().doorbell_value_aka_dci(); //we use first in interrupt endpoint here, in actual environment, there might has multiple.
@@ -190,15 +192,48 @@ where
                             .clear_interrupt_on_short_packet()
                             .set_interrupter_target(0), // weird, so xhci actually support multiple interrupter?
                     );
-                    let req = debug!("{TAG}: post IN Transfer report request");
-                    let result = self.operate_device(xhci, |dev| {
-                        xhci.post_transfer_not_control(
-                            request,
-                            rings.get_mut(3 as usize).unwrap(), //ep0 ring
-                            3 as u8,                            //to ep0
-                            dev.slot_id,
-                        )
-                    });
+                    debug!("{TAG}: post IN Transfer report request");
+                    let result = {
+                        //temporary inlined, hass to be packed in to a function future
+                        let this = &xhci;
+                        let request = request;
+                        let mut transfer_rings =
+                            rings.get_many_mut([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]).unwrap(); //chaos!
+
+                        let dci = 3 as u8;
+
+                        {
+                            let this = &this;
+                            let mut transfer_trbs = vec![request];
+                            transfer_rings.iter_mut().for_each(|t| {
+                                t.enque_trbs(
+                                    transfer_trbs
+                                        .iter_mut()
+                                        .map(|trb| {
+                                            if this.ring.lock().cycle {
+                                                trb.set_cycle_bit();
+                                            } else {
+                                                trb.clear_cycle_bit();
+                                            }
+                                            trb.into_raw()
+                                        })
+                                        .collect(),
+                                )
+                            });
+
+                            debug!("{TAG} Post control transfer!");
+
+                            let mut regs = this.regs.lock();
+
+                            regs.regs.doorbell.update_volatile_at(slot_id, |r| {
+                                r.set_doorbell_target(dci);
+                            });
+
+                            O::force_sync_cache();
+
+                            this.busy_wait_for_event()
+                        }
+                    };
                     busy_wait(Duration::from_millis(5));
                     debug!("{TAG}: result: {:?}", result);
                     print_array(&buffer);

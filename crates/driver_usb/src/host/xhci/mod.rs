@@ -62,7 +62,7 @@ where
     max_ports: u8,
     max_irqs: u16,
     pub(super) dev_ctx: SpinNoIrq<DeviceContextList<O>>,
-    ring: SpinNoIrq<Ring<O>>,
+    pub(super) ring: SpinNoIrq<Ring<O>>,
     primary_event_ring: SpinNoIrq<EventRing<O>>,
     scratchpad_buf_arr: Option<ScratchpadBufferArray<O>>,
 }
