@@ -41,7 +41,6 @@ def send_file(port, baudrate, file_path):
 
         modem = XMODEM(getc, putc)
         modem.send(f)
-        print("transfer complete")
     
     # 关闭串口
     ser.close()

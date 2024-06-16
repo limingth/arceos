@@ -255,7 +255,10 @@ impl GlobalNoCacheAllocator {
 unsafe impl Allocator for GlobalNoCacheAllocator {
     fn allocate(&self, layout: Layout) -> Result<NonNull<[u8]>, core::alloc::AllocError> {
         let mut balloc = self.balloc.lock();
-        let data = balloc.alloc(layout).map_err(|_e| core::alloc::AllocError)?;
+        let data = balloc.alloc(layout).map_err(|e| {
+            debug!("nocache allocator alloc error! {:?}", e);
+            core::alloc::AllocError
+        })?;
         unsafe {
             let ptr = data.as_ptr();
             let data = &mut *slice_from_raw_parts_mut(ptr, layout.size());

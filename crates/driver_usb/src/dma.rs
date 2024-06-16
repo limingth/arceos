@@ -1,5 +1,5 @@
 use core::{
-    alloc::{Allocator, Layout},
+    alloc::{AllocError, Allocator, Layout},
     marker::PhantomData,
     mem::size_of,
     ops::{Deref, DerefMut},
@@ -122,6 +122,7 @@ where
         let layout = Layout::from_size_align(size, align).unwrap();
         // 使用分配器分配内存
         let mut data = allocator.allocate(layout).unwrap();
+        debug!("allocated data:{:?}", data);
 
         unsafe {
             for i in 0..count {

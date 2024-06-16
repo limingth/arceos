@@ -2,25 +2,25 @@ use crate::err::*;
 use crate::host::usb::descriptors;
 use crate::{dma::DMA, OsDep};
 use alloc::alloc::Allocator;
-use alloc::collections::BTreeMap;
+use alloc::collections::{BTreeMap, BTreeSet};
 use alloc::format;
 use alloc::sync::Arc;
 use alloc::{boxed::Box, vec::Vec};
 use core::borrow::BorrowMut;
 use core::num;
+use log::debug;
 use xhci::context::Input64Byte;
 pub use xhci::context::{Device, Device64Byte, DeviceHandler};
 const NUM_EPS: usize = 32;
 
 pub struct DeviceContextList<O>
 where
-    O: OsDep,
+    O: OsDep + Clone,
 {
     pub dcbaa: DMA<[u64; 256], O::DMA>,
     pub device_out_context_list: Vec<DMA<Device64Byte, O::DMA>>,
     pub device_input_context_list: Vec<DMA<Input64Byte, O::DMA>>,
-    pub attached_set: BTreeMap<usize, xhci_device::DeviceAttached<O>>,
-    pub xhci: Option<Arc<Xhci<O>>>,
+    pub attached_set: BTreeMap<usize, xhci_device::DeviceAttached<O>, O::DMA>, //大概需要加锁？
     os: O,
 }
 
@@ -46,9 +46,8 @@ where
             dcbaa,
             device_out_context_list: out_context_list,
             device_input_context_list: in_context_list,
-            attached_set: BTreeMap::new(),
+            attached_set: BTreeMap::new_in(os.dma_alloc()),
             os,
-            xhci: None,
         }
     }
 
@@ -72,7 +71,9 @@ where
         }
         let trs = (0..num_ep)
             .into_iter()
-            .map(|_| Ring::new(self.os.clone(), 16, true).unwrap());
+            .map(|_| Ring::new(self.os.clone(), 16, true).unwrap())
+            .collect();
+        debug!("new rings!");
 
         self.attached_set.insert(
             slot,
@@ -80,12 +81,16 @@ where
                 hub,
                 port,
                 num_endp: 0,
-                address: slot,
-                transfer_rings: trs.collect(),
-                descriptors: Vec::new(),
-                xhci: self.xhci.as_mut().map(|arc| arc.clone()).unwrap(),
+                slot_id: slot,
+                transfer_rings: trs,
+                descriptors: {
+                    debug!("new desc container");
+                    Vec::new()
+                },
+                current_interface: 0,
             },
         );
+        debug!("insert complete!");
 
         Ok(self.attached_set.get_mut(&slot).unwrap())
     }

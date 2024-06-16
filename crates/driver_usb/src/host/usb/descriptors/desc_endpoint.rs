@@ -2,6 +2,8 @@ use bit_field::BitField;
 use num_traits::FromPrimitive;
 use xhci::context::EndpointType;
 
+use crate::host::PortSpeed;
+
 #[derive(Copy, Clone, Default, Debug)]
 #[repr(C, packed)]
 pub(crate) struct Endpoint {
@@ -14,7 +16,8 @@ pub(crate) struct Endpoint {
     pub(crate) ssc: Option<SuperSpeedCmp>,
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug)]
+#[repr(C, packed)]
 pub struct SuperSpeedCmp {
     pub kind: u8,
     pub max_burst: u8,
@@ -37,8 +40,16 @@ impl Endpoint {
         .expect("EndpointType must be convertible from `attributes` and `endpoint_address`.")
     }
 
-    pub(crate) fn interval(&self) -> u8 {
-        self.interval
+    pub(crate) fn calc_actual_interval(&self, port_speed: PortSpeed) -> u8 {
+        if let PortSpeed::FullSpeed | PortSpeed::LowSpeed = port_speed {
+            if let EndpointType::IsochOut | EndpointType::IsochIn = self.endpoint_type() {
+                self.interval + 2
+            } else {
+                self.interval + 3
+            }
+        } else {
+            self.interval - 1
+        }
     }
 
     pub(crate) fn max_streams(&self) -> Option<u8> {
@@ -51,7 +62,7 @@ impl Endpoint {
     }
 
     pub(crate) fn is_bulk_out(&self) -> bool {
-        self.endpoint_type==EndpointType::BulkOut
+        self.endpoint_type() == EndpointType::BulkOut
     }
 
     pub(crate) fn calculate_max_streams(&self) -> u8 {
@@ -65,13 +76,14 @@ impl Endpoint {
                     0
                 }
             })
+            .unwrap()
     }
 
     pub(crate) fn is_superspeedplus(&self) -> bool {
         false
     }
 
-    pub(crate) fn mult(&self,lec:bool) -> u8 {
+    pub(crate) fn mult(&self, lec: bool) -> u8 {
         if !lec && self.endpoint_type() == EndpointType::IsochOut {
             if self.is_superspeedplus() {
                 return 0;

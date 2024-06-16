@@ -139,7 +139,7 @@ where
 }
 
 impl DescriptorType {
-    pub(crate) fn value_for_transfer_control_index(
+    pub(crate) fn forLowBit(
         self,
         index: u8,
     ) -> DescriptionTypeIndexPairForControlTransfer {

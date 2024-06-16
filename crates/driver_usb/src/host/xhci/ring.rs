@@ -56,6 +56,7 @@ impl<O: OsDep> Ring<O> {
     }
 
     fn next_index(&mut self) -> usize {
+        debug!("next index");
         let mut i;
         loop {
             i = self.i;
@@ -95,5 +96,9 @@ impl<O: OsDep> Ring<O> {
     pub fn next_data(&mut self) -> (&mut TrbData, bool) {
         let i = self.next_index();
         (&mut self.trbs[i], self.cycle)
+    }
+
+    pub fn peek_next_data(&mut self) -> (&TrbData, bool) {
+        (&self.trbs[self.i], self.cycle)
     }
 }

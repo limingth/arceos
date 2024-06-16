@@ -8,7 +8,10 @@ extern crate axstd as std;
 
 use axalloc::GlobalNoCacheAllocator;
 use driver_usb::{
-    host::{xhci::Xhci, USBHost, USBHostConfig},
+    host::{
+        xhci::{self, Xhci},
+        USBHost, USBHostConfig,
+    },
     OsDep,
 };
 
@@ -37,7 +40,8 @@ fn main() {
         OsDepImp {},
     );
 
-    let usb = USBHost::new::<Xhci<_>>(config).unwrap();
+    let mut usb = USBHost::new::<Xhci<_>>(config).unwrap();
 
     usb.poll();
+    usb.work_temporary_example();
 }

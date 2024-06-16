@@ -1,9 +1,10 @@
-use crate::{dma::DMA, OsDep};
 pub use super::ring::{Ring, TrbData};
 use crate::err::*;
-use tock_registers::registers::{ReadOnly, ReadWrite, WriteOnly};
-use tock_registers::register_structs;
+use crate::{dma::DMA, OsDep};
 use tock_registers::interfaces::Writeable;
+use tock_registers::register_structs;
+use tock_registers::registers::{ReadOnly, ReadWrite, WriteOnly};
+use xhci::extended_capabilities::hci_extended_power_management::Data;
 use xhci::ring::trb::{self, event::Allowed};
 
 register_structs! {
@@ -16,36 +17,41 @@ register_structs! {
     }
 }
 
-
-
 pub struct EventRing<O>
-where O: OsDep
+where
+    O: OsDep,
 {
     pub ring: Ring<O>,
-    pub ste: DMA<[EventRingSte], O::DMA>
+    pub ste: DMA<[EventRingSte], O::DMA>,
 }
 
-
-
-impl <O>EventRing <O>
-where O: OsDep
+impl<O> EventRing<O>
+where
+    O: OsDep,
 {
     pub fn new(os: O) -> Result<Self> {
         let a = os.dma_alloc();
         let mut ring = EventRing {
-            ste: DMA::zeroed( 1, 64, a),
+            ste: DMA::zeroed(1, 64, a),
             ring: Ring::new(os, 256, false)?,
         };
         ring.ste[0].addr_low.set(ring.ring.register() as u32);
-        ring.ste[0].addr_high.set((ring.ring.register() as u64 >> 32) as u32);
+        ring.ste[0]
+            .addr_high
+            .set((ring.ring.register() as u64 >> 32) as u32);
         ring.ste[0].size.set(ring.ring.trbs.len() as u16);
 
         Ok(ring)
     }
 
-    pub fn next(&mut self) ->Allowed {
+    pub fn next(&mut self) -> Allowed {
         let (data, cycle) = self.ring.next_data();
         Allowed::try_from(data.clone()).unwrap()
+    }
+
+    pub fn busy_wait_next(&mut self) -> Option<Allowed> {
+        let (data, flag) = self.ring.peek_next_data();
+        Allowed::try_from(data.clone()).ok()
     }
 
     pub fn erdp(&self) -> u64 {
@@ -56,4 +62,3 @@ where O: OsDep
         ptr as *const EventRingSte as usize as u64
     }
 }
-
