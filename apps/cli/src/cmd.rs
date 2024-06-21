@@ -1,5 +1,4 @@
 use std::io::{self};
-
 #[cfg(all(not(feature = "axstd"), unix))]
 
 macro_rules! print_err {
@@ -21,7 +20,15 @@ const CMD_TABLE: &[(&str, CmdHandler)] = &[
     ("str", do_str),
     ("test_xhci", test_xhci),
     ("enum_port", enum_port),
+    ("iicoled", do_iicoled),
 ];
+
+fn do_iicoled(_args: &str) {
+    // if let Err(()) = driver_i2c::run_iicoled() {
+    //     println!("Failed to start iicoled: {}", err);
+    // }
+    driver_i2c::run_iicoled();
+}
 
 fn test_xhci(_args: &str) {
     driver_usb::try_init(0x31a08000 as usize)
