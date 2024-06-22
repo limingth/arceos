@@ -182,23 +182,21 @@ where
                     let in_dci = endpoints.get_mut(0).unwrap().doorbell_value_aka_dci(); //we use first in interrupt endpoint here, in actual environment, there might has multiple.
                     let buffer = DMA::new_vec(0u8, 4, 32, xhci.config.os.dma_alloc()); //enough for a mouse Report(should get from report above,but we not parse it yet)
 
-                    let request = transfer::Allowed::Normal(
-                        // just use normal trb to request interrupt transfer
-                        *Normal::default()
-                            .set_data_buffer_pointer(buffer.addr() as u64)
-                            .set_interrupt_on_completion()
-                            .set_td_size(0)
-                            .set_trb_transfer_length(buffer.length_for_bytes() as u32)
-                            .clear_interrupt_on_short_packet()
-                            .set_interrupter_target(0), // weird, so xhci actually support multiple interrupter?
-                    );
                     debug!("{TAG}: post IN Transfer report request");
                     let result = {
                         //temporary inlined, hass to be packed in to a function future
                         let this = &xhci;
-                        let request = request;
-                        let mut transfer_rings =
-                            rings.get_many_mut([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]).unwrap(); //chaos!
+                        let request = transfer::Allowed::Normal(
+                            // just use normal trb to request interrupt transfer
+                            *Normal::default()
+                                .set_data_buffer_pointer(buffer.addr() as u64)
+                                .set_interrupt_on_completion()
+                                .set_td_size(0)
+                                .set_trb_transfer_length(buffer.length_for_bytes() as u32)
+                                .clear_interrupt_on_short_packet()
+                                .set_interrupter_target(0), // weird, so xhci actually support multiple interrupter?
+                        );
+                        let mut transfer_rings = rings.get_many_mut([3]).unwrap(); //chaos!
 
                         let dci = 3 as u8;
 
