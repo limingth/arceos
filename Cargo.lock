@@ -982,6 +982,9 @@ dependencies = [
 [[package]]
 name = "driver_i2c"
 version = "0.1.0"
+dependencies = [
+ "log",
+]
 
 [[package]]
 name = "driver_net"
