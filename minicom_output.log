@@ -1,6 +1,7 @@
  
-## Total Size      = 0x0002f040 = 192576 Bytes
+## Total Size      = 0x00030040 = 196672 Bytes
 ## Start Addr      = 0x90100000
+Phytium-Pi#
 Phytium-Pi#go 0x90100000
 ## Starting application at 0x90100000 ...
 aaaaaaaaaaaacarch = aarch64
@@ -10,349 +11,308 @@ smp = 1
 build_mode = release
 log_level = debug
 
-ccc[ 36.132678 0 axruntime:138] Logging is enabled.
-[ 36.138407 0 axruntime:139] Primary CPU 512 started, dtb = 0x1.
-[ 36.145525 0 axruntime:141] Found physcial memory regions:
-c[ 36.152296 0 axruntime:144]   [PA:0x90100000, PA:0x90125000) .text (READ | EXECUTE | RESERVED)
-[ 36.162103 0 axruntime:144]   [PA:0x90125000, PA:0x9012c000) .rodata (READ | RESERVED)
-[ 36.171217 0 axruntime:144]   [PA:0x9012c000, PA:0x90130000) .data .tdata .tbss .percpu (READ | WRITE | RESERVED)
-[ 36.182675 0 axruntime:144]   [PA:0x90130000, PA:0x90170000) boot stack (READ | WRITE | RESERVED)
-[ 36.192744 0 axruntime:144]   [PA:0x90170000, PA:0x90196000) .bss (READ | WRITE | RESERVED)
-[ 36.202292 0 axruntime:144]   [PA:0x0, PA:0x1000) spintable (READ | WRITE | RESERVED)
-[ 36.211319 0 axruntime:144]   [PA:0x90196000, PA:0x90896000) nocache memory (READ | WRITE | DEVICE)
-[ 36.221561 0 axruntime:144]   [PA:0x90896000, PA:0xff900000) free memory (READ | WRITE | FREE)
-[ 36.231370 0 axruntime:144]   [PA:0x2800c000, PA:0x2800d000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 36.241699 0 axruntime:144]   [PA:0x2800d000, PA:0x2800e000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 36.252028 0 axruntime:144]   [PA:0x2800e000, PA:0x2800f000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 36.262357 0 axruntime:144]   [PA:0x2800f000, PA:0x28010000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 36.272686 0 axruntime:144]   [PA:0x30000000, PA:0x38000000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 36.283016 0 axruntime:144]   [PA:0x40000000, PA:0x80000000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 36.293345 0 axruntime:144]   [PA:0x1000000000, PA:0x3000000000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 36.304021 0 axruntime:223] Initialize global memory allocator...
-[ 36.311313 0 axruntime:224]   use TLSF allocator.
-[ 36.317217 0 axalloc:284] initialize global allocator at: free-[0xffff000090896000, 0xffff0000ff900000)
-[ 36.328127 0 axruntime:158] Initialize kernel page table...
-[ 36.334668 0 axruntime:258] Initialize global no cache memory allocator...
-[ 36.342649 0 axalloc:300] initialize global allocator at: nocache-[0x90196000,0x90896000)
-[ 36.352024 0 axruntime:165] Initialize platform devices...
-[ 36.358705 0 axhal::platform::aarch64_common::gic:51] Initialize GICv2...
-[ 36.366692 0 axtask::api:66] Initialize scheduling...
-[ 36.372945 0 axtask::task:146] new task: Task(1, "idle")
-[ 36.379455 0 axtask::task:146] new task: Task(3, "gc")
-[ 36.385791 0 axalloc:126] expand heap memory: [0xffff0000908a8000, 0xffff0000908e8000)
-[ 36.394908 0 axalloc:126] expand heap memory: [0xffff0000908e8000, 0xffff000090968000)
-[ 36.404018 0 axtask::api:72]   use Round-robin scheduler.
-[ 36.410612 0 axdriver:158] Initialize device drivers...
-[ 36.417035 0 axdriver:159]   device model: static
-[ 36.422937 0 driver_pci::phytium:18] PCIe link start @0xFFFF000040000000...
-[ 36.431097 0 driver_pci::phytium:19] theroticly, since uboot had already initialized it, we need't to operate it any more!
-[ 36.443336 0 axdriver::bus::pci:14] probing in pci.rs!
-[ 36.449672 0 driver_pci::root_complex:96] into next!
-[ 36.455836 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.462779 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.469723 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.476667 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.483611 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.490555 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.497499 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.504443 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.511387 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.518331 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.525275 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.532219 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.539163 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.546107 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.553051 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.559995 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.566939 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.573883 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.580827 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.587771 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.594715 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.601659 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.608603 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.615547 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.622491 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.629435 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.636379 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.643323 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.650267 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.657211 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.664155 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.671099 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 36.678043 0 driver_pci::root_complex:116] none!
-[ 36.683859 0 axdriver:190] number of usb host controller: 0
-[ 36.690629 0 axruntime:191] Initialize interrupt handlers...
-[ 36.697486 0 axruntime:201] Primary CPU 512 init OK.
-[ 36.703649 0:2 driver_usb::host::xhci:79] [XHCI] Base addr: VA:0xffff000031a08000
-[ 36.712332 0:2 driver_usb::host::xhci:90] [XHCI] Max_slots: 16, max_ports: 2, max_irqs: 1, page size: 1
-[ 36.723637 0:2 driver_usb::dma:125] allocated data:0x901b7880
-[ 36.729897 0:2 driver_usb::dma:125] allocated data:0x901b8900
-[ 36.736841 0:2 driver_usb::host::xhci:141] [XHCI] Reset begin
-[ 36.743750 0:2 driver_usb::host::xhci:142] [XHCI] Stop
-[ 36.750087 0:2 driver_usb::host::xhci:150] [XHCI] Until halt
-[ 36.756944 0:2 driver_usb::host::xhci:152] [XHCI] Halted
-[ 36.763454 0:2 driver_usb::host::xhci:157] [XHCI] Wait for ready...
-[ 36.770919 0:2 driver_usb::host::xhci:159] [XHCI] Ready
-[ 36.777343 0:2 driver_usb::host::xhci:167] [XHCI] Reset HC
-[ 36.784026 0:2 driver_usb::host::xhci:181] [XHCI] XCHI reset ok
-[ 36.791143 0:2 driver_usb::host::xhci:187] [XHCI] Setting enabled slots to 16.
-[ 36.799563 0:2 driver_usb::host::xhci:197] [XHCI] Writing DCBAAP: 90197000
-[ 36.807636 0:2 driver_usb::host::xhci:208] [XHCI] Writing CRCR: 901B7880
-[ 36.815535 0:2 driver_usb::host::xhci:252] [XHCI] Disable interrupts
-[ 36.823086 0:2 driver_usb::host::xhci:262] [XHCI] Writing ERSTZ
-[ 36.830204 0:2 driver_usb::host::xhci:266] [XHCI] Writing ERDP: 901B8900
-[ 36.838103 0:2 driver_usb::host::xhci:273] [XHCI] Writing ERSTBA: 901B88C0
-[ 36.846176 0:2 driver_usb::host::xhci:284] [XHCI] Enabling primary interrupter.
-[ 36.854682 0:2 driver_usb::host::xhci:500] [XHCI] Scratch buf count: 0
-[ 36.862406 0:2 driver_usb::host::xhci:234] [XHCI] Start run
-[ 36.869177 0:2 driver_usb::host::xhci:241] [XHCI] Is running
-[ 36.876034 0:2 driver_usb::host::xhci:483] [XHCI] Test command ring
-[ 36.883499 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 0
-[ 36.890877 0:2 driver_usb::host::xhci::ring:59] next index
-[ 36.897560 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 0
-[ 36.905285 0:2 driver_usb::host::xhci:308] [XHCI] Post cmd Noop(Noop { cycle_bit: true }) @FFFF00009016F414
-[ 36.916223 0:2 driver_usb::host::xhci:320] [XHCI] Wait result
-[ 36.923166 0:2 driver_usb::host::xhci::ring:59] next index
-[ 36.929851 0:2 driver_usb::host::xhci:337] event: PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 1, cycle_bit: true })
-[ 36.944171 0:2 driver_usb::host::xhci::ring:59] next index
-[ 36.950856 0:2 driver_usb::host::xhci:329] [XHCI] Cmd @901B7880 got result, cycle true
-[ 36.959969 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 1
-[ 36.967347 0:2 driver_usb::host::xhci::ring:59] next index
-[ 36.974031 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 1
-[ 36.981756 0:2 driver_usb::host::xhci:308] [XHCI] Post cmd Noop(Noop { cycle_bit: true }) @FFFF00009016F414
-[ 36.992693 0:2 driver_usb::host::xhci:320] [XHCI] Wait result
-[ 36.999636 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.006321 0:2 driver_usb::host::xhci:329] [XHCI] Cmd @901B7890 got result, cycle true
-[ 37.015434 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 2
-[ 37.022812 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.029496 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 2
-[ 37.037221 0:2 driver_usb::host::xhci:308] [XHCI] Post cmd Noop(Noop { cycle_bit: true }) @FFFF00009016F414
-[ 37.048158 0:2 driver_usb::host::xhci:320] [XHCI] Wait result
-[ 37.055102 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.061786 0:2 driver_usb::host::xhci:329] [XHCI] Cmd @901B78A0 got result, cycle true
-[ 37.070900 0:2 driver_usb::host::xhci:487] [XHCI] Command ring ok
-[ 37.078191 0:2 driver_usb::host::xhci:543] [XHCI] Port 0 start reset
-[ 37.143585 0:2 driver_usb::host::xhci:556] [XHCI] Port 0 reset ok
-[ 37.148004 0:2 driver_usb::host::xhci:543] [XHCI] Port 1 start reset
-[ 37.155562 0:2 driver_usb::host::xhci:556] [XHCI] Port 1 reset ok
-[ 37.162847 0:2 driver_usb::host::xhci:115] [XHCI] Init success
-[ 37.169881 0:2 driver_usb::host::xhci:568] [XHCI] Port 0: Enabled: true, Connected: true, Speed 1, Power true
-[ 37.180991 0:2 driver_usb::host::xhci:568] [XHCI] Port 1: Enabled: false, Connected: false, Speed 0, Power true
-[ 37.192273 0:2 driver_usb::host::xhci:889] [XHCI] CMD: enable slot
-[ 37.199651 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 3
-[ 37.207028 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.213712 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 3
-[ 37.221437 0:2 driver_usb::host::xhci:308] [XHCI] Post cmd EnableSlot(EnableSlot { slot_type: 0, cycle_bit: true }) @FFFF00009016F2CC
-[ 37.234631 0:2 driver_usb::host::xhci:320] [XHCI] Wait result
-[ 37.241575 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.248259 0:2 driver_usb::host::xhci:337] event: PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 1, cycle_bit: true })
-[ 37.262580 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.269265 0:2 driver_usb::host::xhci:329] [XHCI] Cmd @901B78B0 got result, cycle true
-[ 37.278378 0:2 driver_usb::host::xhci:894] [XHCI] Result: CommandCompletion { completion_code: Ok(Success), command_trb_pointer: 2417719472, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }, slot id: 1
-[ 37.299557 0:2 driver_usb::host::xhci:897] new slot!
-[ 37.305721 0:2 driver_usb::dma:125] allocated data:0x901b9940
-[ 37.312666 0:2 driver_usb::dma:125] allocated data:0x901b9a80
-[ 37.319610 0:2 driver_usb::dma:125] allocated data:0x901b9bc0
-[ 37.326555 0:2 driver_usb::dma:125] allocated data:0x901b9d00
-[ 37.333499 0:2 driver_usb::dma:125] allocated data:0x901b9e40
-[ 37.340442 0:2 driver_usb::dma:125] allocated data:0x901b9f80
-[ 37.347386 0:2 driver_usb::dma:125] allocated data:0x901ba0c0
-[ 37.354330 0:2 driver_usb::dma:125] allocated data:0x901ba200
-[ 37.361274 0:2 driver_usb::dma:125] allocated data:0x901ba340
-[ 37.368218 0:2 driver_usb::dma:125] allocated data:0x901ba480
-[ 37.375162 0:2 driver_usb::dma:125] allocated data:0x901ba5c0
-[ 37.382107 0:2 driver_usb::dma:125] allocated data:0x901ba700
-[ 37.389051 0:2 driver_usb::dma:125] allocated data:0x901ba840
-[ 37.395994 0:2 driver_usb::dma:125] allocated data:0x901ba980
-[ 37.402938 0:2 driver_usb::dma:125] allocated data:0x901baac0
-[ 37.409882 0:2 driver_usb::dma:125] allocated data:0x901bac00
-[ 37.416826 0:2 driver_usb::host::xhci::context:76] new rings!
-[ 37.423768 0:2 driver_usb::host::xhci::context:87] new desc container
-[ 37.431408 0:2 driver_usb::host::xhci::context:93] insert complete!
-[ 37.438872 0:2 driver_usb::host::xhci:586] assign complete!
-[ 37.445649 0:2 driver_usb::host::xhci:853] [XHCI] CMD: address device
-[ 37.453280 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 4
-[ 37.460658 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.467342 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 4
-[ 37.475067 0:2 driver_usb::host::xhci:308] [XHCI] Post cmd AddressDevice(AddressDevice { input_context_pointer: 2417602560, block_set_address_request: false, slot_id: 1, cycle_bit: true }) @FFFF00009016F25C
-[ 37.494597 0:2 driver_usb::host::xhci:320] [XHCI] Wait result
-[ 37.501541 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.508225 0:2 driver_usb::host::xhci:329] [XHCI] Cmd @901B78C0 got result, cycle true
-[ 37.517339 0:2 driver_usb::host::xhci:862] [XHCI] Result: CommandCompletion { completion_code: Ok(Success), command_trb_pointer: 2417719488, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
-[ 37.537476 0:2 driver_usb::host::xhci:588] address complete!
-[ 37.544335 0:2 driver_usb::host::xhci:755] [XHCI] CMD: get endpoint0 packet size
-[ 37.552928 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 0
-[ 37.560304 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.566988 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 0
-[ 37.574713 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 1
-[ 37.582091 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.588775 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 1
-[ 37.596500 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 2
-[ 37.603878 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.610561 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 2
-[ 37.618287 0:2 driver_usb::host::xhci:442] [XHCI] Post control transfer!
-[ 37.626186 0:2 driver_usb::host::xhci:456] [XHCI] Wait result
-[ 37.633131 0:2 driver_usb::host::xhci:462] received temp!:TransferEvent(TransferEvent { completion_code: Ok(Success), trb_pointer: 2417727840, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
-[ 37.654916 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.661601 0:2 driver_usb::host::xhci:467] [XHCI] Transfer @901B9960 got result, cycle true
-[ 37.671149 0:2 driver_usb::host::xhci:762] [XHCI] Result: TransferEvent { completion_code: Ok(Success), trb_pointer: 2417727840, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true }
-[ 37.691633 0:2 driver_usb::host::xhci:776] [XHCI] CMD: evaluating context for set endpoint0 packet size
-[ 37.702223 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 5
-[ 37.709600 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.716284 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 5
-[ 37.724009 0:2 driver_usb::host::xhci:308] [XHCI] Post cmd EvaluateContext(EvaluateContext { input_context_pointer: 2417602560, slot_id: 1, cycle_bit: true }) @FFFF00009016F25C
-[ 37.740936 0:2 driver_usb::host::xhci:320] [XHCI] Wait result
-[ 37.747879 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.754563 0:2 driver_usb::host::xhci:329] [XHCI] Cmd @901B78D0 got result, cycle true
-[ 37.763677 0:2 driver_usb::host::xhci:782] [XHCI] Result: CommandCompletion { completion_code: Ok(Success), command_trb_pointer: 2417719504, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
-[ 37.783816 0:2 driver_usb::host::xhci:590] packet size complete!
-[ 37.791020 0:2 driver_usb::dma:125] allocated data:0x901bc000
-[ 37.798238 0:2 driver_usb::host::xhci:725] [XHCI] Transfer Control: Fetching all configs
-[ 37.807252 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 3
-[ 37.814628 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.821312 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 3
-[ 37.829037 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 4
-[ 37.836415 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.843099 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 4
-[ 37.850824 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 5
-[ 37.858202 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.864885 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 5
-[ 37.872611 0:2 driver_usb::host::xhci:442] [XHCI] Post control transfer!
-[ 37.880510 0:2 driver_usb::host::xhci:456] [XHCI] Wait result
-[ 37.887454 0:2 driver_usb::host::xhci:462] received temp!:TransferEvent(TransferEvent { completion_code: Ok(Success), trb_pointer: 2417727888, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
-[ 37.909240 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.915925 0:2 driver_usb::host::xhci:467] [XHCI] Transfer @901B9990 got result, cycle true
-[ 37.925472 0:2 driver_usb::host::xhci:734] [XHCI] Result: TransferEvent { completion_code: Ok(Success), trb_pointer: 2417727888, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true }
-[ 37.945962 0:2 driver_usb::dma:125] allocated data:0x901bc000
-[ 37.953176 0:2 driver_usb::host::xhci:697] [XHCI] Transfer Control: Fetching all configs
-[ 37.962190 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 6
-[ 37.969566 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.976250 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 6
-[ 37.983975 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 7
-[ 37.991353 0:2 driver_usb::host::xhci::ring:59] next index
-[ 37.998037 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 7
-[ 38.005762 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 8
-[ 38.013140 0:2 driver_usb::host::xhci::ring:59] next index
-[ 38.019824 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 8
-[ 38.027549 0:2 driver_usb::host::xhci:442] [XHCI] Post control transfer!
-[ 38.035448 0:2 driver_usb::host::xhci:456] [XHCI] Wait result
-[ 38.042392 0:2 driver_usb::host::xhci:462] received temp!:TransferEvent(TransferEvent { completion_code: Ok(Success), trb_pointer: 2417727936, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
-[ 38.064178 0:2 driver_usb::host::xhci::ring:59] next index
-[ 38.070863 0:2 driver_usb::host::xhci:467] [XHCI] Transfer @901B99C0 got result, cycle true
-[ 38.080410 0:2 driver_usb::host::xhci:706] [XHCI] Result: TransferEvent { completion_code: Ok(Success), trb_pointer: 2417727936, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true }
-[ 38.100910 0:2 driver_usb::host::xhci:678] fetched descriptors:[Device(Device { len: 18, descriptor_type: 1, cd_usb: 272, class: 0, subclass: 0, protocol: 0, max_packet_size0: 8, vendor: 9354, product_id: 33639, device: 256, manufacture: 1, product: 2, serial_number: 0, num_configurations: 1 }), Configuration(Configuration { length: 9, ty: 2, total_length: 59, num_interfaces: 2, config_val: 1, config_string: 0, attributes: 160, max_power: 25 }), Interface(Interface { len: 9, descriptor_type: 4, interface_number: 0, alternate_setting: 0, num_endpoints: 1, interface_class: 3, interface_subclass: 1, interface_protocol: 2, interface: 0 }), Hid(Hid { len: 9, descriptor_type: 33, hid_bcd: 273, country_code: 33, num_descriptions: 1, report_descriptor_type: 34, report_descriptor_len: 142 }), Endpoint(Endpoint { len: 7, descriptor_type: 5, endpoint_address: 130, attributes: 3, max_packet_size: 8, interval: 4, ssc: None }), Interface(Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 0, num_endpoints: 1, interface_class: 3, interface_subclass: 1, interface_protocol: 1, interface: 0 }), Hid(Hid { len: 9, descriptor_type: 33, hid_bcd: 273, country_code: 33, num_descriptions: 1, report_descriptor_type: 34, report_descriptor_len: 59 }), Endpoint(Endpoint { len: 7, descriptor_type: 5, endpoint_address: 129, attributes: 3, max_packet_size: 8, interval: 10, ssc: None })]
-[ 38.224498 0:2 driver_usb::host::xhci:592] fetch all complete!
-[ 38.231530 0:2 driver_usb::host::xhci:598] set cfg!
-[ 38.237609 0:2 driver_usb::host::xhci::xhci_device:86] found last entry: 0x82
-[ 38.245942 0:2 driver_usb::host::xhci::xhci_device:206] set a interrupt endpoint! addr:5
-[ 38.255226 0:2 driver_usb::host::xhci::xhci_device:206] set a interrupt endpoint! addr:3
-[ 38.264514 0:2 driver_usb::host::xhci::xhci_device:111] [XHCI DEVICE] CMD: configure endpoint
-[ 38.274235 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 6
-[ 38.281612 0:2 driver_usb::host::xhci::ring:59] next index
-[ 38.288296 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 6
-[ 38.296021 0:2 driver_usb::host::xhci:308] [XHCI] Post cmd ConfigureEndpoint(ConfigureEndpoint { input_context_pointer: 2417602560, deconfigure: false, slot_id: 1, cycle_bit: true }) @FFFF00009016F414
-[ 38.315031 0:2 driver_usb::host::xhci:320] [XHCI] Wait result
-[ 38.321974 0:2 driver_usb::host::xhci::ring:59] next index
-[ 38.328659 0:2 driver_usb::host::xhci:329] [XHCI] Cmd @901B78E0 got result, cycle true
-[ 38.337772 0:2 driver_usb::host::xhci::xhci_device:121] [XHCI DEVICE] CMD: result:Ok(CommandCompletion { completion_code: Ok(Success), command_trb_pointer: 2417719520, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true })
-[ 38.360340 0:2 driver_usb::host::xhci::xhci_device:123] [XHCI DEVICE] Transfer command: set configuration
-[ 38.371105 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 9
-[ 38.378481 0:2 driver_usb::host::xhci::ring:59] next index
-[ 38.385165 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 9
-[ 38.392890 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 10
-[ 38.400355 0:2 driver_usb::host::xhci::ring:59] next index
-[ 38.407038 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 10
-[ 38.414850 0:2 driver_usb::host::xhci:442] [XHCI] Post control transfer!
-[ 38.422750 0:2 driver_usb::host::xhci:456] [XHCI] Wait result
-[ 38.429694 0:2 driver_usb::host::xhci:462] received temp!:TransferEvent(TransferEvent { completion_code: Ok(Success), trb_pointer: 2417727968, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
-[ 38.451480 0:2 driver_usb::host::xhci::ring:59] next index
-[ 38.458164 0:2 driver_usb::host::xhci:467] [XHCI] Transfer @901B99E0 got result, cycle true
-[ 38.467712 0:2 driver_usb::host::xhci::xhci_device:140] [XHCI DEVICE] Transfer command: result:Ok(TransferEvent { completion_code: Ok(Success), trb_pointer: 2417727968, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
-[ 38.491756 0:2 driver_usb::host::xhci::xhci_device:58] try creating!
-[ 38.499307 0:2 driver_usb::host::usb::drivers::driver_usb_hid:61] creating!
-[ 38.507468 0:2 driver_usb::host::usb::drivers::driver_usb_hid:65] desc_device: [Device { len: 18, descriptor_type: 1, cd_usb: 272, class: 0, subclass: 0, protocol: 0, max_packet_size0: 8, vendor: 9354, product_id: 33639, device: 256, manufacture: 1, product: 2, serial_number: 0, num_configurations: 1 }]
-[ 38.535504 0:2 driver_usb::host::usb::drivers::driver_usb_hid:89] interface csp:3,1,2
-[ 38.544533 0:2 driver_usb::host::usb::drivers::driver_usb_hid:125] [USB-HID DRIVER]: post idle request to control endpoint
-[ 38.556770 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 11
-[ 38.564233 0:2 driver_usb::host::xhci::ring:59] next index
-[ 38.570917 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 11
-[ 38.578729 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 12
-[ 38.586194 0:2 driver_usb::host::xhci::ring:59] next index
-[ 38.592877 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 12
-[ 38.600689 0:2 driver_usb::host::xhci:442] [XHCI] Post control transfer!
-[ 38.608588 0:2 driver_usb::host::xhci:456] [XHCI] Wait result
-[ 38.615533 0:2 driver_usb::host::xhci:462] received temp!:TransferEvent(TransferEvent { completion_code: Ok(Success), trb_pointer: 2417728000, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
-[ 38.637319 0:2 driver_usb::host::xhci::ring:59] next index
-[ 38.644003 0:2 driver_usb::host::xhci:467] [XHCI] Transfer @901B9A00 got result, cycle true
-[ 38.653551 0:2 driver_usb::host::usb::drivers::driver_usb_hid:134] [USB-HID DRIVER]: result: Ok(TransferEvent { completion_code: Ok(Success), trb_pointer: 2417728000, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
-[ 39.177421 0:2 driver_usb::dma:125] allocated data:0x901bb180
-[ 39.181501 0:2 driver_usb::host::usb::drivers::driver_usb_hid:156] [USB-HID DRIVER]: post report request
-[ 39.192171 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 13
-[ 39.199634 0:2 driver_usb::host::xhci::ring:59] next index
-[ 39.206318 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 13
-[ 39.214130 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 14
-[ 39.221594 0:2 driver_usb::host::xhci::ring:59] next index
-[ 39.228278 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 14
-[ 39.236090 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 15
-[ 39.243555 0:2 driver_usb::host::xhci::ring:59] next index
-[ 39.250239 0:2 driver_usb::host::xhci::ring:66] reset index!
-[ 39.257096 0:2 driver_usb::host::xhci::ring:69] link!
-[ 39.263345 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 0
-[ 39.271071 0:2 driver_usb::host::xhci:388] [XHCI] Post control transfer!
-[ 39.278970 0:2 driver_usb::host::xhci:398] [XHCI] Wait result
-[ 39.285913 0:2 driver_usb::host::xhci:456] [XHCI] Wait result
-[ 39.292858 0:2 driver_usb::host::xhci:462] received temp!:TransferEvent(TransferEvent { completion_code: Ok(Success), trb_pointer: 2417728048, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
-[ 39.314644 0:2 driver_usb::host::xhci::ring:59] next index
-[ 39.321328 0:2 driver_usb::host::xhci:467] [XHCI] Transfer @901B9A30 got result, cycle true
-[ 39.330876 0:2 driver_usb::host::usb::drivers::driver_usb_hid:167] [USB-HID DRIVER]: result: TransferEvent { completion_code: Ok(Success), trb_pointer: 2417728048, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true }
-[ 39.354404 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 05 01 09 02 
-[ 39.362908 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] a1 01 85 01 
-[ 39.371414 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 09 01 a1 00 
-[ 39.379920 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 05 09 19 01 
-[ 39.388427 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 29 05 15 00 
-[ 39.396933 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 25 01 95 05 
-[ 39.405440 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 75 01 81 02 
-[ 39.413946 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 95 01 75 03 
-[ 39.422452 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 81 01 05 01 
-[ 39.430959 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 09 30 09 31 
-[ 39.439465 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 15 81 25 7f 
-[ 39.447972 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 75 08 95 02 
-[ 39.456478 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 81 06 09 38 
-[ 39.464984 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 15 81 25 7f 
-[ 39.473491 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 75 08 95 01 
-[ 39.481997 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 81 06 c0 c0 
-[ 39.490504 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 05 0c 09 01 
-[ 39.499010 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] a1 01 85 03 
-[ 39.507517 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 75 10 95 02 
-[ 39.516023 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 15 01 26 8c 
-[ 39.524529 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 02 19 01 2a 
-[ 39.533035 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 8c 02 81 00 
-[ 39.541542 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] c0 05 01 09 
-[ 39.550048 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 80 a1 01 85 
-[ 39.558555 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 04 75 02 95 
-[ 39.567061 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 01 15 01 25 
-[ 39.575568 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 03 09 82 09 
-[ 39.584074 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 81 09 83 81 
-[ 39.592581 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 60 75 06 81 
-[ 39.601087 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 03 c0 05 01 
-[ 39.609593 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 09 00 a1 01 
-[ 39.618100 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 85 05 06 00 
-[ 39.626606 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] ff 09 01 15 
-[ 39.635112 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 81 25 7f 75 
-[ 39.643619 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 08 95 07 b1 
-[ 39.652124 0:2 driver_usb::host::usb::drivers::driver_usb_hid:253] 02 c0 
-[ 39.660112 0:2 driver_usb::dma:125] allocated data:0x901bb160
-[ 39.667052 0:2 driver_usb::host::usb::drivers::driver_usb_hid:185] [USB-HID DRIVER]: post IN Transfer report request
-[ 39.678771 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 0
-[ 39.686148 0:2 driver_usb::host::xhci::ring:59] next index
-[ 39.692832 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 0
-[ 39.700557 0:2 driver_usb::host::usb::drivers::driver_usb_hid:221] [USB-HID DRIVER] Post control transfer! at slot_id:1,dci:3
-[ 39.713056 0:2 driver_usb::host::xhci:456] [XHCI] Wait result
-[ 39.720001 0:2 driver_usb::host::xhci:462] received temp!:TransferEvent(TransferEvent { completion_code: Ok(EndpointNotEnabledError), trb_pointer: 0, trb_transfer_length: 0, event_data: false, endpoint_id: 3, slot_id: 1, cycle_bit: true })
-[ 39.742394 0:2 driver_usb::host::xhci::ring:59] next index
-[ 39.749079 0:2 driver_usb::host::xhci:467] [XHCI] Transfer @0 got result, cycle true
-[ 39.758019 0:2 driver_usb::host::usb::drivers::driver_usb_hid:235] [USB-HID DRIVER]: result: Ok(TransferEvent { completion_code: Ok(EndpointNotEnabledError), trb_pointer: 0, trb_transfer_length: 0, event_data: false, endpoint_id: 3, slot_id: 1, cycle_bit: true })
-[ 39.782500 0:2 driver_usb::host::usb::drivers::driver_usb_hid:248] 00 00 00 00 
-[ 39.791059 0:2 axtask::run_queue:86] task exit: Task(2, "main"), exit_code=0
-[ 39.799250 0:2 axhal::platform::aarch64_phytium_pi::misc:22] Shutting down...
+ccc[ 36.870647 0 axruntime:138] Logging is enabled.
+[ 36.876376 0 axruntime:139] Primary CPU 512 started, dtb = 0x1.
+[ 36.883493 0 axruntime:141] Found physcial memory regions:
+c[ 36.890264 0 axruntime:144]   [PA:0x90100000, PA:0x90126000) .text (READ | EXECUTE | RESERVED)
+[ 36.900072 0 axruntime:144]   [PA:0x90126000, PA:0x9012d000) .rodata (READ | RESERVED)
+[ 36.909186 0 axruntime:144]   [PA:0x9012d000, PA:0x90131000) .data .tdata .tbss .percpu (READ | WRITE | RESERVED)
+[ 36.920643 0 axruntime:144]   [PA:0x90131000, PA:0x90171000) boot stack (READ | WRITE | RESERVED)
+[ 36.930712 0 axruntime:144]   [PA:0x90171000, PA:0x90197000) .bss (READ | WRITE | RESERVED)
+[ 36.940260 0 axruntime:144]   [PA:0x0, PA:0x1000) spintable (READ | WRITE | RESERVED)
+[ 36.949287 0 axruntime:144]   [PA:0x90197000, PA:0x90897000) nocache memory (READ | WRITE | DEVICE)
+[ 36.959530 0 axruntime:144]   [PA:0x90897000, PA:0xff900000) free memory (READ | WRITE | FREE)
+[ 36.969338 0 axruntime:144]   [PA:0x2800c000, PA:0x2800d000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 36.979667 0 axruntime:144]   [PA:0x2800d000, PA:0x2800e000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 36.989997 0 axruntime:144]   [PA:0x2800e000, PA:0x2800f000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 37.000326 0 axruntime:144]   [PA:0x2800f000, PA:0x28010000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 37.010655 0 axruntime:144]   [PA:0x30000000, PA:0x38000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 37.020984 0 axruntime:144]   [PA:0x40000000, PA:0x80000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 37.031313 0 axruntime:144]   [PA:0x1000000000, PA:0x3000000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 37.041990 0 axruntime:223] Initialize global memory allocator...
+[ 37.049281 0 axruntime:224]   use TLSF allocator.
+[ 37.055186 0 axalloc:284] initialize global allocator at: free-[0xffff000090897000, 0xffff0000ff900000)
+[ 37.066096 0 axruntime:158] Initialize kernel page table...
+[ 37.072636 0 axruntime:258] Initialize global no cache memory allocator...
+[ 37.080617 0 axalloc:300] initialize global allocator at: nocache-[0x90197000,0x90897000)
+[ 37.089992 0 axruntime:165] Initialize platform devices...
+[ 37.096674 0 axhal::platform::aarch64_common::gic:51] Initialize GICv2...
+[ 37.104660 0 axtask::api:66] Initialize scheduling...
+[ 37.110914 0 axtask::task:146] new task: Task(1, "idle")
+[ 37.117423 0 axtask::task:146] new task: Task(3, "gc")
+[ 37.123760 0 axalloc:126] expand heap memory: [0xffff0000908a9000, 0xffff0000908e9000)
+[ 37.132876 0 axalloc:126] expand heap memory: [0xffff0000908e9000, 0xffff000090969000)
+[ 37.141986 0 axtask::api:72]   use Round-robin scheduler.
+[ 37.148580 0 axdriver:158] Initialize device drivers...
+[ 37.155003 0 axdriver:159]   device model: static
+[ 37.160906 0 driver_pci::phytium:18] PCIe link start @0xFFFF000040000000...
+[ 37.169065 0 driver_pci::phytium:19] theroticly, since uboot had already initialized it, we need't to operate it any more!
+[ 37.181304 0 axdriver::bus::pci:14] probing in pci.rs!
+[ 37.187641 0 driver_pci::root_complex:96] into next!
+[ 37.193804 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.200747 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.207691 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.214635 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.221579 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.228523 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.235467 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.242411 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.249355 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.256299 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.263243 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.270187 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.277131 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.284075 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.291019 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.297963 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.304907 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.311851 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.318795 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.325739 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.332683 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.339627 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.346571 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.353515 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.360459 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.367403 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.374347 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.381291 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.388235 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.395179 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.402123 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.409067 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 37.416011 0 driver_pci::root_complex:116] none!
+[ 37.421827 0 axdriver:190] number of usb host controller: 0
+[ 37.428597 0 axruntime:191] Initialize interrupt handlers...
+[ 37.435455 0 axruntime:201] Primary CPU 512 init OK.
+[ 37.441618 0:2 driver_usb::host::xhci:79] [XHCI] Base addr: VA:0xffff000031a08000
+[ 37.450300 0:2 driver_usb::host::xhci:90] [XHCI] Max_slots: 16, max_ports: 2, max_irqs: 1, page size: 1
+[ 37.461606 0:2 driver_usb::dma:125] allocated data:0x901b8880
+[ 37.467866 0:2 driver_usb::dma:125] allocated data:0x901b9900
+[ 37.474810 0:2 driver_usb::host::xhci:141] [XHCI] Reset begin
+[ 37.481719 0:2 driver_usb::host::xhci:142] [XHCI] Stop
+[ 37.488055 0:2 driver_usb::host::xhci:150] [XHCI] Until halt
+[ 37.494913 0:2 driver_usb::host::xhci:152] [XHCI] Halted
+[ 37.501422 0:2 driver_usb::host::xhci:157] [XHCI] Wait for ready...
+[ 37.508887 0:2 driver_usb::host::xhci:159] [XHCI] Ready
+[ 37.515312 0:2 driver_usb::host::xhci:167] [XHCI] Reset HC
+[ 37.521995 0:2 driver_usb::host::xhci:181] [XHCI] XCHI reset ok
+[ 37.529112 0:2 driver_usb::host::xhci:187] [XHCI] Setting enabled slots to 16.
+[ 37.537532 0:2 driver_usb::host::xhci:197] [XHCI] Writing DCBAAP: 90198000
+[ 37.545604 0:2 driver_usb::host::xhci:208] [XHCI] Writing CRCR: 901B8880
+[ 37.553503 0:2 driver_usb::host::xhci:252] [XHCI] Disable interrupts
+[ 37.561054 0:2 driver_usb::host::xhci:262] [XHCI] Writing ERSTZ
+[ 37.568172 0:2 driver_usb::host::xhci:266] [XHCI] Writing ERDP: 901B9900
+[ 37.576071 0:2 driver_usb::host::xhci:273] [XHCI] Writing ERSTBA: 901B98C0
+[ 37.584144 0:2 driver_usb::host::xhci:284] [XHCI] Enabling primary interrupter.
+[ 37.592650 0:2 driver_usb::host::xhci:500] [XHCI] Scratch buf count: 0
+[ 37.600375 0:2 driver_usb::host::xhci:234] [XHCI] Start run
+[ 37.607146 0:2 driver_usb::host::xhci:241] [XHCI] Is running
+[ 37.614002 0:2 driver_usb::host::xhci:483] [XHCI] Test command ring
+[ 37.621467 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 0
+[ 37.628845 0:2 driver_usb::host::xhci::ring:59] next index
+[ 37.635529 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 0
+[ 37.643253 0:2 driver_usb::host::xhci:308] [XHCI] Post cmd Noop(Noop { cycle_bit: true }) @FFFF000090170414
+[ 37.654191 0:2 driver_usb::host::xhci:320] [XHCI] Wait result
+[ 37.661134 0:2 driver_usb::host::xhci::ring:59] next index
+[ 37.667819 0:2 driver_usb::host::xhci:337] event: PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 1, cycle_bit: true })
+[ 37.682140 0:2 driver_usb::host::xhci::ring:59] next index
+[ 37.688824 0:2 driver_usb::host::xhci:329] [XHCI] Cmd @901B8880 got result, cycle true
+[ 37.697937 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 1
+[ 37.705315 0:2 driver_usb::host::xhci::ring:59] next index
+[ 37.711999 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 1
+[ 37.719724 0:2 driver_usb::host::xhci:308] [XHCI] Post cmd Noop(Noop { cycle_bit: true }) @FFFF000090170414
+[ 37.730661 0:2 driver_usb::host::xhci:320] [XHCI] Wait result
+[ 37.737605 0:2 driver_usb::host::xhci::ring:59] next index
+[ 37.744289 0:2 driver_usb::host::xhci:329] [XHCI] Cmd @901B8890 got result, cycle true
+[ 37.753403 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 2
+[ 37.760780 0:2 driver_usb::host::xhci::ring:59] next index
+[ 37.767464 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 2
+[ 37.775189 0:2 driver_usb::host::xhci:308] [XHCI] Post cmd Noop(Noop { cycle_bit: true }) @FFFF000090170414
+[ 37.786127 0:2 driver_usb::host::xhci:320] [XHCI] Wait result
+[ 37.793070 0:2 driver_usb::host::xhci::ring:59] next index
+[ 37.799755 0:2 driver_usb::host::xhci:329] [XHCI] Cmd @901B88A0 got result, cycle true
+[ 37.808868 0:2 driver_usb::host::xhci:487] [XHCI] Command ring ok
+[ 37.816159 0:2 driver_usb::host::xhci:543] [XHCI] Port 0 start reset
+[ 37.881553 0:2 driver_usb::host::xhci:556] [XHCI] Port 0 reset ok
+[ 37.885973 0:2 driver_usb::host::xhci:543] [XHCI] Port 1 start reset
+[ 37.893530 0:2 driver_usb::host::xhci:556] [XHCI] Port 1 reset ok
+[ 37.900816 0:2 driver_usb::host::xhci:115] [XHCI] Init success
+[ 37.907849 0:2 driver_usb::host::xhci:568] [XHCI] Port 0: Enabled: true, Connected: true, Speed 1, Power true
+[ 37.918959 0:2 driver_usb::host::xhci:568] [XHCI] Port 1: Enabled: false, Connected: false, Speed 0, Power true
+[ 37.930241 0:2 driver_usb::host::xhci:889] [XHCI] CMD: enable slot
+[ 37.937619 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 3
+[ 37.944997 0:2 driver_usb::host::xhci::ring:59] next index
+[ 37.951680 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 3
+[ 37.959405 0:2 driver_usb::host::xhci:308] [XHCI] Post cmd EnableSlot(EnableSlot { slot_type: 0, cycle_bit: true }) @FFFF0000901702CC
+[ 37.972599 0:2 driver_usb::host::xhci:320] [XHCI] Wait result
+[ 37.979543 0:2 driver_usb::host::xhci::ring:59] next index
+[ 37.986227 0:2 driver_usb::host::xhci:337] event: PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 1, cycle_bit: true })
+[ 38.000549 0:2 driver_usb::host::xhci::ring:59] next index
+[ 38.007233 0:2 driver_usb::host::xhci:329] [XHCI] Cmd @901B88B0 got result, cycle true
+[ 38.016347 0:2 driver_usb::host::xhci:894] [XHCI] Result: CommandCompletion { completion_code: Ok(Success), command_trb_pointer: 2417723568, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }, slot id: 1
+[ 38.037526 0:2 driver_usb::host::xhci:897] new slot!
+[ 38.043689 0:2 driver_usb::dma:125] allocated data:0x901ba940
+[ 38.050635 0:2 driver_usb::dma:125] allocated data:0x901baa80
+[ 38.057579 0:2 driver_usb::dma:125] allocated data:0x901babc0
+[ 38.064523 0:2 driver_usb::dma:125] allocated data:0x901bad00
+[ 38.071467 0:2 driver_usb::dma:125] allocated data:0x901bae40
+[ 38.078410 0:2 driver_usb::dma:125] allocated data:0x901baf80
+[ 38.085355 0:2 driver_usb::dma:125] allocated data:0x901bb0c0
+[ 38.092299 0:2 driver_usb::dma:125] allocated data:0x901bb200
+[ 38.099242 0:2 driver_usb::dma:125] allocated data:0x901bb340
+[ 38.106187 0:2 driver_usb::dma:125] allocated data:0x901bb480
+[ 38.113131 0:2 driver_usb::dma:125] allocated data:0x901bb5c0
+[ 38.120075 0:2 driver_usb::dma:125] allocated data:0x901bb700
+[ 38.127019 0:2 driver_usb::dma:125] allocated data:0x901bb840
+[ 38.133963 0:2 driver_usb::dma:125] allocated data:0x901bb980
+[ 38.140907 0:2 driver_usb::dma:125] allocated data:0x901bbac0
+[ 38.147851 0:2 driver_usb::dma:125] allocated data:0x901bbc00
+[ 38.154794 0:2 driver_usb::host::xhci::context:76] new rings!
+[ 38.161736 0:2 driver_usb::host::xhci::context:87] new desc container
+[ 38.169377 0:2 driver_usb::host::xhci::context:93] insert complete!
+[ 38.176840 0:2 driver_usb::host::xhci:586] assign complete!
+[ 38.183617 0:2 driver_usb::host::xhci:853] [XHCI] CMD: address device
+[ 38.191248 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 4
+[ 38.198626 0:2 driver_usb::host::xhci::ring:59] next index
+[ 38.205310 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 4
+[ 38.213035 0:2 driver_usb::host::xhci:308] [XHCI] Post cmd AddressDevice(AddressDevice { input_context_pointer: 2417606656, block_set_address_request: false, slot_id: 1, cycle_bit: true }) @FFFF00009017025C
+[ 38.232566 0:2 driver_usb::host::xhci:320] [XHCI] Wait result
+[ 38.239509 0:2 driver_usb::host::xhci::ring:59] next index
+[ 38.246193 0:2 driver_usb::host::xhci:329] [XHCI] Cmd @901B88C0 got result, cycle true
+[ 38.255307 0:2 driver_usb::host::xhci:862] [XHCI] Result: CommandCompletion { completion_code: Ok(Success), command_trb_pointer: 2417723584, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
+[ 38.275445 0:2 driver_usb::host::xhci:588] address complete!
+[ 38.282304 0:2 driver_usb::host::xhci:755] [XHCI] CMD: get endpoint0 packet size
+[ 38.290897 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 0
+[ 38.298273 0:2 driver_usb::host::xhci::ring:59] next index
+[ 38.304956 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 0
+[ 38.312682 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 1
+[ 38.320059 0:2 driver_usb::host::xhci::ring:59] next index
+[ 38.326743 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 1
+[ 38.334468 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 2
+[ 38.341846 0:2 driver_usb::host::xhci::ring:59] next index
+[ 38.348530 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 2
+[ 38.356255 0:2 driver_usb::host::xhci:442] [XHCI] Post control transfer!
+[ 38.364154 0:2 driver_usb::host::xhci:456] [XHCI] Wait result
+[ 38.371099 0:2 driver_usb::host::xhci:462] received temp!:TransferEvent(TransferEvent { completion_code: Ok(Success), trb_pointer: 2417731936, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
+[ 38.392885 0:2 driver_usb::host::xhci::ring:59] next index
+[ 38.399569 0:2 driver_usb::host::xhci:467] [XHCI] Transfer @901BA960 got result, cycle true
+[ 38.409117 0:2 driver_usb::host::xhci:762] [XHCI] Result: TransferEvent { completion_code: Ok(Success), trb_pointer: 2417731936, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true }
+[ 38.429602 0:2 driver_usb::host::xhci:776] [XHCI] CMD: evaluating context for set endpoint0 packet size
+[ 38.440191 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 5
+[ 38.447569 0:2 driver_usb::host::xhci::ring:59] next index
+[ 38.454252 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 5
+[ 38.461978 0:2 driver_usb::host::xhci:308] [XHCI] Post cmd EvaluateContext(EvaluateContext { input_context_pointer: 2417606656, slot_id: 1, cycle_bit: true }) @FFFF00009017025C
+[ 38.478904 0:2 driver_usb::host::xhci:320] [XHCI] Wait result
+[ 38.485847 0:2 driver_usb::host::xhci::ring:59] next index
+[ 38.492532 0:2 driver_usb::host::xhci:329] [XHCI] Cmd @901B88D0 got result, cycle true
+[ 38.501645 0:2 driver_usb::host::xhci:782] [XHCI] Result: CommandCompletion { completion_code: Ok(Success), command_trb_pointer: 2417723600, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true }
+[ 38.521784 0:2 driver_usb::host::xhci:590] packet size complete!
+[ 38.528989 0:2 driver_usb::dma:125] allocated data:0x901bd000
+[ 38.536207 0:2 driver_usb::host::xhci:725] [XHCI] Transfer Control: Fetching all configs
+[ 38.545220 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 3
+[ 38.552597 0:2 driver_usb::host::xhci::ring:59] next index
+[ 38.559280 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 3
+[ 38.567005 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 4
+[ 38.574384 0:2 driver_usb::host::xhci::ring:59] next index
+[ 38.581067 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 4
+[ 38.588792 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 5
+[ 38.596170 0:2 driver_usb::host::xhci::ring:59] next index
+[ 38.602854 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 5
+[ 38.610579 0:2 driver_usb::host::xhci:442] [XHCI] Post control transfer!
+[ 38.618478 0:2 driver_usb::host::xhci:456] [XHCI] Wait result
+[ 38.625422 0:2 driver_usb::host::xhci:462] received temp!:TransferEvent(TransferEvent { completion_code: Ok(Success), trb_pointer: 2417731984, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
+[ 38.647209 0:2 driver_usb::host::xhci::ring:59] next index
+[ 38.653893 0:2 driver_usb::host::xhci:467] [XHCI] Transfer @901BA990 got result, cycle true
+[ 38.663441 0:2 driver_usb::host::xhci:734] [XHCI] Result: TransferEvent { completion_code: Ok(Success), trb_pointer: 2417731984, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true }
+[ 38.683930 0:2 driver_usb::dma:125] allocated data:0x901bd000
+[ 38.691144 0:2 driver_usb::host::xhci:697] [XHCI] Transfer Control: Fetching all configs
+[ 38.700158 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 6
+[ 38.707535 0:2 driver_usb::host::xhci::ring:59] next index
+[ 38.714218 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 6
+[ 38.721943 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 7
+[ 38.729321 0:2 driver_usb::host::xhci::ring:59] next index
+[ 38.736005 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 7
+[ 38.743730 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 8
+[ 38.751108 0:2 driver_usb::host::xhci::ring:59] next index
+[ 38.757792 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 8
+[ 38.765517 0:2 driver_usb::host::xhci:442] [XHCI] Post control transfer!
+[ 38.773416 0:2 driver_usb::host::xhci:456] [XHCI] Wait result
+[ 38.780361 0:2 driver_usb::host::xhci:462] received temp!:TransferEvent(TransferEvent { completion_code: Ok(Success), trb_pointer: 2417732032, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
+[ 38.802147 0:2 driver_usb::host::xhci::ring:59] next index
+[ 38.808831 0:2 driver_usb::host::xhci:467] [XHCI] Transfer @901BA9C0 got result, cycle true
+[ 38.818379 0:2 driver_usb::host::xhci:706] [XHCI] Result: TransferEvent { completion_code: Ok(Success), trb_pointer: 2417732032, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true }
+[ 38.838879 0:2 driver_usb::host::xhci:678] fetched descriptors:[Device(Device { len: 18, descriptor_type: 1, cd_usb: 272, class: 0, subclass: 0, protocol: 0, max_packet_size0: 8, vendor: 9354, product_id: 33639, device: 256, manufacture: 1, product: 2, serial_number: 0, num_configurations: 1 }), Configuration(Configuration { length: 9, ty: 2, total_length: 59, num_interfaces: 2, config_val: 1, config_string: 0, attributes: 160, max_power: 25 }), Interface(Interface { len: 9, descriptor_type: 4, interface_number: 0, alternate_setting: 0, num_endpoints: 1, interface_class: 3, interface_subclass: 1, interface_protocol: 2, interface: 0 }), Hid(Hid { len: 9, descriptor_type: 33, hid_bcd: 273, country_code: 33, num_descriptions: 1, report_descriptor_type: 34, report_descriptor_len: 142 }), Endpoint(Endpoint { len: 7, descriptor_type: 5, endpoint_address: 130, attributes: 3, max_packet_size: 8, interval: 4, ssc: None }), Interface(Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 0, num_endpoints: 1, interface_class: 3, interface_subclass: 1, interface_protocol: 1, interface: 0 }), Hid(Hid { len: 9, descriptor_type: 33, hid_bcd: 273, country_code: 33, num_descriptions: 1, report_descriptor_type: 34, report_descriptor_len: 59 }), Endpoint(Endpoint { len: 7, descriptor_type: 5, endpoint_address: 129, attributes: 3, max_packet_size: 8, interval: 10, ssc: None })]
+[ 38.962467 0:2 driver_usb::host::xhci:592] fetch all complete!
+[ 38.969499 0:2 driver_usb::host::xhci:598] set cfg!
+[ 38.975577 0:2 driver_usb::host::xhci::xhci_device:87] found last entry: 0x82
+[ 38.983909 0:2 driver_usb::host::xhci::xhci_device:229] set a interrupt endpoint! addr:5
+[ 38.993194 0:2 driver_usb::host::xhci::xhci_device:229] set a interrupt endpoint! addr:3
+[ 39.002482 0:2 driver_usb::host::xhci::xhci_device:112] [XHCI DEVICE] CMD: configure endpoint
+[ 39.012203 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 6
+[ 39.019581 0:2 driver_usb::host::xhci::ring:59] next index
+[ 39.026264 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 6
+[ 39.033989 0:2 driver_usb::host::xhci:308] [XHCI] Post cmd ConfigureEndpoint(ConfigureEndpoint { input_context_pointer: 2417606656, deconfigure: false, slot_id: 1, cycle_bit: true }) @FFFF000090170414
+[ 39.052999 0:2 driver_usb::host::xhci:320] [XHCI] Wait result
+[ 39.059943 0:2 driver_usb::host::xhci::ring:59] next index
+[ 39.066627 0:2 driver_usb::host::xhci:329] [XHCI] Cmd @901B88E0 got result, cycle true
+[ 39.075740 0:2 driver_usb::host::xhci::xhci_device:122] [XHCI DEVICE] CMD: result:Ok(CommandCompletion { completion_code: Ok(Success), command_trb_pointer: 2417723616, command_completion_parameter: 0, vf_id: 0, slot_id: 1, cycle_bit: true })
+[ 39.098309 0:2 driver_usb::host::xhci::xhci_device:125] [XHCI DEVICE] Transfer command: set configuration
+[ 39.109073 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 9
+[ 39.116449 0:2 driver_usb::host::xhci::ring:59] next index
+[ 39.123133 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 9
+[ 39.130858 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 10
+[ 39.138323 0:2 driver_usb::host::xhci::ring:59] next index
+[ 39.145007 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 10
+[ 39.152819 0:2 driver_usb::host::xhci:442] [XHCI] Post control transfer!
+[ 39.160718 0:2 driver_usb::host::xhci:456] [XHCI] Wait result
+[ 39.167662 0:2 driver_usb::host::xhci:462] received temp!:TransferEvent(TransferEvent { completion_code: Ok(Success), trb_pointer: 2417732064, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
+[ 39.189448 0:2 driver_usb::host::xhci::ring:59] next index
+[ 39.196133 0:2 driver_usb::host::xhci:467] [XHCI] Transfer @901BA9E0 got result, cycle true
+[ 39.205680 0:2 driver_usb::host::xhci::xhci_device:142] [XHCI DEVICE] Transfer command: result:Ok(TransferEvent { completion_code: Ok(Success), trb_pointer: 2417732064, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
+[ 39.229724 0:2 driver_usb::host::xhci::xhci_device:145] [XHCI DEVICE] Transfer command: set interface
+[ 39.240141 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 11
+[ 39.247604 0:2 driver_usb::host::xhci::ring:59] next index
+[ 39.254288 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 11
+[ 39.262100 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 12
+[ 39.269565 0:2 driver_usb::host::xhci::ring:59] next index
+[ 39.276248 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 12
+[ 39.284060 0:2 driver_usb::host::xhci:442] [XHCI] Post control transfer!
+[ 39.291960 0:2 driver_usb::host::xhci:456] [XHCI] Wait result
+[ 39.298904 0:2 driver_usb::host::xhci:462] received temp!:TransferEvent(TransferEvent { completion_code: Ok(Success), trb_pointer: 2417732096, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
+[ 39.320690 0:2 driver_usb::host::xhci::ring:59] next index
+[ 39.327374 0:2 driver_usb::host::xhci:467] [XHCI] Transfer @901BAA00 got result, cycle true
+[ 39.336922 0:2 driver_usb::host::xhci::xhci_device:162] [XHCI DEVICE] Transfer command: result:Ok(TransferEvent { completion_code: Ok(Success), trb_pointer: 2417732096, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
+[ 39.360966 0:2 driver_usb::host::xhci::xhci_device:59] try creating!
+[ 39.368517 0:2 driver_usb::host::usb::drivers::driver_usb_hid:61] creating!
+[ 39.376678 0:2 driver_usb::host::usb::drivers::driver_usb_hid:65] desc_device: [Device { len: 18, descriptor_type: 1, cd_usb: 272, class: 0, subclass: 0, protocol: 0, max_packet_size0: 8, vendor: 9354, product_id: 33639, device: 256, manufacture: 1, product: 2, serial_number: 0, num_configurations: 1 }]
+[ 39.404714 0:2 driver_usb::host::usb::drivers::driver_usb_hid:89] interface csp:3,1,2
+[ 39.413742 0:2 driver_usb::host::usb::drivers::driver_usb_hid:125] [USB-HID DRIVER]: post idle request to control endpoint
+[ 39.425980 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 13
+[ 39.433443 0:2 driver_usb::host::xhci::ring:59] next index
+[ 39.440127 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 13
+[ 39.447939 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 14
+[ 39.455403 0:2 driver_usb::host::xhci::ring:59] next index
+[ 39.462087 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 14
+[ 39.469899 0:2 driver_usb::host::xhci:442] [XHCI] Post control transfer!
+[ 39.477798 0:2 driver_usb::host::xhci:456] [XHCI] Wait result
+[ 39.484743 0:2 driver_usb::host::xhci:462] received temp!:TransferEvent(TransferEvent { completion_code: Ok(Success), trb_pointer: 2417732128, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
+[ 39.506529 0:2 driver_usb::host::xhci::ring:59] next index
+[ 39.513213 0:2 driver_usb::host::xhci:467] [XHCI] Transfer @901BAA20 got result, cycle true
+[ 39.522761 0:2 driver_usb::host::usb::drivers::driver_usb_hid:134] [USB-HID DRIVER]: result: Ok(TransferEvent { completion_code: Ok(Success), trb_pointer: 2417732128, trb_transfer_length: 0, event_data: false, endpoint_id: 1, slot_id: 1, cycle_bit: true })
+[ 40.046631 0:2 driver_usb::dma:125] allocated data:0x901bc180
+[ 40.050713 0:2 driver_usb::host::usb::drivers::driver_usb_hid:156] [USB-HID DRIVER]: post report request
+[ 40.061382 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 15
+[ 40.068844 0:2 driver_usb::host::xhci::ring:59] next index
+[ 40.075528 0:2 driver_usb::host::xhci::ring:66] reset index!
+[ 40.082385 0:2 driver_usb::host::xhci::ring:69] link!
+[ 40.088635 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 0
+[ 40.096360 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 1
+[ 40.103738 0:2 driver_usb::host::xhci::ring:59] next index
+[ 40.110422 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 1
+[ 40.118147 0:2 driver_usb::host::xhci::ring:46] enqueue trb into 2
+[ 40.125525 0:2 driver_usb::host::xhci::ring:59] next index
+[ 40.132209 0:2 driver_usb::host::xhci::ring:49] enqueued,next index: 2
+[ 40.139934 0:2 driver_usb::host::xhci:388] [XHCI] Post control transfer!
+[ 40.147833 0:2 driver_usb::host::xhci:398] [XHCI] Wait result
+[ 40.154777 0:2 driver_usb::host::xhci:456] [XHCI] Wait result
