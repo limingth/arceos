@@ -13,7 +13,7 @@ use xhci::{
         self,
         trb::{
             command::{self, Allowed, ConfigureEndpoint},
-            transfer,
+            transfer::{self, TransferType},
         },
     },
 };
@@ -59,20 +59,22 @@ where
         T::try_create(self)
     }
 
-    pub fn set_configuration<FC, FT>(
+    pub fn set_configuration<FC, FT, CT>(
         &mut self,
         port_speed: PortSpeed,
-        mut post_cmd: FC,
-        mut post_transfer: FT,
+        mut post_cmd_and_busy_wait: FC,
+        mut post_nodata_control_transfer_and_busy_wait: FT,
+        mut construct_transfer: CT,
         input_ref: &mut Vec<DMA<Input64Byte, O::DMA>>,
     ) where
         FC: FnMut(command::Allowed) -> Result<ring::trb::event::CommandCompletion>,
         FT: FnMut(
-            (transfer::Allowed, transfer::Allowed, transfer::Allowed), //setup,data,status
-            &mut Ring<O>,                                              //transfer ring
-            u8,                                                        //dci
-            usize,                                                     //slot
+            (transfer::Allowed, transfer::Allowed), //setup,data,status
+            &mut Ring<O>,                           //transfer ring
+            u8,                                     //dci
+            usize,                                  //slot
         ) -> Result<ring::trb::event::TransferEvent>,
+        CT: FnMut(u8, u8, u16, u16, TransferType) -> (transfer::Allowed, transfer::Allowed),
     {
         let last_entry = self
             .fetch_desc_endpoints()
@@ -107,7 +109,7 @@ where
         });
 
         debug!("{TAG} CMD: configure endpoint");
-        let post_cmd = post_cmd(Allowed::ConfigureEndpoint({
+        let post_cmd = post_cmd_and_busy_wait(Allowed::ConfigureEndpoint({
             let mut configure_endpoint = *ConfigureEndpoint::default()
                 .set_slot_id(self.slot_id as u8)
                 .set_input_context_pointer((input as *mut Input64Byte).addr() as u64);
@@ -117,6 +119,25 @@ where
             configure_endpoint
         }));
         debug!("{TAG} CMD: result:{:?}", post_cmd);
+
+        debug!("{TAG} Transfer command: set configuration");
+        let set_conf_transfer_command = construct_transfer(
+            0,    //request type 0
+            0x09, //SET CONFIG
+            config_val as u16,
+            0, //index 0
+            TransferType::Out,
+        );
+
+        let post_cmd = post_nodata_control_transfer_and_busy_wait(
+            set_conf_transfer_command,
+            self.transfer_rings.get_mut(0).unwrap(),
+            0,
+            self.slot_id,
+        );
+
+        // post_transfer()
+        debug!("{TAG} Transfer command: result:{:?}", post_cmd);
     }
 
     fn init_endpoint_context(

@@ -124,7 +124,7 @@ where
             //set idle
             debug!("{TAG}: post idle request to control endpoint");
             let result = self.operate_device(xhci, |dev| {
-                xhci.post_control_transfer_no_data(
+                xhci.post_control_transfer_no_data_and_busy_wait(
                     idle_req,
                     dev.transfer_rings.get_mut(0).unwrap(), //ep0 ring
                     1,                                      //to ep0
