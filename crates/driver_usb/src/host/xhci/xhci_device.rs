@@ -146,7 +146,7 @@ where
             let set_conf_transfer_command = construct_transfer(
                 1,    //request type 1: set interface
                 0x09, //SET CONFIG
-                interface.alternate_setting as u16,
+                interface.interface_number as u16,
                 interface.interface_number as u16, //index 0
                 TransferType::No,
             );
