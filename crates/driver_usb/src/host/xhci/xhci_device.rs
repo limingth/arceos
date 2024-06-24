@@ -126,13 +126,13 @@ where
             0x09, //SET CONFIG
             config_val as u16,
             0, //index 0
-            TransferType::Out,
+            TransferType::No,
         );
 
         let post_cmd = post_nodata_control_transfer_and_busy_wait(
             set_conf_transfer_command,
             self.transfer_rings.get_mut(0).unwrap(),
-            0,
+            1, //dci
             self.slot_id,
         );
 

@@ -170,74 +170,73 @@ where
             // ReportHandler::new(&buffer).unwrap()
         } //TODO parse Report context
 
-        loop {
-            busy_wait(Duration::from_millis(500)); //too slow, just for debug
+        // loop {
+        // busy_wait(Duration::from_millis(500)); //too slow, just for debug
 
-            // loop {} //TODO: check endpoint state to ensure data commit complete
+        // loop {} //TODO: check endpoint state to ensure data commit complete
 
-            self.operate_device(xhci, |dev| {
-                let slot_id = dev.slot_id;
-                //get input endpoint dci, we only pick endpoint in #0 here
-                dev.operate_endpoint_in(|mut endpoints, rings| {
-                    let in_dci = endpoints.get_mut(0).unwrap().doorbell_value_aka_dci(); //we use first in interrupt endpoint here, in actual environment, there might has multiple.
-                    let buffer = DMA::new_vec(0u8, 4, 32, xhci.config.os.dma_alloc()); //enough for a mouse Report(should get from report above,but we not parse it yet)
+        self.operate_device(xhci, |dev| {
+            let slot_id = dev.slot_id;
+            //get input endpoint dci, we only pick endpoint in #0 here
+            dev.operate_endpoint_in(|mut endpoints, rings| {
+                let in_dci = endpoints.get_mut(0).unwrap().doorbell_value_aka_dci(); //we use first in interrupt endpoint here, in actual environment, there might has multiple.
+                let buffer = DMA::new_vec(0u8, 4, 32, xhci.config.os.dma_alloc()); //enough for a mouse Report(should get from report above,but we not parse it yet)
 
-                    debug!("{TAG}: post IN Transfer report request");
-                    let result = {
-                        //temporary inlined, hass to be packed in to a function future
-                        let this = &xhci;
-                        let request = transfer::Allowed::Normal(
-                            // just use normal trb to request interrupt transfer
-                            *Normal::default()
-                                .set_data_buffer_pointer(buffer.addr() as u64)
-                                .set_interrupt_on_completion()
-                                .set_td_size(0)
-                                .set_trb_transfer_length(buffer.length_for_bytes() as u32)
-                                .clear_interrupt_on_short_packet()
-                                .set_interrupter_target(0), // weird, so xhci actually support multiple interrupter?
-                        );
-                        let mut transfer_rings = rings.get_many_mut([3]).unwrap(); //chaos!
+                debug!("{TAG}: post IN Transfer report request");
+                let result = {
+                    //temporary inlined, hass to be packed in to a function future
+                    let this = &xhci;
+                    let request = transfer::Allowed::Normal(
+                        // just use normal trb to request interrupt transfer
+                        *Normal::default()
+                            .set_data_buffer_pointer(buffer.addr() as u64)
+                            .set_td_size(0)
+                            .set_trb_transfer_length(buffer.length_for_bytes() as u32)
+                            .clear_interrupt_on_short_packet()
+                            .clear_interrupt_on_completion(),
+                    );
+                    let mut transfer_rings = rings.get_many_mut([3]).unwrap(); //chaos!
 
-                        let dci = 3 as u8;
+                    let dci = 3 as u8;
 
-                        {
-                            let this = &this;
-                            let mut transfer_trbs = vec![request];
-                            transfer_rings.iter_mut().for_each(|t| {
-                                t.enque_trbs(
-                                    transfer_trbs
-                                        .iter_mut()
-                                        .map(|trb| {
-                                            if this.ring.lock().cycle {
-                                                trb.set_cycle_bit();
-                                            } else {
-                                                trb.clear_cycle_bit();
-                                            }
-                                            trb.into_raw()
-                                        })
-                                        .collect(),
-                                )
-                            });
+                    {
+                        let this = &this;
+                        let mut transfer_trbs = vec![request];
+                        transfer_rings.iter_mut().for_each(|t| {
+                            t.enque_trbs(
+                                transfer_trbs
+                                    .iter_mut()
+                                    .map(|trb| {
+                                        if this.ring.lock().cycle {
+                                            trb.set_cycle_bit();
+                                        } else {
+                                            trb.clear_cycle_bit();
+                                        }
+                                        trb.into_raw()
+                                    })
+                                    .collect(),
+                            )
+                        });
 
-                            debug!("{TAG} Post control transfer!");
+                        debug!("{TAG} Post control transfer! at slot_id:{slot_id},dci:{dci}");
 
-                            let mut regs = this.regs.lock();
+                        let mut regs = this.regs.lock();
 
-                            regs.regs.doorbell.update_volatile_at(slot_id, |r| {
-                                r.set_doorbell_target(dci);
-                            });
+                        regs.regs.doorbell.update_volatile_at(slot_id, |r| {
+                            r.set_doorbell_target(dci);
+                        });
 
-                            O::force_sync_cache();
+                        O::force_sync_cache();
 
-                            this.busy_wait_for_event()
-                        }
-                    };
-                    busy_wait(Duration::from_millis(5));
-                    debug!("{TAG}: result: {:?}", result);
-                    print_array(&buffer);
-                });
-            })
-        }
+                        this.busy_wait_for_event()
+                    }
+                };
+                // busy_wait(Duration::from_millis(5));
+                debug!("{TAG}: result: {:?}", result);
+                print_array(&buffer);
+            });
+        })
+        // }
     }
 }
 
