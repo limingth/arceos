@@ -77,6 +77,7 @@ where
         ) -> Result<ring::trb::event::TransferEvent>,
         CT: FnMut(u8, u8, u16, u16, TransferType) -> (transfer::Allowed, transfer::Allowed),
     {
+        
         let last_entry = self
             .fetch_desc_endpoints()
             .iter()
@@ -87,6 +88,9 @@ where
         debug!("found last entry: 0x{:x}", last_entry.endpoint_address);
 
         let input = input_ref.get_mut(self.slot_id).unwrap().deref_mut();
+        self.fetch_desc_endpoints().iter().for_each(|ep|{
+            ep.endpoint_status();
+        });
         let slot_mut = input.device_mut().slot_mut();
         slot_mut.set_context_entries(last_entry.doorbell_value_aka_dci() as u8);
 
@@ -107,7 +111,7 @@ where
 
         self.fetch_desc_endpoints().iter().for_each(|ep| {
             self.init_endpoint_context(port_speed, ep, input);
-        });
+        });//---------------------------------
 
         debug!("{TAG} CMD: configure endpoint");
         let post_cmd = post_cmd_and_busy_wait(command::Allowed::ConfigureEndpoint({
@@ -182,7 +186,9 @@ where
         let interval = endpoint_desc.calc_actual_interval(port_speed);
 
         endpoint_mut.set_interval(interval);
-
+        debug!("---------------");
+        debug!("{:?}",endpoint_mut.endpoint_state());
+        debug!("---------------");
         //init endpoint type
         let endpoint_type = endpoint_desc.endpoint_type();
         endpoint_mut.set_endpoint_type(endpoint_type);

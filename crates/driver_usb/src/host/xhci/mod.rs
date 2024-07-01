@@ -479,6 +479,13 @@ where
         }
     }
 
+    pub fn checkout_endpoint(&self){
+        let mut er = self.primary_event_ring.lock();
+        if let Some(temp) = er.busy_wait_next(){
+            debug!("checkout_endpoint is:{:?}",temp);
+        }
+    }
+
     fn test_cmd(&self) -> Result {
         debug!("{TAG} Test command ring");
         for _ in 0..3 {
@@ -581,6 +588,7 @@ where
                 port_id_list.push(i);
             }
         }
+        self.checkout_endpoint();
         for port_id in port_id_list {
             let slot = self.device_slot_assignment(port_id);
             debug!("assign complete!");
@@ -590,12 +598,14 @@ where
             debug!("packet size complete!");
             self.setup_fetch_all_needed_dev_desc(slot);
             debug!("fetch all complete!");
+            self.get_endpoint_status(port_id);
         }
-
         let mut lock = self.dev_ctx.lock();
         let dev_ctx_list = (&mut lock.device_input_context_list as *mut Vec<_>);
         lock.attached_set.iter_mut().for_each(|dev| {
             debug!("set cfg!");
+            self.get_endpoint_status(0);
+            self.get_endpoint_status(1);
             dev.1.set_configuration(
                 FromPrimitive::from_u8(
                     self.regs
@@ -620,11 +630,12 @@ where
                         index,
                         transfer_type,
                     )
-                },
+                    },
                 (unsafe { &mut *dev_ctx_list }), //ugly!
             );
         });
-
+        self.get_endpoint_status(0);
+        self.get_endpoint_status(1);
         // lock.attached_set.iter_mut().for_each(|dev| {
         //     debug!("find driver!");
         //     let find_driver_impl = dev.1.find_driver_impl::<USBDeviceDriverHidMouseExample>();
@@ -636,7 +647,8 @@ where
         //         );
         //     }
         // });
-
+        self.get_endpoint_status(0);
+        self.get_endpoint_status(1);
         let dev = lock.attached_set.get_mut(&1).unwrap(); //从这里开始是实验环节
         unsafe {
             drivers = Some(
@@ -644,7 +656,8 @@ where
                     .unwrap(),
             )
         };
-
+        self.get_endpoint_status(0);
+        self.get_endpoint_status(1);
         Ok(())
     }
 
@@ -656,6 +669,25 @@ where
             .read_volatile_at(port)
             .portsc
             .port_speed()
+    }
+
+    fn get_status(&self, port: usize) -> bool {
+        self.regs
+        .lock()
+        .regs
+        .port_register_set
+        .read_volatile_at(port)
+        .portsc
+        .port_enabled_disabled()
+    }
+
+    pub fn get_endpoint_status(&self, port: usize){
+        if self.get_status(port){
+            debug!("ep0enable");
+        }
+        else{
+            debug!("ep0disable");
+        }
     }
 
     fn get_speed(&self, port: usize) -> u16 {

@@ -56,7 +56,7 @@ where
     O: OsDep,
 {
     fn try_create(
-        device: &mut DeviceAttached<O>,
+        device: &mut DeviceAttached<O>
     ) -> Option<alloc::sync::Arc<spinlock::SpinNoIrq<Self>>> {
         debug!("creating!");
         let fetch_desc_hid = &device.fetch_desc_hid();
@@ -111,6 +111,8 @@ where
         let interface_in_use = self.operate_device(xhci, |dev| {
             dev.fetch_desc_interfaces()[dev.current_interface].clone()
         });
+        xhci.get_endpoint_status(0);
+        xhci.get_endpoint_status(1);
         let idle_req = xhci.construct_no_data_transfer_req(
             0b00100001, //recipient:00001(interface),Type01:class,Direction:0(HostToDevice) //TODO, MAKE A Tool Module to convert type
             0x0A,       //SET IDLE
@@ -119,7 +121,8 @@ where
             interface_in_use.interface_number as u16,
             TransferType::No, //no data applied
         );
-
+        xhci.get_endpoint_status(0);
+        xhci.get_endpoint_status(1);
         {
             //set idle
             debug!("{TAG}: post idle request to control endpoint");
@@ -134,7 +137,8 @@ where
             debug!("{TAG}: result: {:?}", result);
             // debug!("{TAG} buffer: {:?}", buffer);
         }
-
+        xhci.get_endpoint_status(0);
+        xhci.get_endpoint_status(1);
         {
             busy_wait(Duration::from_millis(500));
             //request report rate
@@ -152,7 +156,8 @@ where
                 0,    //interface
                 (TransferType::In, Direction::In),
             );
-
+            xhci.get_endpoint_status(0);
+            xhci.get_endpoint_status(1);
             debug!("{TAG}: post report request");
             let result = self
                 .operate_device(xhci, |dev| {
@@ -181,7 +186,8 @@ where
             dev.operate_endpoint_in(|mut endpoints, rings| {
                 let in_dci = endpoints.get_mut(0).unwrap().doorbell_value_aka_dci(); //we use first in interrupt endpoint here, in actual environment, there might has multiple.
                 let buffer = DMA::new_vec(0u8, 4, 32, xhci.config.os.dma_alloc()); //enough for a mouse Report(should get from report above,but we not parse it yet)
-
+                xhci.get_endpoint_status(0);
+                xhci.get_endpoint_status(1);
                 debug!("{TAG}: post IN Transfer report request");
                 let result = {
                     //temporary inlined, hass to be packed in to a function future
@@ -196,7 +202,8 @@ where
                             .clear_interrupt_on_completion(),
                     );
                     let mut transfer_rings = rings.get_many_mut([3]).unwrap(); //chaos!
-
+                    xhci.get_endpoint_status(0);
+                    xhci.get_endpoint_status(1);
                     let dci = 3 as u8;
 
                     {
@@ -217,7 +224,8 @@ where
                                     .collect(),
                             )
                         });
-
+                        xhci.get_endpoint_status(0);
+                        xhci.get_endpoint_status(1);
                         debug!("{TAG} Post control transfer! at slot_id:{slot_id},dci:{dci}");
 
                         let mut regs = this.regs.lock();
