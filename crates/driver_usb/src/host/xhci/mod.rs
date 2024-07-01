@@ -399,7 +399,7 @@ where
         self.busy_wait_for_event()
     }
 
-    pub fn post_control_transfer_no_data(
+    pub fn post_control_transfer_no_data_and_busy_wait(
         &self,
         (setup, status): (transfer::Allowed, transfer::Allowed),
         transfer_ring: &mut Ring<O>,
@@ -610,7 +610,16 @@ where
                 .unwrap(),
                 |allowed| self.post_cmd(allowed),
                 |allowed, ring, dci, slot| {
-                    self.post_control_transfer_with_data(allowed, ring, dci, slot)
+                    self.post_control_transfer_no_data_and_busy_wait(allowed, ring, dci, slot)
+                },
+                |request_type, request, value, index, transfer_type| {
+                    self.construct_no_data_transfer_req(
+                        request_type,
+                        request,
+                        value,
+                        index,
+                        transfer_type,
+                    )
                 },
                 (unsafe { &mut *dev_ctx_list }), //ugly!
             );

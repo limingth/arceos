@@ -12,8 +12,9 @@ use xhci::{
     ring::{
         self,
         trb::{
-            command::{self, Allowed, ConfigureEndpoint},
-            transfer,
+            command::{self, ConfigureEndpoint, EvaluateContext},
+            event::Allowed,
+            transfer::{self, TransferType},
         },
     },
 };
@@ -59,20 +60,22 @@ where
         T::try_create(self)
     }
 
-    pub fn set_configuration<FC, FT>(
+    pub fn set_configuration<FC, FT, CT>(
         &mut self,
         port_speed: PortSpeed,
-        mut post_cmd: FC,
-        mut post_transfer: FT,
+        mut post_cmd_and_busy_wait: FC,
+        mut post_nodata_control_transfer_and_busy_wait: FT,
+        mut construct_transfer: CT,
         input_ref: &mut Vec<DMA<Input64Byte, O::DMA>>,
     ) where
         FC: FnMut(command::Allowed) -> Result<ring::trb::event::CommandCompletion>,
         FT: FnMut(
-            (transfer::Allowed, transfer::Allowed, transfer::Allowed), //setup,data,status
-            &mut Ring<O>,                                              //transfer ring
-            u8,                                                        //dci
-            usize,                                                     //slot
+            (transfer::Allowed, transfer::Allowed), //setup,data,status
+            &mut Ring<O>,                           //transfer ring
+            u8,                                     //dci
+            usize,                                  //slot
         ) -> Result<ring::trb::event::TransferEvent>,
+        CT: FnMut(u8, u8, u16, u16, TransferType) -> (transfer::Allowed, transfer::Allowed),
     {
         let last_entry = self
             .fetch_desc_endpoints()
@@ -97,8 +100,8 @@ where
         control_mut.set_interface_number(interface.interface_number);
         control_mut.set_alternate_setting(interface.alternate_setting);
 
-        control_mut.set_add_context_flag(1);
-        // control_mut.set_drop_context_flag(0);
+        // control_mut.set_add_context_flag(1);
+        // control_mut.set_drop_context_flag(1);
         //TODO:  always choose last config here(always only 1 config exist, we assume.), need to change at future
         control_mut.set_configuration_value(config_val);
 
@@ -107,7 +110,7 @@ where
         });
 
         debug!("{TAG} CMD: configure endpoint");
-        let post_cmd = post_cmd(Allowed::ConfigureEndpoint({
+        let post_cmd = post_cmd_and_busy_wait(command::Allowed::ConfigureEndpoint({
             let mut configure_endpoint = *ConfigureEndpoint::default()
                 .set_slot_id(self.slot_id as u8)
                 .set_input_context_pointer((input as *mut Input64Byte).addr() as u64);
@@ -117,6 +120,47 @@ where
             configure_endpoint
         }));
         debug!("{TAG} CMD: result:{:?}", post_cmd);
+
+        {
+            debug!("{TAG} Transfer command: set configuration");
+            let set_conf_transfer_command = construct_transfer(
+                0,    //request type 0
+                0x09, //SET CONFIG
+                config_val as u16,
+                0, //index 0
+                TransferType::No,
+            );
+
+            let post_cmd = post_nodata_control_transfer_and_busy_wait(
+                set_conf_transfer_command,
+                self.transfer_rings.get_mut(0).unwrap(),
+                1, //dci
+                self.slot_id,
+            );
+
+            // post_transfer()
+            debug!("{TAG} Transfer command: result:{:?}", post_cmd);
+        }
+        {
+            debug!("{TAG} Transfer command: set interface");
+            let set_conf_transfer_command = construct_transfer(
+                1,    //request type 1: set interface
+                0x09, //SET CONFIG
+                interface.interface_number as u16,
+                interface.interface_number as u16, //index 0
+                TransferType::No,
+            );
+
+            let post_cmd = post_nodata_control_transfer_and_busy_wait(
+                set_conf_transfer_command,
+                self.transfer_rings.get_mut(0).unwrap(),
+                1, //dci
+                self.slot_id,
+            );
+
+            // post_transfer()
+            debug!("{TAG} Transfer command: result:{:?}", post_cmd);
+        }
     }
 
     fn init_endpoint_context(
@@ -170,10 +214,10 @@ where
                 | EndpointType::InterruptOut
                 | EndpointType::InterruptIn => {
                     //init for isoch/interrupt
-                    endpoint_mut.set_max_packet_size(max_packet_size & 0x7ff); //wtf
+                    endpoint_mut.set_max_packet_size(max_packet_size & 0x7ff); //refer xhci page 162
                     endpoint_mut
                         .set_max_burst_size(((max_packet_size & 0x1800) >> 11).try_into().unwrap());
-                    endpoint_mut.set_mult(0);
+                    endpoint_mut.set_mult(0); //always 0 for interrupt
 
                     if let EndpointType::IsochOut | EndpointType::IsochIn = endpoint_type {
                         endpoint_mut.set_error_count(0);
