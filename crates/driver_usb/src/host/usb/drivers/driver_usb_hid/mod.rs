@@ -49,6 +49,22 @@ impl USBDeviceDriverHidMouseExample {
             .get_mut(&(self.slot))
             .unwrap())
     }
+
+    fn dump_out_ctx<O>(&self, xhci: &Xhci<O>)
+    where
+        O: OsDep,
+    {
+        debug!(
+            "dumped output context at slot {}:\n {:#?}",
+            self.slot,
+            **xhci
+                .dev_ctx
+                .lock()
+                .device_out_context_list
+                .get(self.slot)
+                .unwrap()
+        );
+    }
 }
 
 impl<O> USBDeviceDriverOps<O> for USBDeviceDriverHidMouseExample
@@ -108,6 +124,9 @@ where
     }
 
     fn work(&self, xhci: &Xhci<O>) {
+        debug!("###driver usbhid working!###");
+        self.dump_out_ctx(xhci);
+
         let interface_in_use = self.operate_device(xhci, |dev| {
             dev.fetch_desc_interfaces()[dev.current_interface].clone()
         });
