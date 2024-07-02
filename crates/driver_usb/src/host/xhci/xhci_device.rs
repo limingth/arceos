@@ -88,7 +88,7 @@ where
 
         let input = input_ref.get_mut(self.slot_id).unwrap().deref_mut();
         let slot_mut = input.device_mut().slot_mut();
-        slot_mut.set_context_entries(last_entry.doorbell_value_aka_dci() as u8 + 1);
+        slot_mut.set_context_entries(last_entry.doorbell_value_aka_dci() as u8);
 
         let control_mut = input.control_mut();
 
@@ -100,8 +100,8 @@ where
         control_mut.set_interface_number(interface.interface_number);
         control_mut.set_alternate_setting(interface.alternate_setting);
 
-        control_mut.set_add_context_flag(1);
-        control_mut.set_drop_context_flag(2);
+        // control_mut.set_add_context_flag(1);
+        // control_mut.set_drop_context_flag(2);
         //TODO:  always choose last config here(always only 1 config exist, we assume.), need to change at future
         control_mut.set_configuration_value(config_val);
 
