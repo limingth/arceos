@@ -3,7 +3,7 @@ use core::{fmt::Error, ops::DerefMut, time::Duration};
 use alloc::{borrow::ToOwned, collections::BTreeSet, sync::Arc, vec::Vec};
 use axhal::time::busy_wait_until;
 use axtask::sleep;
-use log::debug;
+use log::*;
 use num_derive::FromPrimitive;
 use num_traits::{ops::mul_add, FromPrimitive, ToPrimitive};
 use spinlock::SpinNoIrq;
@@ -81,16 +81,13 @@ where
         let last_entry = self
             .fetch_desc_endpoints()
             .iter()
-            .max_by_key(|e| e.doorbell_value_aka_dci())
+            .min_by_key(|e| e.doorbell_value_aka_dci())
             .unwrap()
             .to_owned();
 
         debug!("found last entry: 0x{:x}", last_entry.endpoint_address);
 
         let input = input_ref.get_mut(self.slot_id).unwrap().deref_mut();
-        self.fetch_desc_endpoints().iter().for_each(|ep|{
-            ep.endpoint_status();
-        });
         let slot_mut = input.device_mut().slot_mut();
         slot_mut.set_context_entries(last_entry.doorbell_value_aka_dci() as u8);
 
@@ -108,7 +105,6 @@ where
         // control_mut.set_drop_context_flag(1);
         //TODO:  always choose last config here(always only 1 config exist, we assume.), need to change at future
         control_mut.set_configuration_value(config_val);
-
         self.fetch_desc_endpoints().iter().for_each(|ep| {
             self.init_endpoint_context(port_speed, ep, input);
         });//---------------------------------
@@ -121,6 +117,7 @@ where
             if (config_val == 0) {
                 configure_endpoint.set_deconfigure();
             }
+            debug!("configure_endpoint is:{:?}",configure_endpoint);
             configure_endpoint
         }));
         debug!("{TAG} CMD: result:{:?}", post_cmd);
@@ -165,6 +162,7 @@ where
             // post_transfer()
             debug!("{TAG} Transfer command: result:{:?}", post_cmd);
         }
+        warn!("input_ref is {:?}",input);
     }
 
     fn init_endpoint_context(
@@ -176,7 +174,6 @@ where
         //set add content flag
         let control_mut = input_ctx.control_mut();
         control_mut.add_context_flag(endpoint_desc.doorbell_value_aka_dci() as usize);
-
         let endpoint_mut = input_ctx
             .device_mut()
             .endpoint_mut(endpoint_desc.doorbell_value_aka_dci() as usize);
@@ -186,9 +183,6 @@ where
         let interval = endpoint_desc.calc_actual_interval(port_speed);
 
         endpoint_mut.set_interval(interval);
-        debug!("---------------");
-        debug!("{:?}",endpoint_mut.endpoint_state());
-        debug!("---------------");
         //init endpoint type
         let endpoint_type = endpoint_desc.endpoint_type();
         endpoint_mut.set_endpoint_type(endpoint_type);
@@ -243,6 +237,10 @@ where
                 }
                 EndpointType::NotValid => unreachable!("Not Valid Endpoint should not exist."),
             }
+            debug!("---------------------------");
+            warn!("input is {:?}",input_ctx);
+            warn!("endoint_type is:{:?}",endpoint_type);
+            debug!("---------------------------");
         }
     }
 

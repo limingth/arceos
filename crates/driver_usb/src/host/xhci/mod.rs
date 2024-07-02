@@ -111,6 +111,7 @@ where
             primary_event_ring: SpinNoIrq::new(event),
             scratchpad_buf_arr: None,
         };
+        
         s.init()?;
         info!("{TAG} Init success");
         Ok(s)
@@ -305,7 +306,7 @@ where
             }
             cr.enque_trb(trb.into_raw());
 
-            debug!("{TAG} Post cmd {:?} @{:X}", trb, addr);
+            warn!("{TAG} Post cmd {:?} @{:X}", trb, addr);
 
             let mut regs = self.regs.lock();
 
@@ -440,13 +441,12 @@ where
         transfer_ring.enque_trbs(collect);
 
         debug!("{TAG} Post control transfer!");
-
         let mut regs = self.regs.lock();
 
         regs.regs.doorbell.update_volatile_at(slot_id, |r| {
             r.set_doorbell_target(dci);
         });
-
+        warn!("dci is {:?},slot_id is {:?}",dci,slot_id);
         O::force_sync_cache();
 
         self.busy_wait_for_event()
@@ -634,8 +634,6 @@ where
                 (unsafe { &mut *dev_ctx_list }), //ugly!
             );
         });
-        self.get_endpoint_status(0);
-        self.get_endpoint_status(1);
         // lock.attached_set.iter_mut().for_each(|dev| {
         //     debug!("find driver!");
         //     let find_driver_impl = dev.1.find_driver_impl::<USBDeviceDriverHidMouseExample>();
@@ -947,8 +945,9 @@ where
             .set_length(0)
             .set_transfer_type(transfer_type)
             .set_index(index);
+        
         let status = *transfer::StatusStage::default().set_interrupt_on_completion();
-
+        warn!("setup is {:?},status is {:?}",setup,status);
         (setup.into(), status.into())
     }
 

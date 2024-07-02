@@ -101,10 +101,6 @@ impl Endpoint {
         }
     }
 
-    pub fn endpoint_status(&self) -> EndpointState {
-        self.endpoint_state()
-    }
-
     pub(crate) fn doorbell_value_aka_dci(&self) -> u32 {
         2 * u32::from(self.endpoint_address.get_bits(0..=3))
             + self.endpoint_address.get_bit(7) as u32
