@@ -297,13 +297,12 @@ where
     pub fn post_cmd(&self, mut trb: Allowed) -> Result<ring::trb::event::CommandCompletion> {
         {
             let mut cr = self.ring.lock();
-            let addr = trb.as_ref().as_ptr().addr();
             if cr.cycle {
                 trb.set_cycle_bit();
             } else {
                 trb.clear_cycle_bit();
             }
-            cr.enque_trb(trb.into_raw());
+            let addr = cr.enque_trb(trb.into_raw());
 
             debug!("{TAG} Post cmd {:?} @{:X}", trb, addr);
 
