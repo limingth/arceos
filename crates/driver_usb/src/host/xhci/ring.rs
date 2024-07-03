@@ -42,16 +42,18 @@ impl<O: OsDep> Ring<O> {
         self.get_trb().as_ptr() as usize as u64
     }
 
-    pub fn enque_trb(&mut self, mut trb: TrbData) {
+    pub fn enque_trb(&mut self, mut trb: TrbData) -> usize {
         debug!("enqueue trb into {}", self.i);
-        self.trbs[self.i] = trb;
+        self.trbs[self.i].copy_from_slice(&trb);
+        let addr = self.trbs[self.i].as_ptr() as usize;
         let next_index = self.next_index();
-        debug!("enqueued,next index: {next_index}")
+        debug!("enqueued,next index: {next_index}");
+        addr
     }
 
     pub fn enque_trbs(&mut self, trb: Vec<TrbData>) {
         for ele in trb {
-            self.enque_trb(ele)
+            self.enque_trb(ele);
         }
     }
 
