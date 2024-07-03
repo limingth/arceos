@@ -3,7 +3,7 @@ use core::{fmt::Error, ops::DerefMut, time::Duration};
 use alloc::{borrow::ToOwned, collections::BTreeSet, sync::Arc, vec::Vec};
 use axhal::time::busy_wait_until;
 use axtask::sleep;
-use log::*;
+use log::debug;
 use num_derive::FromPrimitive;
 use num_traits::{ops::mul_add, FromPrimitive, ToPrimitive};
 use spinlock::SpinNoIrq;
@@ -77,11 +77,10 @@ where
         ) -> Result<ring::trb::event::TransferEvent>,
         CT: FnMut(u8, u8, u16, u16, TransferType) -> (transfer::Allowed, transfer::Allowed),
     {
-        
         let last_entry = self
             .fetch_desc_endpoints()
             .iter()
-            .min_by_key(|e| e.doorbell_value_aka_dci())
+            .max_by_key(|e| e.doorbell_value_aka_dci())
             .unwrap()
             .to_owned();
 
@@ -102,13 +101,18 @@ where
         control_mut.set_alternate_setting(interface.alternate_setting);
 
         // control_mut.set_add_context_flag(1);
-        // control_mut.set_drop_context_flag(1);
+        // control_mut.set_drop_context_flag(2);
         //TODO:  always choose last config here(always only 1 config exist, we assume.), need to change at future
         control_mut.set_configuration_value(config_val);
+
         self.fetch_desc_endpoints().iter().for_each(|ep| {
             self.init_endpoint_context(port_speed, ep, input);
-        });//---------------------------------
+        });
 
+        debug!(
+            "before we send request, lets review input context:\n{:#?}",
+            input
+        );
         debug!("{TAG} CMD: configure endpoint");
         let post_cmd = post_cmd_and_busy_wait(command::Allowed::ConfigureEndpoint({
             let mut configure_endpoint = *ConfigureEndpoint::default()
@@ -117,52 +121,50 @@ where
             if (config_val == 0) {
                 configure_endpoint.set_deconfigure();
             }
-            debug!("configure_endpoint is:{:?}",configure_endpoint);
             configure_endpoint
         }));
         debug!("{TAG} CMD: result:{:?}", post_cmd);
 
-        {
-            debug!("{TAG} Transfer command: set configuration");
-            let set_conf_transfer_command = construct_transfer(
-                0,    //request type 0
-                0x09, //SET CONFIG
-                config_val as u16,
-                0, //index 0
-                TransferType::No,
-            );
+        // {
+        //     debug!("{TAG} Transfer command: set configuration");
+        //     let set_conf_transfer_command = construct_transfer(
+        //         0,    //request type 0
+        //         0x09, //SET CONFIG
+        //         config_val as u16,
+        //         0, //index 0
+        //         TransferType::No,
+        //     );
 
-            let post_cmd = post_nodata_control_transfer_and_busy_wait(
-                set_conf_transfer_command,
-                self.transfer_rings.get_mut(0).unwrap(),
-                1, //dci
-                self.slot_id,
-            );
+        //     let post_cmd = post_nodata_control_transfer_and_busy_wait(
+        //         set_conf_transfer_command,
+        //         self.transfer_rings.get_mut(0).unwrap(),
+        //         1, //dci
+        //         self.slot_id,
+        //     );
 
-            // post_transfer()
-            debug!("{TAG} Transfer command: result:{:?}", post_cmd);
-        }
-        {
-            debug!("{TAG} Transfer command: set interface");
-            let set_conf_transfer_command = construct_transfer(
-                1,    //request type 1: set interface
-                0x09, //SET CONFIG
-                interface.interface_number as u16,
-                interface.interface_number as u16, //index 0
-                TransferType::No,
-            );
+        //     // post_transfer()
+        //     debug!("{TAG} Transfer command: result:{:?}", post_cmd);
+        // }
+        // {
+        //     debug!("{TAG} Transfer command: set interface");
+        //     let set_conf_transfer_command = construct_transfer(
+        //         1,    //request type 1: set interface
+        //         0x09, //SET CONFIG
+        //         interface.interface_number as u16,
+        //         interface.interface_number as u16, //index 0
+        //         TransferType::No,
+        //     );
 
-            let post_cmd = post_nodata_control_transfer_and_busy_wait(
-                set_conf_transfer_command,
-                self.transfer_rings.get_mut(0).unwrap(),
-                1, //dci
-                self.slot_id,
-            );
+        //     let post_cmd = post_nodata_control_transfer_and_busy_wait(
+        //         set_conf_transfer_command,
+        //         self.transfer_rings.get_mut(0).unwrap(),
+        //         1, //dci
+        //         self.slot_id,
+        //     );
 
-            // post_transfer()
-            debug!("{TAG} Transfer command: result:{:?}", post_cmd);
-        }
-        warn!("input_ref is {:?}",input);
+        //     // post_transfer()
+        //     debug!("{TAG} Transfer command: result:{:?}", post_cmd);
+        // }
     }
 
     fn init_endpoint_context(
@@ -174,6 +176,7 @@ where
         //set add content flag
         let control_mut = input_ctx.control_mut();
         control_mut.add_context_flag(endpoint_desc.doorbell_value_aka_dci() as usize);
+
         let endpoint_mut = input_ctx
             .device_mut()
             .endpoint_mut(endpoint_desc.doorbell_value_aka_dci() as usize);
@@ -183,6 +186,7 @@ where
         let interval = endpoint_desc.calc_actual_interval(port_speed);
 
         endpoint_mut.set_interval(interval);
+
         //init endpoint type
         let endpoint_type = endpoint_desc.endpoint_type();
         endpoint_mut.set_endpoint_type(endpoint_type);
@@ -237,10 +241,6 @@ where
                 }
                 EndpointType::NotValid => unreachable!("Not Valid Endpoint should not exist."),
             }
-            debug!("---------------------------");
-            warn!("input is {:?}",input_ctx);
-            warn!("endoint_type is:{:?}",endpoint_type);
-            debug!("---------------------------");
         }
     }
 

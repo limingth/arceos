@@ -705,7 +705,7 @@ where
         self.fetch_device_desc(dev, slot);
         self.fetch_config_desc(dev, slot);
 
-        debug!("fetched descriptors:{:?}", dev.descriptors);
+        debug!("fetched descriptors:{:#?}", dev.descriptors);
         Ok(())
     }
 
