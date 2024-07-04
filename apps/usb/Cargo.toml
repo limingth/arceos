@@ -8,10 +8,9 @@ authors = ["zhourui <zrufo747@outlook.com>"]
 [features]
 default = []
 
-
 [dependencies]
 
-axstd = { path = "../../ulib/axstd", optional = true }
+axstd = { path = "../../ulib/axstd" }
 axfeat = {path = "../../api/axfeat", features = ["phytium-pi","usb-host","multitask","sched_rr"]}
 driver_usb ={ path = "../../crates/driver_usb"}
 axalloc = { path = "../../modules/axalloc"}

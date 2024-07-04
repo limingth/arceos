@@ -1,10 +1,12 @@
-#![cfg_attr(feature = "axstd", no_std)]
-#![cfg_attr(feature = "axstd", no_main)]
+#![no_std]
+#![no_main]
 #![allow(warnings)]
 
 #[macro_use]
-#[cfg(feature = "axstd")]
 extern crate axstd as std;
+
+use core::time::Duration;
+use std::thread::sleep;
 
 use axalloc::GlobalNoCacheAllocator;
 use driver_usb::{
@@ -29,7 +31,7 @@ impl OsDep for OsDepImp {
     fn force_sync_cache() {}
 }
 
-#[cfg_attr(feature = "axstd", no_mangle)]
+#[no_mangle]
 fn main() {
     let phytium_cfg_id_0 = (0xffff_0000_31a0_8000, 48, 0);
 
@@ -42,6 +44,8 @@ fn main() {
 
     let mut usb = USBHost::new::<Xhci<_>>(config).unwrap();
 
-    usb.poll();
+    sleep(Duration::from_millis(300));
+
+    usb.poll().unwrap();
     usb.work_temporary_example();
 }
