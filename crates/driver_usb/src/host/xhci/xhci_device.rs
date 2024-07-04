@@ -67,7 +67,8 @@ where
         mut post_nodata_control_transfer_and_busy_wait: FT,
         mut construct_transfer: CT,
         input_ref: &mut Vec<DMA<Input64Byte, O::DMA>>,
-    ) where
+    ) -> Result
+    where
         FC: FnMut(command::Allowed) -> Result<ring::trb::event::CommandCompletion>,
         FT: FnMut(
             (transfer::Allowed, transfer::Allowed), //setup,data,status
@@ -86,7 +87,7 @@ where
 
         debug!("found last entry: 0x{:x}", last_entry.endpoint_address);
 
-        let input = input_ref.get_mut(self.slot_id).unwrap().deref_mut();
+        let input = input_ref.get_mut(self.slot_id - 1).unwrap().deref_mut();
         let slot_mut = input.device_mut().slot_mut();
         slot_mut.set_context_entries(last_entry.doorbell_value_aka_dci() as u8);
 
@@ -109,10 +110,10 @@ where
             self.init_endpoint_context(port_speed, ep, input);
         });
 
-        debug!(
-            "before we send request, lets review input context:\n{:#?}",
-            input
-        );
+        // debug!(
+        //     "before we send request, lets review input context:\n{:#?}",
+        //     input
+        // );
         debug!("{TAG} CMD: configure endpoint");
         let post_cmd = post_cmd_and_busy_wait(command::Allowed::ConfigureEndpoint({
             let mut configure_endpoint = *ConfigureEndpoint::default()
@@ -122,49 +123,51 @@ where
                 configure_endpoint.set_deconfigure();
             }
             configure_endpoint
-        }));
+        }))?;
         debug!("{TAG} CMD: result:{:?}", post_cmd);
 
-        // {
-        //     debug!("{TAG} Transfer command: set configuration");
-        //     let set_conf_transfer_command = construct_transfer(
-        //         0,    //request type 0
-        //         0x09, //SET CONFIG
-        //         config_val as u16,
-        //         0, //index 0
-        //         TransferType::No,
-        //     );
+        {
+            debug!("{TAG} Transfer command: set configuration");
+            let set_conf_transfer_command = construct_transfer(
+                0,    //request type 0
+                0x09, //SET CONFIG
+                config_val as u16,
+                0, //index 0
+                TransferType::No,
+            );
 
-        //     let post_cmd = post_nodata_control_transfer_and_busy_wait(
-        //         set_conf_transfer_command,
-        //         self.transfer_rings.get_mut(0).unwrap(),
-        //         1, //dci
-        //         self.slot_id,
-        //     );
+            let post_cmd = post_nodata_control_transfer_and_busy_wait(
+                set_conf_transfer_command,
+                self.transfer_rings.get_mut(0).unwrap(),
+                1, //dci
+                self.slot_id,
+            );
 
-        //     // post_transfer()
-        //     debug!("{TAG} Transfer command: result:{:?}", post_cmd);
-        // }
-        // {
-        //     debug!("{TAG} Transfer command: set interface");
-        //     let set_conf_transfer_command = construct_transfer(
-        //         1,    //request type 1: set interface
-        //         0x09, //SET CONFIG
-        //         interface.interface_number as u16,
-        //         interface.interface_number as u16, //index 0
-        //         TransferType::No,
-        //     );
+            // post_transfer()
+            debug!("{TAG} Transfer command: result:{:?}", post_cmd);
+        }
+        {
+            debug!("{TAG} Transfer command: set interface");
+            let set_conf_transfer_command = construct_transfer(
+                1,    //request type 1: set interface
+                0x09, //SET CONFIG
+                interface.interface_number as u16,
+                interface.interface_number as u16, //index 0
+                TransferType::No,
+            );
 
-        //     let post_cmd = post_nodata_control_transfer_and_busy_wait(
-        //         set_conf_transfer_command,
-        //         self.transfer_rings.get_mut(0).unwrap(),
-        //         1, //dci
-        //         self.slot_id,
-        //     );
+            let post_cmd = post_nodata_control_transfer_and_busy_wait(
+                set_conf_transfer_command,
+                self.transfer_rings.get_mut(0).unwrap(),
+                1, //dci
+                self.slot_id,
+            );
 
-        //     // post_transfer()
-        //     debug!("{TAG} Transfer command: result:{:?}", post_cmd);
-        // }
+            // post_transfer()
+            debug!("{TAG} Transfer command: result:{:?}", post_cmd);
+        }
+
+        Ok(())
     }
 
     fn init_endpoint_context(

@@ -16,6 +16,7 @@ use core::{
     borrow::BorrowMut,
     num::NonZeroUsize,
     ops::{Deref, DerefMut},
+    sync::atomic::{fence, Ordering},
 };
 use log::*;
 use num_traits::FromPrimitive;
@@ -25,7 +26,7 @@ use xhci::{
     registers::PortRegisterSet,
     ring::trb::{
         command::{AddressDevice, Allowed, EnableSlot, EvaluateContext, Noop},
-        event::CommandCompletion,
+        event::{CommandCompletion, CompletionCode},
         transfer::{self, DataStage, SetupStage, StatusStage, TransferType},
     },
 };
@@ -314,7 +315,7 @@ where
             });
         }
 
-        O::force_sync_cache();
+        fence(Ordering::Release);
 
         debug!("{TAG} Wait result");
         {
@@ -324,14 +325,22 @@ where
                 let event = er.next();
                 match event {
                     xhci::ring::trb::event::Allowed::CommandCompletion(c) => {
-                        while c.completion_code().is_err() {}
+                        let mut code = CompletionCode::Invalid;
+                        loop {
+                            if let Ok(c) = c.completion_code() {
+                                code = c;
+                                break;
+                            }
+                        }
                         debug!(
                             "{TAG} Cmd @{:X} got result, cycle {}",
                             c.command_trb_pointer(),
                             c.cycle_bit()
                         );
-
-                        return Ok(c);
+                        if let CompletionCode::Success = code {
+                            return Ok(c);
+                        }
+                        return Err(Error::Unknown(format!("{:?}", code)));
                     }
                     _ => warn!("event: {:?}", event),
                 }
@@ -446,7 +455,7 @@ where
             r.set_doorbell_target(dci);
         });
 
-        O::force_sync_cache();
+        fence(Ordering::Release);
 
         self.busy_wait_for_event()
     }
@@ -623,18 +632,19 @@ where
                 (unsafe { &mut *dev_ctx_list }), //ugly!
             );
         });
-
+        // debug!("attached count: {}", lock.attached_set.len());
         // lock.attached_set.iter_mut().for_each(|dev| {
         //     debug!("find driver!");
         //     let find_driver_impl = dev.1.find_driver_impl::<USBDeviceDriverHidMouseExample>();
         //     if let Some(driver) = find_driver_impl {
         //         debug!("found!");
-        //         <USBDeviceDriverHidMouseExample as USBDeviceDriverOps<O>>::work( //should create a task
+        //         <USBDeviceDriverHidMouseExample as USBDeviceDriverOps<O>>::work(
+        //             //should create a task
         //             &driver.lock(),
         //             self,
         //         );
         //     }
-        // });
+        // })
 
         let dev = lock.attached_set.get_mut(&1).unwrap(); //从这里开始是实验环节
         unsafe {
@@ -693,7 +703,7 @@ where
             0,
             (TransferType::In, Direction::In),
         );
-        debug!("{TAG} Transfer Control: Fetching all configs");
+        debug!("{TAG} Transfer Control: Fetching config desc");
         let post_control_transfer = self
             .post_control_transfer_with_data(
                 construct_control_transfer_req,
@@ -721,7 +731,7 @@ where
             0,
             (TransferType::In, Direction::In),
         );
-        debug!("{TAG} Transfer Control: Fetching all configs");
+        debug!("{TAG} Transfer Control: Fetching device desc");
         let post_control_transfer = self
             .post_control_transfer_with_data(
                 construct_control_transfer_req,
@@ -741,7 +751,7 @@ where
         );
         let mut binding = self.dev_ctx.lock();
         let dev = binding.attached_set.get_mut(&(slot as usize)).unwrap();
-        let index = dev.slot_id;
+        let index = dev.slot_id - 1;
         let transfer = self.construct_control_transfer_req(
             &buffer,
             0x80,
@@ -772,7 +782,10 @@ where
             .endpoint_mut(1) //dci=1: endpoint 0
             .set_max_packet_size(max_packet_size);
 
-        debug!("{TAG} CMD: evaluating context for set endpoint0 packet size");
+        debug!(
+            "{TAG} CMD: evaluating context for set endpoint0 packet size {}",
+            max_packet_size
+        );
         let eval_ctx = self.post_cmd(Allowed::EvaluateContext(
             *EvaluateContext::default()
                 .set_slot_id(slot)
@@ -784,18 +797,13 @@ where
     }
 
     fn address_device(&self, slot: u8, port: usize) -> Result {
-        let index = self
-            .dev_ctx
-            .lock()
-            .attached_set
-            .get(&(slot as usize))
-            .unwrap()
-            .slot_id;
+        let slot_id = slot as usize;
+
         let mut binding = self.dev_ctx.lock();
 
         let transfer_ring_0_addr = binding
             .attached_set
-            .get(&index)
+            .get(&slot_id)
             .unwrap()
             .transfer_rings
             .get(0)
@@ -803,7 +811,7 @@ where
             .register();
         let ring_cycle_bit = binding
             .attached_set
-            .get(&index)
+            .get(&slot_id)
             .unwrap()
             .transfer_rings
             .get(0)
@@ -812,7 +820,7 @@ where
 
         let context_mut = binding
             .device_input_context_list
-            .get_mut(index)
+            .get_mut(slot_id - 1)
             .unwrap()
             .deref_mut();
 
@@ -848,9 +856,9 @@ where
         endpoint_0.set_max_primary_streams(0);
         endpoint_0.set_mult(0);
         endpoint_0.set_error_count(3);
+        endpoint_0.set_average_trb_length(8);
 
-        debug!("{TAG} CMD: address device");
-        O::force_sync_cache();
+        fence(Ordering::Release);
 
         let result = self.post_cmd(Allowed::AddressDevice(
             *AddressDevice::new()
@@ -858,7 +866,7 @@ where
                 .set_input_context_pointer((context_mut as *const Input<16>).addr() as u64),
         ))?;
 
-        debug!("{TAG} Result: {:?}", result);
+        debug!("address [{}] ok", slot_id);
 
         Ok(())
     }
