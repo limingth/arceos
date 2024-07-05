@@ -36,14 +36,14 @@ where
     }
 }
 
-pub trait Controller<O>: Send + Sync
+pub trait Controller<O>: Send
 where
     O: OsDep,
 {
     fn new(config: USBHostConfig<O>) -> Result<Self>
     where
         Self: Sized;
-    fn poll(&self) -> Result;
+    fn poll(&mut self) -> Result;
 }
 
 #[derive(Clone)]
@@ -52,7 +52,7 @@ where
     O: OsDep,
 {
     pub(crate) config: USBHostConfig<O>,
-    pub(crate) controller: Arc<dyn Controller<O>>,
+    pub(crate) controller: Arc<SpinNoIrq<Box<dyn Controller<O>>>>,
 }
 
 impl<O> USBHost<O>
@@ -60,24 +60,26 @@ where
     O: OsDep,
 {
     pub fn new<C: Controller<O> + 'static>(config: USBHostConfig<O>) -> Result<Self> {
-        let controller: Arc<dyn Controller<O>> = Arc::new(C::new(config.clone())?);
+        let controller: Box<dyn Controller<O>> = Box::new(C::new(config.clone())?);
+
+        let controller = Arc::new(SpinNoIrq::new(controller));
         // let controller = Arc::new( SpinNoIrq::new(controller));
         Ok(Self { config, controller })
     }
 
     pub fn poll(&self) -> Result {
-        self.controller.poll()
+        self.controller.lock().poll()
     }
 
     pub fn work_temporary_example(&mut self) {
         use crate::ax::USBDeviceDriverOps;
-        unsafe {
-            xhci::drivers.iter_mut().for_each(|d| {
-                d.lock().work(
-                    &*((self.controller.as_ref() as *const dyn Controller<O>) as *const Xhci<O>),
-                );
-            })
-        }
+        // unsafe {
+        //     xhci::drivers.iter_mut().for_each(|d| {
+        //         d.lock().work(
+        //             &*((self.controller.as_ref() as *const dyn Controller<O>) as *const Xhci<O>),
+        //         );
+        //     })
+        // }
     }
 }
 

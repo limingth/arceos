@@ -47,7 +47,7 @@ impl<O: OsDep> Ring<O> {
         self.trbs[self.i].copy_from_slice(&trb);
         let addr = self.trbs[self.i].as_ptr() as usize;
         let next_index = self.next_index();
-        debug!("enqueued,next index: {next_index}");
+        debug!("enqueued,next index: {next_index} @{:#X}", addr);
         addr
     }
 
