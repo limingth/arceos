@@ -101,10 +101,11 @@ where
         control_mut.set_interface_number(interface.interface_number);
         control_mut.set_alternate_setting(interface.alternate_setting);
 
-        // control_mut.set_add_context_flag(1);
-        // control_mut.set_drop_context_flag(2);
+        control_mut.clear_drop_context_flag(2);
+        control_mut.set_add_context_flag(0);
+        control_mut.clear_add_context_flag(1);
         //TODO:  always choose last config here(always only 1 config exist, we assume.), need to change at future
-        control_mut.set_configuration_value(config_val);
+        control_mut.set_configuration_value(config_val - 1); //SUS
 
         self.fetch_desc_endpoints().iter().for_each(|ep| {
             self.init_endpoint_context(port_speed, ep, input);
@@ -178,7 +179,7 @@ where
     ) {
         //set add content flag
         let control_mut = input_ctx.control_mut();
-        control_mut.add_context_flag(endpoint_desc.doorbell_value_aka_dci() as usize);
+        control_mut.set_add_context_flag(endpoint_desc.doorbell_value_aka_dci() as usize);
 
         let endpoint_mut = input_ctx
             .device_mut()
@@ -186,9 +187,10 @@ where
         //set interval
         // let port_speed = PortSpeed::get(port_number);
         let endpoint_type = endpoint_desc.endpoint_type();
-        let interval = endpoint_desc.calc_actual_interval(port_speed);
+        // let interval = endpoint_desc.calc_actual_interval(port_speed);
 
-        endpoint_mut.set_interval(interval);
+        // endpoint_mut.set_interval(interval);
+        endpoint_mut.set_interval(3); // modified
 
         //init endpoint type
         let endpoint_type = endpoint_desc.endpoint_type();
@@ -241,6 +243,7 @@ where
 
                     endpoint_mut.set_tr_dequeue_pointer(ring_addr);
                     endpoint_mut.set_dequeue_cycle_state();
+                    endpoint_mut.set_max_endpoint_service_time_interval_payload_low(4);
                 }
                 EndpointType::NotValid => unreachable!("Not Valid Endpoint should not exist."),
             }
