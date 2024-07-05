@@ -187,7 +187,7 @@ where
         //set interval
         // let port_speed = PortSpeed::get(port_number);
         let endpoint_type = endpoint_desc.endpoint_type();
-        // let interval = endpoint_desc.calc_actual_interval(port_speed);
+        // let interval = endpoint_desc.calc_actual_interval(port_speed);//TODO: THIS function has error! mis calculated!
 
         // endpoint_mut.set_interval(interval);
         endpoint_mut.set_interval(3); // modified
@@ -244,6 +244,7 @@ where
                     endpoint_mut.set_tr_dequeue_pointer(ring_addr);
                     endpoint_mut.set_dequeue_cycle_state();
                     endpoint_mut.set_max_endpoint_service_time_interval_payload_low(4);
+                    //best guess?
                 }
                 EndpointType::NotValid => unreachable!("Not Valid Endpoint should not exist."),
             }
