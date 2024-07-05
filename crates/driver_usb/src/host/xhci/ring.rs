@@ -33,6 +33,9 @@ impl<O: OsDep> Ring<O> {
             link,
         })
     }
+    pub fn len(&self) -> usize {
+        self.trbs.len()
+    }
 
     fn get_trb(&self) -> &TrbData {
         unsafe { &self.trbs[self.i] }
@@ -43,11 +46,10 @@ impl<O: OsDep> Ring<O> {
     }
 
     pub fn enque_trb(&mut self, mut trb: TrbData) -> usize {
-        debug!("enqueue trb into {}", self.i);
         self.trbs[self.i].copy_from_slice(&trb);
         let addr = self.trbs[self.i].as_ptr() as usize;
-        let next_index = self.next_index();
-        debug!("enqueued,next index: {next_index} @{:#X}", addr);
+        debug!("enqueued {} @{:#X}", self.i, addr);
+        self.next_index();
         addr
     }
 
@@ -58,41 +60,41 @@ impl<O: OsDep> Ring<O> {
     }
 
     fn next_index(&mut self) -> usize {
-        debug!("next index");
-        let mut i;
-        loop {
-            i = self.i;
-            self.i += 1;
-            if self.i >= self.trbs.len() {
-                self.i = 0;
-                debug!("reset index!");
+        self.i += 1;
+        let mut need_link = false;
+        let len = self.len();
 
-                if self.link {
-                    debug!("link!");
-                    let address = self.trbs[self.i].as_ptr() as usize;
-                    let mut link = Link::new();
-                    link.set_ring_segment_pointer(address as u64)
-                        .set_toggle_cycle();
-
-                    if self.cycle {
-                        link.set_cycle_bit();
-                    } else {
-                        link.clear_cycle_bit();
-                    }
-                    let trb = Allowed::Link(link);
-                    let link_trb = trb.into_raw();
-                    let mut this_trb = &mut self.trbs[self.i];
-                    this_trb.copy_from_slice(&link_trb);
-
-                    self.cycle = !self.cycle;
-                } else {
-                    break;
-                }
-            } else {
-                break;
-            }
+        // link模式下，最后一个是Link
+        if self.link && self.i >= len - 1 {
+            self.i = 0;
+            need_link = true;
+        } else if self.i >= len {
+            self.i = 0;
         }
-        i
+
+        debug!("index {}", self.i);
+
+        if need_link {
+            debug!("link!");
+            let address = self.trbs[0].as_ptr() as usize;
+            let mut link = Link::new();
+            link.set_ring_segment_pointer(address as u64)
+                .set_toggle_cycle();
+
+            if self.cycle {
+                link.set_cycle_bit();
+            } else {
+                link.clear_cycle_bit();
+            }
+            let trb = Allowed::Link(link);
+            let link_trb = trb.into_raw();
+            let mut this_trb = &mut self.trbs[len - 1];
+            this_trb.copy_from_slice(&link_trb);
+
+            self.cycle = !self.cycle;
+        }
+
+        self.i
     }
 
     pub fn next_data(&mut self) -> (&mut TrbData, bool) {
@@ -100,7 +102,7 @@ impl<O: OsDep> Ring<O> {
         (&mut self.trbs[i], self.cycle)
     }
 
-    pub fn peek_next_data(&mut self) -> (&TrbData, bool) {
+    pub fn current_data(&mut self) -> (&TrbData, bool) {
         (&self.trbs[self.i], self.cycle)
     }
 }

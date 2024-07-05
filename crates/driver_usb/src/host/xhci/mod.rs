@@ -1,7 +1,4 @@
-use crate::{
-    err::*,
-    OsDep,
-};
+use crate::{err::*, OsDep};
 use alloc::{
     borrow::ToOwned,
     format,
@@ -63,7 +60,7 @@ where
     max_ports: u8,
     max_irqs: u16,
     scratchpad_buf_arr: Option<ScratchpadBufferArray<O>>,
-    ring: Ring<O>,
+    cmd: Ring<O>,
     event: EventRing<O>,
     regs: Registers,
     pub dev_ctx: DeviceContextList<O>,
@@ -99,8 +96,10 @@ where
         // Create the command ring with 4096 / 16 (TRB size) entries, so that it uses all of the
         // DMA allocation (which is at least a 4k page).
         let entries_per_page = O::PAGE_SIZE / mem::size_of::<ring::TrbData>();
-        let ring = Ring::new(config.os.clone(), entries_per_page, true)?;
+        let cmd = Ring::new(config.os.clone(), 8, true)?;
         let event = EventRing::new(config.os.clone())?;
+
+        debug!("{TAG} ring size {}", cmd.len());
 
         let mut s = Self {
             config,
@@ -108,7 +107,7 @@ where
             max_irqs,
             max_ports,
             scratchpad_buf_arr: None,
-            ring,
+            cmd,
             event,
             regs,
             dev_ctx,
@@ -144,7 +143,7 @@ where
 
     fn test_cmd(&mut self) -> Result {
         debug!("{TAG} Test command ring");
-        for _ in 0..3 {
+        for _ in 0..40 {
             let completion = self.post_cmd(Allowed::Noop(Noop::new()))?;
         }
         debug!("{TAG} Command ring ok");
@@ -161,13 +160,6 @@ where
     }
 
     fn probe(&self) -> Result {
-        
-
-
-
-
-
-
         Ok(())
     }
 
@@ -201,12 +193,12 @@ where
         self.scratchpad_buf_arr = Some(scratchpad_buf_arr);
     }
     pub fn post_cmd(&mut self, mut trb: Allowed) -> Result<CommandCompletion> {
-        if self.ring.cycle {
+        if self.cmd.cycle {
             trb.set_cycle_bit();
         } else {
             trb.clear_cycle_bit();
         }
-        let addr = self.ring.enque_trb(trb.into_raw()) as u64;
+        let addr = self.cmd.enque_trb(trb.into_raw()) as u64;
 
         debug!("[CMD] >> {:?} @{:X}", trb, addr);
 
@@ -223,31 +215,31 @@ where
     fn event_busy_wait_next(&mut self, addr: u64) -> Result<CommandCompletion> {
         debug!("Wait result");
         loop {
-            let event = self.event.next();
-            match event {
-                xhci::ring::trb::event::Allowed::CommandCompletion(c) => {
-                    let mut code = CompletionCode::Invalid;
-                    loop {
+            if let Some(event) = self.event.next() {
+                match event {
+                    xhci::ring::trb::event::Allowed::CommandCompletion(c) => {
+                        let mut code = CompletionCode::Invalid;
                         if let Ok(c) = c.completion_code() {
                             code = c;
-                            break;
+                        } else {
+                            continue;
                         }
-                    }
-                    debug!(
-                        "[CMD] << {code:#?} @{:X} got result, cycle {}",
-                        c.command_trb_pointer(),
-                        c.cycle_bit()
-                    );
-                    if c.command_trb_pointer() != addr {
-                        continue;
-                    }
+                        debug!(
+                            "[CMD] << {code:#?} @{:X} got result, cycle {}",
+                            c.command_trb_pointer(),
+                            c.cycle_bit()
+                        );
+                        if c.command_trb_pointer() != addr {
+                            continue;
+                        }
 
-                    if let CompletionCode::Success = code {
-                        return Ok(c);
+                        if let CompletionCode::Success = code {
+                            return Ok(c);
+                        }
+                        return Err(Error::CMD(code));
                     }
-                    return Err(Error::CMD(code));
+                    _ => warn!("event: {:?}", event),
                 }
-                _ => warn!("event: {:?}", event),
             }
         }
     }
@@ -323,8 +315,8 @@ where
     }
 
     fn set_cmd_ring(&mut self) -> Result {
-        let crcr = self.ring.register();
-        let cycle = self.ring.cycle;
+        let crcr = self.cmd.register();
+        let cycle = self.cmd.cycle;
 
         let regs = self.regs_mut();
 

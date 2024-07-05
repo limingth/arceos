@@ -1,6 +1,7 @@
 pub use super::ring::{Ring, TrbData};
 use crate::err::*;
 use crate::{dma::DMA, OsDep};
+use log::debug;
 use tock_registers::interfaces::Writeable;
 use tock_registers::register_structs;
 use tock_registers::registers::{ReadOnly, ReadWrite, WriteOnly};
@@ -33,7 +34,7 @@ where
         let a = os.dma_alloc();
         let mut ring = EventRing {
             ste: DMA::zeroed(1, 64, a),
-            ring: Ring::new(os, 256, false)?,
+            ring: Ring::new(os, 30, false)?,
         };
         ring.ste[0].addr_low.set(ring.ring.register() as u32);
         ring.ste[0]
@@ -44,14 +45,27 @@ where
         Ok(ring)
     }
 
-    pub fn next(&mut self) -> Allowed {
-        let (data, cycle) = self.ring.next_data();
-        Allowed::try_from(data.clone()).unwrap()
-    }
+    pub fn next(&mut self) -> Option<Allowed> {
+        let (data, flag) = self.ring.current_data();
+        let mut allowed = Allowed::try_from(data.clone()).ok()?;
 
-    pub fn busy_wait_next(&mut self) -> Option<Allowed> {
-        let (data, flag) = self.ring.peek_next_data();
-        Allowed::try_from(data.clone()).ok()
+        // debug!("event: next: {:#?}", allowed);
+
+        if flag == allowed.cycle_bit() {
+            return None;
+        }
+        if allowed.cycle_bit() {
+            allowed.clear_cycle_bit();
+        } else {
+            allowed.set_cycle_bit();
+        }
+        self.ring
+            .trbs
+            .get_mut(self.ring.i)
+            .unwrap()
+            .copy_from_slice(&allowed.into_raw());
+        self.ring.next_data();
+        Some(allowed)
     }
 
     pub fn erdp(&self) -> u64 {
