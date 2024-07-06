@@ -211,8 +211,8 @@ where
                             .set_data_buffer_pointer(buffer.addr() as u64)
                             .set_td_size(0)
                             .set_trb_transfer_length(buffer.length_for_bytes() as u32)
-                            .clear_interrupt_on_short_packet()
-                            .clear_interrupt_on_completion(),
+                            .set_interrupt_on_short_packet()
+                            .set_interrupt_on_completion(),
                     );
                     let mut transfer_rings = rings.get_many_mut([3]).unwrap(); //chaos!
 
