@@ -127,46 +127,46 @@ where
         }))?;
         debug!("{TAG} CMD: result:{:?}", post_cmd);
 
-        {
-            debug!("{TAG} Transfer command: set configuration");
-            let set_conf_transfer_command = construct_transfer(
-                0,    //request type 0
-                0x09, //SET CONFIG
-                config_val as u16,
-                0, //index 0
-                TransferType::No,
-            );
+        // {
+        //     debug!("{TAG} Transfer command: set configuration");
+        //     let set_conf_transfer_command = construct_transfer(
+        //         0,    //request type 0
+        //         0x09, //SET CONFIG
+        //         config_val as u16,
+        //         0, //index 0
+        //         TransferType::No,
+        //     );
 
-            let post_cmd = post_nodata_control_transfer_and_busy_wait(
-                set_conf_transfer_command,
-                self.transfer_rings.get_mut(0).unwrap(),
-                1, //dci
-                self.slot_id,
-            );
+        //     let post_cmd = post_nodata_control_transfer_and_busy_wait(
+        //         set_conf_transfer_command,
+        //         self.transfer_rings.get_mut(0).unwrap(),
+        //         1, //dci
+        //         self.slot_id,
+        //     );
 
-            // post_transfer()
-            debug!("{TAG} Transfer command: result:{:?}", post_cmd);
-        }
-        {
-            debug!("{TAG} Transfer command: set interface");
-            let set_conf_transfer_command = construct_transfer(
-                1,    //request type 1: set interface
-                0x09, //SET CONFIG
-                interface.interface_number as u16,
-                interface.interface_number as u16, //index 0
-                TransferType::No,
-            );
+        //     // post_transfer()
+        //     debug!("{TAG} Transfer command: result:{:?}", post_cmd);
+        // }
+        // {
+        //     debug!("{TAG} Transfer command: set interface");
+        //     let set_conf_transfer_command = construct_transfer(
+        //         1,    //request type 1: set interface
+        //         0x09, //SET CONFIG
+        //         interface.interface_number as u16,
+        //         interface.interface_number as u16, //index 0
+        //         TransferType::No,
+        //     );
 
-            let post_cmd = post_nodata_control_transfer_and_busy_wait(
-                set_conf_transfer_command,
-                self.transfer_rings.get_mut(0).unwrap(),
-                1, //dci
-                self.slot_id,
-            );
+        //     let post_cmd = post_nodata_control_transfer_and_busy_wait(
+        //         set_conf_transfer_command,
+        //         self.transfer_rings.get_mut(0).unwrap(),
+        //         1, //dci
+        //         self.slot_id,
+        //     );
 
-            // post_transfer()
-            debug!("{TAG} Transfer command: result:{:?}", post_cmd);
-        }
+        //     // post_transfer()
+        //     debug!("{TAG} Transfer command: result:{:?}", post_cmd);
+        // }
 
         Ok(())
     }
