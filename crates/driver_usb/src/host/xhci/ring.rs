@@ -7,7 +7,9 @@ use crate::err::*;
 use crate::OsDep;
 use alloc::boxed::Box;
 use alloc::slice;
+use alloc::vec;
 use alloc::vec::Vec;
+use axhal::cpu::this_cpu_id;
 use log::debug;
 pub use xhci::ring::trb;
 use xhci::ring::trb::command::Allowed;
@@ -43,11 +45,10 @@ impl<O: OsDep> Ring<O> {
     }
 
     pub fn enque_trb(&mut self, mut trb: TrbData) -> usize {
-        debug!("enqueue trb into {}", self.i);
+        debug!("enqueue trb: {:?}", trb);
         self.trbs[self.i].copy_from_slice(&trb);
         let addr = self.trbs[self.i].as_ptr() as usize;
         let next_index = self.next_index();
-        debug!("enqueued,next index: {next_index}");
         addr
     }
 
@@ -58,14 +59,12 @@ impl<O: OsDep> Ring<O> {
     }
 
     fn next_index(&mut self) -> usize {
-        debug!("next index");
         let mut i;
         loop {
             i = self.i;
             self.i += 1;
             if self.i >= self.trbs.len() {
                 self.i = 0;
-                debug!("reset index!");
 
                 if self.link {
                     debug!("link!");
@@ -102,5 +101,9 @@ impl<O: OsDep> Ring<O> {
 
     pub fn peek_next_data(&mut self) -> (&TrbData, bool) {
         (&self.trbs[self.i], self.cycle)
+    }
+
+    pub fn get_len(&self) -> usize {
+        self.trbs.len()
     }
 }
