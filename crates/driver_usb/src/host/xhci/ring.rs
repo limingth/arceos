@@ -1,3 +1,5 @@
+use core::fmt;
+use core::fmt::Debug;
 use core::mem;
 use core::ptr::slice_from_raw_parts;
 
@@ -45,7 +47,11 @@ impl<O: OsDep> Ring<O> {
     }
 
     pub fn enque_trb(&mut self, mut trb: TrbData) -> usize {
-        debug!("enqueue trb: {:?}", trb);
+        debug!("enqueue trb, dumpit:");
+        debug!("0x{:x}", trb[0]);
+        debug!("0x{:x}", trb[1]);
+        debug!("0x{:x}", trb[2]);
+        debug!("0x{:x}", trb[3]);
         self.trbs[self.i].copy_from_slice(&trb);
         let addr = self.trbs[self.i].as_ptr() as usize;
         let next_index = self.next_index();
