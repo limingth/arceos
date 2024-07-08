@@ -1,6 +1,6 @@
 use core::{fmt::Error, ops::DerefMut, time::Duration};
 
-use alloc::{borrow::ToOwned, collections::BTreeSet, sync::Arc, vec::Vec};
+use alloc::{borrow::ToOwned, boxed::Box, collections::BTreeSet, sync::Arc, vec::Vec};
 use axhal::time::busy_wait_until;
 use axtask::sleep;
 use log::debug;
@@ -25,7 +25,7 @@ use crate::{
     err::{self, Result},
     host::{
         usb::descriptors::{self, desc_interface::Interface, Descriptor},
-        PortSpeed,
+        Controller, PortSpeed,
     },
     OsDep,
 };
@@ -42,18 +42,21 @@ where
     O: OsDep,
 {
     pub hub: usize,
-    pub port: usize,
+    pub port_id: usize,
     pub num_endp: usize,
     pub slot_id: usize,
     pub transfer_rings: Vec<Ring<O>>,
     pub descriptors: Vec<descriptors::Descriptor>,
     pub current_interface: usize,
+    pub(crate) controller: Arc<SpinNoIrq<Box<dyn Controller<O>>>>,
 }
 
 impl<O> DeviceAttached<O>
 where
     O: OsDep,
 {
+
+
     pub fn find_driver_impl<T: USBDeviceDriverOps<O>>(&mut self) -> Option<Arc<SpinNoIrq<T>>> {
         // let device = self.fetch_desc_devices()[0]; //only pick first device desc
         debug!("try creating!");

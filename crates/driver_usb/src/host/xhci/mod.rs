@@ -1,6 +1,7 @@
 use crate::{err::*, OsDep};
 use alloc::{
     borrow::ToOwned,
+    boxed::Box,
     format,
     rc::Rc,
     vec::{self, Vec},
@@ -26,7 +27,7 @@ use xhci::{
     context::{Input, InputHandler, Slot, Slot64Byte},
     registers::PortRegisterSet,
     ring::trb::{
-        command::{AddressDevice, Allowed, EnableSlot, EvaluateContext, Noop},
+        command::{self, AddressDevice, Allowed, EnableSlot, EvaluateContext, Noop},
         event::{CommandCompletion, CompletionCode},
         transfer::{self, DataStage, SetupStage, StatusStage, TransferType},
     },
@@ -99,7 +100,7 @@ where
         // Create the command ring with 4096 / 16 (TRB size) entries, so that it uses all of the
         // DMA allocation (which is at least a 4k page).
         let entries_per_page = O::PAGE_SIZE / mem::size_of::<ring::TrbData>();
-        let cmd = Ring::new(config.os.clone(), 8, true)?;
+        let cmd = Ring::new(config.os.clone(), entries_per_page, true)?;
         let event = EventRing::new(config.os.clone())?;
 
         debug!("{TAG} ring size {}", cmd.len());
@@ -120,8 +121,71 @@ where
         Ok(s)
     }
 
-    fn poll(&mut self) -> Result {
-        self.probe()
+    fn poll(
+        &mut self,
+        arc: Arc<SpinNoIrq<Box<dyn Controller<O>>>>,
+    ) -> Result<Vec<DeviceAttached<O>>> {
+        let mut port_id_list = Vec::new();
+        let port_len = self.regs().port_register_set.len();
+        for i in 0..port_len {
+            let portsc = &self.regs_mut().port_register_set.read_volatile_at(i).portsc;
+            info!(
+                "{TAG} Port {}: Enabled: {}, Connected: {}, Speed {}, Power {}",
+                i,
+                portsc.port_enabled_disabled(),
+                portsc.current_connect_status(),
+                portsc.port_speed(),
+                portsc.port_power()
+            );
+
+            if !portsc.port_enabled_disabled() {
+                continue;
+            }
+
+            port_id_list.push(i);
+        }
+        let mut device_list = Vec::new();
+        for port_idx in port_id_list {
+            let port_id = port_idx + 1;
+            let slot = self.device_slot_assignment()?;
+            let mut device = self
+                .dev_ctx
+                .new_slot(slot as usize, 0, port_id, 32, arc.clone())?;
+            debug!("assign complete!");
+            self.address_device(&device)?;
+            
+            // self.set_ep0_packet_size(slot);
+            // debug!("packet size complete!");
+            // self.setup_fetch_all_needed_dev_desc(slot);
+            // debug!("fetch all complete!");
+
+            device_list.push(device);
+        }
+        Ok(device_list)
+    }
+
+    fn post_cmd(&mut self, mut trb: command::Allowed) -> Result<CommandCompletion> {
+        let addr = self.cmd.enque_command(trb);
+
+        self.regs_mut().doorbell.update_volatile_at(0, |r| {
+            r.set_doorbell_stream_id(0);
+            r.set_doorbell_target(0);
+        });
+
+        fence(Ordering::Release);
+
+        let r = self.event_busy_wait_next(addr as _)?;
+
+        /// update erdp
+        self.regs_mut()
+            .interrupter_register_set
+            .interrupter_mut(0)
+            .erdp
+            .update_volatile(|f| {
+                f.set_event_ring_dequeue_pointer(self.event.erdp());
+            });
+
+        Ok(r)
     }
 }
 
@@ -146,7 +210,7 @@ where
 
     fn test_cmd(&mut self) -> Result {
         debug!("{TAG} Test command ring");
-        for _ in 0..40 {
+        for _ in 0..3 {
             let completion = self.post_cmd(Allowed::Noop(Noop::new()))?;
         }
         debug!("{TAG} Command ring ok");
@@ -162,10 +226,103 @@ where
         Ok(())
     }
 
-    fn probe(&self) -> Result {
+    fn device_slot_assignment(&mut self) -> Result<u8> {
+        // enable slot
+        let mut cmd = EnableSlot::new();
+        let slot_type = {
+            // TODO: PCI未初始化，读不出来
+            // let mut regs = self.regs.lock();
+            // match regs.supported_protocol(port) {
+            //     Some(p) => p.header.read_volatile().protocol_slot_type(),
+            //     None => {
+            //         warn!(
+            //             "{TAG} Failed to find supported protocol information for port {}",
+            //             port
+            //         );
+            //         0
+            //     }
+            // }
+            0
+        };
+        cmd.set_slot_type(slot_type);
+
+        let cmd = Allowed::EnableSlot(EnableSlot::new());
+
+        let result = self.post_cmd(cmd)?;
+
+        let slot_id = result.slot_id();
+        debug!("new slot id: {slot_id}");
+        // self.dev_ctx.new_slot(slot_id as usize, 0, port_idx, 16).unwrap(); //assume 16
+        Ok(slot_id)
+    }
+    pub fn address_device(&mut self, device: &DeviceAttached<O>) -> Result {
+        let slot_id = device.slot_id;
+        let port_idx = device.port_id - 1;
+        let port_speed = self.get_psi(port_idx);
+        let max_packet_size = self.get_speed(port_idx);
+
+        let transfer_ring_0_addr = device.transfer_rings[0].register();
+        let ring_cycle_bit = device.transfer_rings[0].cycle;
+        let context_addr = {
+            let context_mut = self
+                .dev_ctx
+                .device_input_context_list
+                .get_mut(slot_id)
+                .unwrap()
+                .deref_mut();
+
+            let control_context = context_mut.control_mut();
+            control_context.set_add_context_flag(0);
+            control_context.set_add_context_flag(1);
+            for i in 2..32 {
+                control_context.clear_drop_context_flag(i);
+            }
+
+            let slot_context = context_mut.device_mut().slot_mut();
+            slot_context.clear_multi_tt();
+            slot_context.clear_hub();
+            slot_context.set_route_string(0); // for now, not support more hub ,so hardcode as 0.//TODO: generate route string
+            slot_context.set_context_entries(1);
+            slot_context.set_max_exit_latency(0);
+            slot_context.set_root_hub_port_number(1); //todo: to use port number
+            slot_context.set_number_of_ports(0);
+            slot_context.set_parent_hub_slot_id(0);
+            slot_context.set_tt_think_time(0);
+            slot_context.set_interrupter_target(0);
+            slot_context.set_speed(port_speed);
+
+            let endpoint_0 = context_mut.device_mut().endpoint_mut(1);
+            endpoint_0.set_endpoint_type(xhci::context::EndpointType::Control);
+            endpoint_0.set_max_packet_size(max_packet_size);
+            endpoint_0.set_max_burst_size(0);
+            endpoint_0.set_error_count(3);
+            endpoint_0.set_tr_dequeue_pointer(transfer_ring_0_addr);
+            if ring_cycle_bit {
+                endpoint_0.set_dequeue_cycle_state();
+            } else {
+                endpoint_0.clear_dequeue_cycle_state();
+            }
+            endpoint_0.set_interval(0);
+            endpoint_0.set_max_primary_streams(0);
+            endpoint_0.set_mult(0);
+            endpoint_0.set_error_count(3);
+            endpoint_0.set_average_trb_length(8);
+
+            (context_mut as *const Input<16>).addr() as u64
+        };
+
+        fence(Ordering::Release);
+
+        let result = self.post_cmd(Allowed::AddressDevice(
+            *AddressDevice::new()
+                .set_slot_id(slot_id as _)
+                .set_input_context_pointer(context_addr),
+        ))?;
+
+        debug!("address slot [{}] ok", slot_id);
+
         Ok(())
     }
-
     fn setup_scratchpads(&mut self) {
         let scratchpad_buf_arr = {
             let buf_count = {
@@ -194,29 +351,6 @@ where
         };
 
         self.scratchpad_buf_arr = Some(scratchpad_buf_arr);
-    }
-    pub fn post_cmd(&mut self, mut trb: Allowed) -> Result<CommandCompletion> {
-        let addr = self.cmd.enque_command(trb);
-
-        self.regs_mut().doorbell.update_volatile_at(0, |r| {
-            r.set_doorbell_stream_id(0);
-            r.set_doorbell_target(0);
-        });
-
-        fence(Ordering::Release);
-
-        let r = self.event_busy_wait_next(addr as _)?;
-
-        /// update erdp
-        self.regs_mut()
-            .interrupter_register_set
-            .interrupter_mut(0)
-            .erdp
-            .update_volatile(|f| {
-                f.set_event_ring_dequeue_pointer(self.event.erdp());
-            });
-
-        Ok(r)
     }
 
     fn event_busy_wait_next(&mut self, addr: u64) -> Result<CommandCompletion> {

@@ -1,12 +1,13 @@
 pub mod device;
 pub mod usb;
 pub mod xhci;
-use alloc::{boxed::Box, sync::Arc};
+use ::xhci::ring::trb::{command, event::CommandCompletion};
+use alloc::{boxed::Box, sync::Arc, vec::Vec};
 use core::alloc::Allocator;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use spinlock::SpinNoIrq;
-use xhci::Xhci;
+use xhci::{xhci_device, Xhci};
 
 use crate::{addr::VirtAddr, err::*, OsDep};
 
@@ -43,8 +44,12 @@ where
     fn new(config: USBHostConfig<O>) -> Result<Self>
     where
         Self: Sized;
-    fn poll(&mut self) -> Result;
+    fn poll(&mut self, arc: ControllerArc<O>) -> Result<Vec<xhci_device::DeviceAttached<O>>>;
+
+    fn post_cmd(&mut self, trb: command::Allowed) -> Result<CommandCompletion>;
 }
+
+pub(crate) type ControllerArc<O> = Arc<SpinNoIrq<Box<dyn Controller<O>>>>;
 
 #[derive(Clone)]
 pub struct USBHost<O>
@@ -52,7 +57,7 @@ where
     O: OsDep,
 {
     pub(crate) config: USBHostConfig<O>,
-    pub(crate) controller: Arc<SpinNoIrq<Box<dyn Controller<O>>>>,
+    pub(crate) controller: ControllerArc<O>,
 }
 
 impl<O> USBHost<O>
@@ -68,7 +73,11 @@ where
     }
 
     pub fn poll(&self) -> Result {
-        self.controller.lock().poll()
+        let controller = self.controller.clone();
+        let mut g = self.controller.lock();
+        g.poll(controller)?;
+
+        Ok(())
     }
 
     pub fn work_temporary_example(&mut self) {

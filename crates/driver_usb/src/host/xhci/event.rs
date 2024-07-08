@@ -34,7 +34,7 @@ where
         let a = os.dma_alloc();
         let mut ring = EventRing {
             ste: DMA::zeroed(1, 64, a),
-            ring: Ring::new(os, 30, false)?,
+            ring: Ring::new(os, 256, false)?,
         };
         ring.ring.cycle = true;
         ring.ste[0].addr_low.set(ring.ring.register() as u32);

@@ -1,5 +1,6 @@
 use crate::err::*;
 use crate::host::usb::descriptors;
+use crate::host::ControllerArc;
 use crate::{dma::DMA, OsDep};
 use alloc::alloc::Allocator;
 use alloc::collections::{BTreeMap, BTreeSet};
@@ -20,7 +21,7 @@ where
     pub dcbaa: DMA<[u64; 256], O::DMA>,
     pub device_out_context_list: Vec<DMA<Device64Byte, O::DMA>>,
     pub device_input_context_list: Vec<DMA<Input64Byte, O::DMA>>,
-    pub attached_set: BTreeMap<usize, xhci_device::DeviceAttached<O>, O::DMA>, //大概需要加锁？
+    // pub attached_set: BTreeMap<usize, xhci_device::DeviceAttached<O>, O::DMA>, //大概需要加锁？
     os: O,
 }
 
@@ -46,7 +47,7 @@ where
             dcbaa,
             device_out_context_list: out_context_list,
             device_input_context_list: in_context_list,
-            attached_set: BTreeMap::new_in(os.dma_alloc()),
+            // attached_set: BTreeMap::new_in(os.dma_alloc()),
             os,
         }
     }
@@ -61,7 +62,8 @@ where
         hub: usize,
         port: usize,
         num_ep: usize, // cannot lesser than 0, and consider about alignment, use usize
-    ) -> Result<&mut xhci_device::DeviceAttached<O>> {
+        controller: ControllerArc<O>,
+    ) -> Result<DeviceAttached<O>> {
         if slot > self.device_out_context_list.len() {
             return Err(Error::Param(format!(
                 "slot {} > max {}",
@@ -75,24 +77,19 @@ where
             .collect();
         debug!("new rings!");
 
-        self.attached_set.insert(
-            slot,
-            xhci_device::DeviceAttached {
-                hub,
-                port,
-                num_endp: 0,
-                slot_id: slot,
-                transfer_rings: trs,
-                descriptors: {
-                    debug!("new desc container");
-                    Vec::new()
-                },
-                current_interface: 0,
+        Ok(DeviceAttached {
+            hub,
+            port_id: port,
+            num_endp: 0,
+            slot_id: slot,
+            transfer_rings: trs,
+            descriptors: {
+                debug!("new desc container");
+                Vec::new()
             },
-        );
-        debug!("insert complete!");
-
-        Ok(self.attached_set.get_mut(&slot).unwrap())
+            current_interface: 0,
+            controller,
+        })
     }
 }
 
@@ -101,6 +98,7 @@ use tock_registers::register_structs;
 use tock_registers::registers::{ReadOnly, ReadWrite, WriteOnly};
 
 use super::ring::Ring;
+use super::xhci_device::DeviceAttached;
 use super::{xhci_device, Error, Xhci};
 
 register_structs! {
