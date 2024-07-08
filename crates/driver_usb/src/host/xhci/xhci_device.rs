@@ -67,7 +67,8 @@ where
         mut post_nodata_control_transfer_and_busy_wait: FT,
         mut construct_transfer: CT,
         input_ref: &mut Vec<DMA<Input64Byte, O::DMA>>,
-    ) where
+    ) -> Result
+    where
         FC: FnMut(command::Allowed) -> Result<ring::trb::event::CommandCompletion>,
         FT: FnMut(
             (transfer::Allowed, transfer::Allowed), //setup,data,status
@@ -86,7 +87,7 @@ where
 
         debug!("found last entry: 0x{:x}", last_entry.endpoint_address);
 
-        let input = input_ref.get_mut(self.slot_id).unwrap().deref_mut();
+        let input = input_ref.get_mut(self.slot_id - 1).unwrap().deref_mut();
         let slot_mut = input.device_mut().slot_mut();
         slot_mut.set_context_entries(last_entry.doorbell_value_aka_dci() as u8);
 
@@ -100,19 +101,20 @@ where
         control_mut.set_interface_number(interface.interface_number);
         control_mut.set_alternate_setting(interface.alternate_setting);
 
-        // control_mut.set_add_context_flag(1);
-        // control_mut.set_drop_context_flag(2);
+        control_mut.clear_drop_context_flag(2);
+        control_mut.set_add_context_flag(0);
+        control_mut.clear_add_context_flag(1);
         //TODO:  always choose last config here(always only 1 config exist, we assume.), need to change at future
-        control_mut.set_configuration_value(config_val);
+        control_mut.set_configuration_value(config_val - 1); //SUS
 
         self.fetch_desc_endpoints().iter().for_each(|ep| {
             self.init_endpoint_context(port_speed, ep, input);
         });
 
-        debug!(
-            "before we send request, lets review input context:\n{:#?}",
-            input
-        );
+        // debug!(
+        //     "before we send request, lets review input context:\n{:#?}",
+        //     input
+        // );
         debug!("{TAG} CMD: configure endpoint");
         let post_cmd = post_cmd_and_busy_wait(command::Allowed::ConfigureEndpoint({
             let mut configure_endpoint = *ConfigureEndpoint::default()
@@ -122,49 +124,51 @@ where
                 configure_endpoint.set_deconfigure();
             }
             configure_endpoint
-        }));
+        }))?;
         debug!("{TAG} CMD: result:{:?}", post_cmd);
 
-        // {
-        //     debug!("{TAG} Transfer command: set configuration");
-        //     let set_conf_transfer_command = construct_transfer(
-        //         0,    //request type 0
-        //         0x09, //SET CONFIG
-        //         config_val as u16,
-        //         0, //index 0
-        //         TransferType::No,
-        //     );
+        {
+            debug!("{TAG} Transfer command: set configuration");
+            let set_conf_transfer_command = construct_transfer(
+                0,    //request type 0
+                0x09, //SET CONFIG
+                config_val as u16,
+                0, //index 0
+                TransferType::No,
+            );
 
-        //     let post_cmd = post_nodata_control_transfer_and_busy_wait(
-        //         set_conf_transfer_command,
-        //         self.transfer_rings.get_mut(0).unwrap(),
-        //         1, //dci
-        //         self.slot_id,
-        //     );
+            let post_cmd = post_nodata_control_transfer_and_busy_wait(
+                set_conf_transfer_command,
+                self.transfer_rings.get_mut(0).unwrap(),
+                1, //dci
+                self.slot_id,
+            );
 
-        //     // post_transfer()
-        //     debug!("{TAG} Transfer command: result:{:?}", post_cmd);
-        // }
-        // {
-        //     debug!("{TAG} Transfer command: set interface");
-        //     let set_conf_transfer_command = construct_transfer(
-        //         1,    //request type 1: set interface
-        //         0x09, //SET CONFIG
-        //         interface.interface_number as u16,
-        //         interface.interface_number as u16, //index 0
-        //         TransferType::No,
-        //     );
+            // post_transfer()
+            debug!("{TAG} Transfer command: result:{:?}", post_cmd);
+        }
+        {
+            debug!("{TAG} Transfer command: set interface");
+            let set_conf_transfer_command = construct_transfer(
+                1,    //request type 1: set interface
+                0x09, //SET CONFIG
+                interface.interface_number as u16,
+                interface.interface_number as u16, //index 0
+                TransferType::No,
+            );
 
-        //     let post_cmd = post_nodata_control_transfer_and_busy_wait(
-        //         set_conf_transfer_command,
-        //         self.transfer_rings.get_mut(0).unwrap(),
-        //         1, //dci
-        //         self.slot_id,
-        //     );
+            let post_cmd = post_nodata_control_transfer_and_busy_wait(
+                set_conf_transfer_command,
+                self.transfer_rings.get_mut(0).unwrap(),
+                1, //dci
+                self.slot_id,
+            );
 
-        //     // post_transfer()
-        //     debug!("{TAG} Transfer command: result:{:?}", post_cmd);
-        // }
+            // post_transfer()
+            debug!("{TAG} Transfer command: result:{:?}", post_cmd);
+        }
+
+        Ok(())
     }
 
     fn init_endpoint_context(
@@ -175,7 +179,7 @@ where
     ) {
         //set add content flag
         let control_mut = input_ctx.control_mut();
-        control_mut.add_context_flag(endpoint_desc.doorbell_value_aka_dci() as usize);
+        control_mut.set_add_context_flag(endpoint_desc.doorbell_value_aka_dci() as usize);
 
         let endpoint_mut = input_ctx
             .device_mut()
@@ -183,9 +187,10 @@ where
         //set interval
         // let port_speed = PortSpeed::get(port_number);
         let endpoint_type = endpoint_desc.endpoint_type();
-        let interval = endpoint_desc.calc_actual_interval(port_speed);
+        // let interval = endpoint_desc.calc_actual_interval(port_speed);//TODO: THIS function has error! mis calculated!
 
-        endpoint_mut.set_interval(interval);
+        // endpoint_mut.set_interval(interval);
+        endpoint_mut.set_interval(3); // modified
 
         //init endpoint type
         let endpoint_type = endpoint_desc.endpoint_type();
@@ -238,6 +243,8 @@ where
 
                     endpoint_mut.set_tr_dequeue_pointer(ring_addr);
                     endpoint_mut.set_dequeue_cycle_state();
+                    endpoint_mut.set_max_endpoint_service_time_interval_payload_low(4);
+                    //best guess?
                 }
                 EndpointType::NotValid => unreachable!("Not Valid Endpoint should not exist."),
             }

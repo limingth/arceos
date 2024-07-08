@@ -16,6 +16,7 @@ use core::{
     borrow::BorrowMut,
     num::NonZeroUsize,
     ops::{Deref, DerefMut},
+    sync::atomic::{fence, Ordering},
 };
 use log::*;
 use num_traits::FromPrimitive;
@@ -25,7 +26,7 @@ use xhci::{
     registers::PortRegisterSet,
     ring::trb::{
         command::{AddressDevice, Allowed, EnableSlot, EvaluateContext, Noop},
-        event::CommandCompletion,
+        event::{CommandCompletion, CompletionCode},
         transfer::{self, DataStage, SetupStage, StatusStage, TransferType},
     },
 };
@@ -111,7 +112,6 @@ where
             primary_event_ring: SpinNoIrq::new(event),
             scratchpad_buf_arr: None,
         };
-        
         s.init()?;
         info!("{TAG} Init success");
         Ok(s)
@@ -305,7 +305,7 @@ where
             }
             let addr = cr.enque_trb(trb.into_raw());
 
-            warn!("{TAG} Post cmd {:?} @{:X}", trb, addr);
+            debug!("{TAG} Post cmd {:?} @{:X}", trb, addr);
 
             let mut regs = self.regs.lock();
 
@@ -315,7 +315,7 @@ where
             });
         }
 
-        O::force_sync_cache();
+        fence(Ordering::Release);
 
         debug!("{TAG} Wait result");
         {
@@ -325,14 +325,22 @@ where
                 let event = er.next();
                 match event {
                     xhci::ring::trb::event::Allowed::CommandCompletion(c) => {
-                        while c.completion_code().is_err() {}
+                        let mut code = CompletionCode::Invalid;
+                        loop {
+                            if let Ok(c) = c.completion_code() {
+                                code = c;
+                                break;
+                            }
+                        }
                         debug!(
                             "{TAG} Cmd @{:X} got result, cycle {}",
                             c.command_trb_pointer(),
                             c.cycle_bit()
                         );
-
-                        return Ok(c);
+                        if let CompletionCode::Success = code {
+                            return Ok(c);
+                        }
+                        return Err(Error::Unknown(format!("{:?}", code)));
                     }
                     _ => warn!("event: {:?}", event),
                 }
@@ -440,13 +448,14 @@ where
         transfer_ring.enque_trbs(collect);
 
         debug!("{TAG} Post control transfer!");
+
         let mut regs = self.regs.lock();
 
         regs.regs.doorbell.update_volatile_at(slot_id, |r| {
             r.set_doorbell_target(dci);
         });
-        warn!("dci is {:?},slot_id is {:?}",dci,slot_id);
-        O::force_sync_cache();
+
+        fence(Ordering::Release);
 
         self.busy_wait_for_event()
     }
@@ -475,13 +484,6 @@ where
                     }
                 }
             }
-        }
-    }
-
-    pub fn checkout_endpoint(&self){
-        let mut er = self.primary_event_ring.lock();
-        if let Some(temp) = er.busy_wait_next(){
-            debug!("checkout_endpoint is:{:?}",temp);
         }
     }
 
@@ -587,7 +589,6 @@ where
                 port_id_list.push(i);
             }
         }
-        self.checkout_endpoint();
         for port_id in port_id_list {
             let slot = self.device_slot_assignment(port_id);
             debug!("assign complete!");
@@ -597,14 +598,12 @@ where
             debug!("packet size complete!");
             self.setup_fetch_all_needed_dev_desc(slot);
             debug!("fetch all complete!");
-            self.get_endpoint_status(port_id);
         }
+
         let mut lock = self.dev_ctx.lock();
         let dev_ctx_list = (&mut lock.device_input_context_list as *mut Vec<_>);
         lock.attached_set.iter_mut().for_each(|dev| {
             debug!("set cfg!");
-            self.get_endpoint_status(0);
-            self.get_endpoint_status(1);
             dev.1.set_configuration(
                 FromPrimitive::from_u8(
                     self.regs
@@ -629,23 +628,24 @@ where
                         index,
                         transfer_type,
                     )
-                    },
+                },
                 (unsafe { &mut *dev_ctx_list }), //ugly!
             );
         });
+        // debug!("attached count: {}", lock.attached_set.len());
         // lock.attached_set.iter_mut().for_each(|dev| {
         //     debug!("find driver!");
         //     let find_driver_impl = dev.1.find_driver_impl::<USBDeviceDriverHidMouseExample>();
         //     if let Some(driver) = find_driver_impl {
         //         debug!("found!");
-        //         <USBDeviceDriverHidMouseExample as USBDeviceDriverOps<O>>::work( //should create a task
+        //         <USBDeviceDriverHidMouseExample as USBDeviceDriverOps<O>>::work(
+        //             //should create a task
         //             &driver.lock(),
         //             self,
         //         );
         //     }
-        // });
-        self.get_endpoint_status(0);
-        self.get_endpoint_status(1);
+        // })
+
         let dev = lock.attached_set.get_mut(&1).unwrap(); //从这里开始是实验环节
         unsafe {
             drivers = Some(
@@ -653,8 +653,7 @@ where
                     .unwrap(),
             )
         };
-        self.get_endpoint_status(0);
-        self.get_endpoint_status(1);
+
         Ok(())
     }
 
@@ -666,25 +665,6 @@ where
             .read_volatile_at(port)
             .portsc
             .port_speed()
-    }
-
-    fn get_status(&self, port: usize) -> bool {
-        self.regs
-        .lock()
-        .regs
-        .port_register_set
-        .read_volatile_at(port)
-        .portsc
-        .port_enabled_disabled()
-    }
-
-    pub fn get_endpoint_status(&self, port: usize){
-        if self.get_status(port){
-            debug!("ep0enable");
-        }
-        else{
-            debug!("ep0disable");
-        }
     }
 
     fn get_speed(&self, port: usize) -> u16 {
@@ -723,7 +703,7 @@ where
             0,
             (TransferType::In, Direction::In),
         );
-        debug!("{TAG} Transfer Control: Fetching all configs");
+        debug!("{TAG} Transfer Control: Fetching config desc");
         let post_control_transfer = self
             .post_control_transfer_with_data(
                 construct_control_transfer_req,
@@ -751,7 +731,7 @@ where
             0,
             (TransferType::In, Direction::In),
         );
-        debug!("{TAG} Transfer Control: Fetching all configs");
+        debug!("{TAG} Transfer Control: Fetching device desc");
         let post_control_transfer = self
             .post_control_transfer_with_data(
                 construct_control_transfer_req,
@@ -771,7 +751,7 @@ where
         );
         let mut binding = self.dev_ctx.lock();
         let dev = binding.attached_set.get_mut(&(slot as usize)).unwrap();
-        let index = dev.slot_id;
+        let index = dev.slot_id - 1;
         let transfer = self.construct_control_transfer_req(
             &buffer,
             0x80,
@@ -802,7 +782,10 @@ where
             .endpoint_mut(1) //dci=1: endpoint 0
             .set_max_packet_size(max_packet_size);
 
-        debug!("{TAG} CMD: evaluating context for set endpoint0 packet size");
+        debug!(
+            "{TAG} CMD: evaluating context for set endpoint0 packet size {}",
+            max_packet_size
+        );
         let eval_ctx = self.post_cmd(Allowed::EvaluateContext(
             *EvaluateContext::default()
                 .set_slot_id(slot)
@@ -814,18 +797,13 @@ where
     }
 
     fn address_device(&self, slot: u8, port: usize) -> Result {
-        let index = self
-            .dev_ctx
-            .lock()
-            .attached_set
-            .get(&(slot as usize))
-            .unwrap()
-            .slot_id;
+        let slot_id = slot as usize;
+
         let mut binding = self.dev_ctx.lock();
 
         let transfer_ring_0_addr = binding
             .attached_set
-            .get(&index)
+            .get(&slot_id)
             .unwrap()
             .transfer_rings
             .get(0)
@@ -833,7 +811,7 @@ where
             .register();
         let ring_cycle_bit = binding
             .attached_set
-            .get(&index)
+            .get(&slot_id)
             .unwrap()
             .transfer_rings
             .get(0)
@@ -842,7 +820,7 @@ where
 
         let context_mut = binding
             .device_input_context_list
-            .get_mut(index)
+            .get_mut(slot_id - 1)
             .unwrap()
             .deref_mut();
 
@@ -878,9 +856,9 @@ where
         endpoint_0.set_max_primary_streams(0);
         endpoint_0.set_mult(0);
         endpoint_0.set_error_count(3);
+        endpoint_0.set_average_trb_length(8);
 
-        debug!("{TAG} CMD: address device");
-        O::force_sync_cache();
+        fence(Ordering::Release);
 
         let result = self.post_cmd(Allowed::AddressDevice(
             *AddressDevice::new()
@@ -888,7 +866,7 @@ where
                 .set_input_context_pointer((context_mut as *const Input<16>).addr() as u64),
         ))?;
 
-        debug!("{TAG} Result: {:?}", result);
+        debug!("address [{}] ok", slot_id);
 
         Ok(())
     }
@@ -944,9 +922,8 @@ where
             .set_length(0)
             .set_transfer_type(transfer_type)
             .set_index(index);
-        
         let status = *transfer::StatusStage::default().set_interrupt_on_completion();
-        warn!("setup is {:?},status is {:?}",setup,status);
+
         (setup.into(), status.into())
     }
 

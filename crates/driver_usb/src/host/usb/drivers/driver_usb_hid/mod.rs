@@ -2,6 +2,7 @@ use core::{marker::PhantomData, time::Duration};
 
 use alloc::{collections::BTreeMap, fmt::format, string::String, sync::Arc};
 use alloc::{format, vec};
+use axhal::cpu::this_cpu_id;
 use axhal::{paging::PageSize, time::busy_wait};
 use axtask::sleep_until;
 use driver_common::BaseDriverOps;
@@ -34,6 +35,8 @@ pub struct USBDeviceDriverHidMouseExample {
     port: usize,
     slot: usize,
     hid_desc: Hid,
+    boot_dev: USBHIDSubclassDescriptorType,
+    protocol: USBHIDProtocolDescriptorType,
 }
 
 impl USBDeviceDriverHidMouseExample {
@@ -72,7 +75,7 @@ where
     O: OsDep,
 {
     fn try_create(
-        device: &mut DeviceAttached<O>
+        device: &mut DeviceAttached<O>,
     ) -> Option<alloc::sync::Arc<spinlock::SpinNoIrq<Self>>> {
         debug!("creating!");
         let fetch_desc_hid = &device.fetch_desc_hid();
@@ -111,14 +114,18 @@ where
             })
             .unwrap()
         } {
-            (Some(USBDeviceClassCode::HID), Some(_), Some(USBHIDProtocolDescriptorType::Mouse)) => {
-                Some(Arc::new(SpinNoIrq::new(Self {
-                    hub: device.hub,
-                    port: device.port,
-                    slot: device.slot_id,
-                    hid_desc: fetch_desc_hid[0].clone(),
-                })))
-            }
+            (
+                Some(USBDeviceClassCode::HID),
+                Some(bootable),
+                Some(USBHIDProtocolDescriptorType::Mouse),
+            ) => Some(Arc::new(SpinNoIrq::new(Self {
+                hub: device.hub,
+                port: device.port,
+                slot: device.slot_id,
+                hid_desc: fetch_desc_hid[0].clone(),
+                boot_dev: bootable,
+                protocol: USBHIDProtocolDescriptorType::Mouse,
+            }))),
             _ => None,
         }
     }
@@ -130,8 +137,6 @@ where
         let interface_in_use = self.operate_device(xhci, |dev| {
             dev.fetch_desc_interfaces()[dev.current_interface].clone()
         });
-        xhci.get_endpoint_status(0);
-        xhci.get_endpoint_status(1);
         let idle_req = xhci.construct_no_data_transfer_req(
             0b00100001, //recipient:00001(interface),Type01:class,Direction:0(HostToDevice) //TODO, MAKE A Tool Module to convert type
             0x0A,       //SET IDLE
@@ -140,8 +145,7 @@ where
             interface_in_use.interface_number as u16,
             TransferType::No, //no data applied
         );
-        xhci.get_endpoint_status(0);
-        xhci.get_endpoint_status(1);
+
         {
             //set idle
             debug!("{TAG}: post idle request to control endpoint");
@@ -156,8 +160,35 @@ where
             debug!("{TAG}: result: {:?}", result);
             // debug!("{TAG} buffer: {:?}", buffer);
         }
-        xhci.get_endpoint_status(0);
-        xhci.get_endpoint_status(1);
+
+        match self.boot_dev {
+            //configure boot/report protocol
+            USBHIDSubclassDescriptorType::BootInterface => {
+                let set_protocol = xhci.construct_no_data_transfer_req(
+                    0x0 | 0x20 | 0x1, //request out | request class |request to interface => 0x21
+                    0x0B,             //set protocol
+                    0x01,             // report protocol(0x01),otherwise boot protocol(0x00)
+                    //todo figure out why use boot protocol
+                    0, // INTERFACE 0
+                    TransferType::No,
+                );
+
+                debug!("{TAG}: post set protocol request");
+                let result = self
+                    .operate_device(xhci, |dev| {
+                        xhci.post_control_transfer_no_data_and_busy_wait(
+                            set_protocol,
+                            dev.transfer_rings.get_mut(0).unwrap(), //ep0 ring
+                            1,                                      //to ep0
+                            dev.slot_id,
+                        )
+                    })
+                    .unwrap();
+                debug!("{TAG}: result: {:?}", result);
+            }
+            _ => (),
+        };
+
         {
             busy_wait(Duration::from_millis(500));
             //request report rate
@@ -175,8 +206,7 @@ where
                 0,    //interface
                 (TransferType::In, Direction::In),
             );
-            xhci.get_endpoint_status(0);
-            xhci.get_endpoint_status(1);
+
             debug!("{TAG}: post report request");
             let result = self
                 .operate_device(xhci, |dev| {
@@ -194,10 +224,7 @@ where
             // ReportHandler::new(&buffer).unwrap()
         } //TODO parse Report context
 
-        // loop {
-        // busy_wait(Duration::from_millis(500)); //too slow, just for debug
-
-        // loop {} //TODO: check endpoint state to ensure data commit complete
+        busy_wait(Duration::from_secs(1));
 
         self.operate_device(xhci, |dev| {
             let slot_id = dev.slot_id;
@@ -205,8 +232,7 @@ where
             dev.operate_endpoint_in(|mut endpoints, rings| {
                 let in_dci = endpoints.get_mut(0).unwrap().doorbell_value_aka_dci(); //we use first in interrupt endpoint here, in actual environment, there might has multiple.
                 let buffer = DMA::new_vec(0u8, 4, 32, xhci.config.os.dma_alloc()); //enough for a mouse Report(should get from report above,but we not parse it yet)
-                xhci.get_endpoint_status(0);
-                xhci.get_endpoint_status(1);
+
                 debug!("{TAG}: post IN Transfer report request");
                 let result = {
                     //temporary inlined, hass to be packed in to a function future
@@ -217,34 +243,27 @@ where
                             .set_data_buffer_pointer(buffer.addr() as u64)
                             .set_td_size(0)
                             .set_trb_transfer_length(buffer.length_for_bytes() as u32)
-                            .clear_interrupt_on_short_packet()
-                            .clear_interrupt_on_completion(),
+                            .set_interrupt_on_short_packet()
+                            .set_interrupt_on_completion(),
                     );
-                    let mut transfer_rings = rings.get_many_mut([3]).unwrap(); //chaos!
-                    xhci.get_endpoint_status(0);
-                    xhci.get_endpoint_status(1);
                     let dci = 3 as u8;
+                    let ring = rings.get_mut(dci as usize).unwrap();
 
                     {
-                        let this = &this;
-                        let mut transfer_trbs = vec![request];
-                        transfer_rings.iter_mut().for_each(|t| {
-                            t.enque_trbs(
-                                transfer_trbs
-                                    .iter_mut()
-                                    .map(|trb| {
-                                        if this.ring.lock().cycle {
-                                            trb.set_cycle_bit();
-                                        } else {
-                                            trb.clear_cycle_bit();
-                                        }
-                                        trb.into_raw()
-                                    })
-                                    .collect(),
-                            )
-                        });
-                        xhci.get_endpoint_status(0);
-                        xhci.get_endpoint_status(1);
+                        ring.enque_trbs(
+                            vec![request; 1]
+                                .iter_mut()
+                                .map(|trb| {
+                                    if this.ring.lock().cycle {
+                                        trb.set_cycle_bit();
+                                    } else {
+                                        trb.clear_cycle_bit();
+                                    }
+                                    trb.into_raw()
+                                })
+                                .collect(),
+                        );
+
                         debug!("{TAG} Post control transfer! at slot_id:{slot_id},dci:{dci}");
 
                         let mut regs = this.regs.lock();
