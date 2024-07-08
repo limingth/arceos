@@ -251,7 +251,7 @@ where
 
                     {
                         ring.enque_trbs(
-                            vec![request; 1]
+                            vec![request; 2]
                                 .iter_mut()
                                 .map(|trb| {
                                     if this.ring.lock().cycle {
