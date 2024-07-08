@@ -36,6 +36,7 @@ where
             ste: DMA::zeroed(1, 64, a),
             ring: Ring::new(os, 30, false)?,
         };
+        ring.ring.cycle = true;
         ring.ste[0].addr_low.set(ring.ring.register() as u32);
         ring.ste[0]
             .addr_high
@@ -45,27 +46,25 @@ where
         Ok(ring)
     }
 
-    pub fn next(&mut self) -> Option<Allowed> {
+    /// 完成一次循环返回 true
+    pub fn next(&mut self) -> Option<(Allowed, bool)> {
         let (data, flag) = self.ring.current_data();
-        let mut allowed = Allowed::try_from(data.clone()).ok()?;
+        let data = unsafe {
+            let mut out = [0u32; 4];
+            for i in 0..out.len() {
+                out[i] = data.as_ptr().offset(i as _).read_volatile();
+            }
+            out
+        };
 
-        // debug!("event: next: {:#?}", allowed);
+        let mut allowed = Allowed::try_from(data).ok()?;
 
-        if flag == allowed.cycle_bit() {
+        if flag != allowed.cycle_bit() {
             return None;
         }
-        if allowed.cycle_bit() {
-            allowed.clear_cycle_bit();
-        } else {
-            allowed.set_cycle_bit();
-        }
-        self.ring
-            .trbs
-            .get_mut(self.ring.i)
-            .unwrap()
-            .copy_from_slice(&allowed.into_raw());
-        self.ring.next_data();
-        Some(allowed)
+
+        let cycle = self.ring.inc_deque();
+        Some((allowed, cycle))
     }
 
     pub fn erdp(&self) -> u64 {

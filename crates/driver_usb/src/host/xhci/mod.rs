@@ -7,7 +7,6 @@ use alloc::{
 };
 use axalloc::global_no_cache_allocator;
 use axhal::{cpu::this_cpu_is_bsp, irq::IrqHandler, paging::PageSize};
-use core::cell::{Ref, RefMut};
 use core::{
     alloc::Allocator,
     borrow::BorrowMut,
@@ -15,6 +14,10 @@ use core::{
     num::NonZeroUsize,
     ops::{Deref, DerefMut},
     sync::atomic::{fence, Ordering},
+};
+use core::{
+    cell::{Ref, RefMut},
+    iter::Cycle,
 };
 use log::*;
 use num_traits::FromPrimitive;
@@ -193,14 +196,7 @@ where
         self.scratchpad_buf_arr = Some(scratchpad_buf_arr);
     }
     pub fn post_cmd(&mut self, mut trb: Allowed) -> Result<CommandCompletion> {
-        if self.cmd.cycle {
-            trb.set_cycle_bit();
-        } else {
-            trb.clear_cycle_bit();
-        }
-        let addr = self.cmd.enque_trb(trb.into_raw()) as u64;
-
-        debug!("[CMD] >> {:?} @{:X}", trb, addr);
+        let addr = self.cmd.enque_command(trb);
 
         self.regs_mut().doorbell.update_volatile_at(0, |r| {
             r.set_doorbell_stream_id(0);
@@ -209,13 +205,24 @@ where
 
         fence(Ordering::Release);
 
-        self.event_busy_wait_next(addr)
+        let r = self.event_busy_wait_next(addr as _)?;
+
+        /// update erdp
+        self.regs_mut()
+            .interrupter_register_set
+            .interrupter_mut(0)
+            .erdp
+            .update_volatile(|f| {
+                f.set_event_ring_dequeue_pointer(self.event.erdp());
+            });
+
+        Ok(r)
     }
 
     fn event_busy_wait_next(&mut self, addr: u64) -> Result<CommandCompletion> {
         debug!("Wait result");
         loop {
-            if let Some(event) = self.event.next() {
+            if let Some((event, cycle)) = self.event.next() {
                 match event {
                     xhci::ring::trb::event::Allowed::CommandCompletion(c) => {
                         let mut code = CompletionCode::Invalid;
@@ -378,7 +385,6 @@ where
             ir0.erstba.update_volatile(|r| {
                 r.set(erstba);
             });
-
             ir0.imod.update_volatile(|im| {
                 im.set_interrupt_moderation_interval(0);
                 im.set_interrupt_moderation_counter(0);
