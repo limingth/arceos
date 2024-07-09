@@ -12,11 +12,7 @@ use alloc::{borrow::ToOwned, format, vec, vec::Vec};
 use axalloc::global_no_cache_allocator;
 use axhal::{cpu::this_cpu_is_bsp, irq::IrqHandler, paging::PageSize};
 use core::{
-    alloc::Allocator,
-    borrow::BorrowMut,
-    num::NonZeroUsize,
-    ops::{Deref, DerefMut},
-    sync::atomic::{fence, Ordering},
+    alloc::Allocator, borrow::BorrowMut, iter::Cycle, num::NonZeroUsize, ops::{Deref, DerefMut}, sync::atomic::{fence, Ordering}
 };
 use log::*;
 use num_traits::FromPrimitive;
@@ -384,15 +380,16 @@ where
             .iter_mut()
             .map(|trb| {
                 if self.ring.lock().cycle {
+                    debug!("{TAG} Setting cycle bit for TRB {:?}", trb);
                     trb.set_cycle_bit();
                 } else {
+                    debug!("{TAG} Setting cycle bit for TRB {:?}", trb);
                     trb.clear_cycle_bit();
                 }
                 trb.into_raw()
             })
             .collect();
         transfer_ring.enque_trbs(collect);
-
         debug!("{TAG} Post control transfer!");
 
         let mut regs = self.regs.lock();

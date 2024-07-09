@@ -182,7 +182,7 @@ where
         //                     set_protocol,
         //                     dev.transfer_rings.get_mut(0).unwrap(), //ep0 ring
         //                     1,                                      //to ep0
-        //                     dev.slot_id, 
+        //                     dev.slot_id,
         //                 )
         //             })
         //             .unwrap();
@@ -227,51 +227,53 @@ where
 
             // ReportHandler::new(&buffer).unwrap()
         } //TODO parse Report context
-        loop{
-            busy_wait(Duration::from_millis(5));
+
+        debug!("{TAG}: post IN Transfer report requests");
+        loop {
+            busy_wait(Duration::from_millis(50));
             self.operate_device(xhci, |dev| {
                 let slot_id = dev.slot_id;
                 //get input endpoint dci, we only pick endpoint in #0 here
                 dev.operate_endpoint_in(|mut endpoints, rings| {
-                    let in_dci = endpoints.get_mut(0).unwrap().doorbell_value_aka_dci(); //we use first in interrupt endpoint here, in actual environment, there might has multiple.
-                    let buffer = DMA::new_vec(0u8, 4, 32, xhci.config.os.dma_alloc()); //enough for a mouse Report(should get from report above,but we not parse it yet)
+                    // let in_dci = endpoints.get_mut(0).unwrap().doorbell_value_aka_dci(); //we use first in interrupt endpoint here, in actual environment, there might has multiple.
 
-                    debug!("{TAG}: post IN Transfer report request");
                     //temporary inlined, hass to be packed in to a function future
                     let this = &xhci;
-                    let buffer = DMA::new_vec(
-                        0u8,
-                        self.hid_desc.report_descriptor_len as usize,
-                        64,
-                        xhci.config.os.dma_alloc(),
-                    );
-                    let request_report = xhci.construct_control_transfer_req(
-                        &buffer,
-                        0xa1, //recipient:00001(interface),Type00:standard,Direction:01(DeviceToHost) //TODO, MAKE A Tool Module to convert type
-                        0x01, //get descriptor
-                        DescriptionTypeIndexPairForControlTransfer {
-                            ty: DescriptorType::HIDReport,
-                            i: 0x0105,
+                    for index in 0..=5 {
+                        let buffer = DMA::new_vec(
+                            0u8,
+                            self.hid_desc.report_descriptor_len as usize,
+                            64,
+                            xhci.config.os.dma_alloc(),
+                        );
+                        let request_report = xhci.construct_control_transfer_req(
+                            &buffer,
+                            0xa1, //recipient:00001(interface),Type00:standard,Direction:01(DeviceToHost) //TODO, MAKE A Tool Module to convert type
+                            0x01, //get descriptor
+                            DescriptionTypeIndexPairForControlTransfer {
+                                ty: DescriptorType::HIDReport,
+                                i: 0x0100 + index,
                             }, //report descriptor
-                        0,    //interface
-                        (TransferType::In, Direction::In),
-                    );
-                
-                    debug!("{TAG}: post report request");
-                    let result = self
-                        .operate_device(xhci, |dev| {
-                            xhci.post_control_transfer_with_data_and_busy_wait(
-                                request_report,
-                                dev.transfer_rings.get_mut(0).unwrap(), //ep0 ring
-                                1,                                      //to ep0
-                                dev.slot_id,
-                            )
-                        })
-                        .unwrap();
-                    let dci = 3 as u8;
-                    debug!("{TAG} Post control transfer! at slot_id:{slot_id},dci:{dci}");
-                    debug!("{TAG}: result: {:?}", result);
-                    print_array(&buffer);
+                            0,    //interface
+                            (TransferType::In, Direction::In),
+                        );
+                        
+                        // debug!("{TAG}: post report request");
+                        let result = self
+                            .operate_device(xhci, |dev| {
+                                xhci.post_control_transfer_with_data_and_busy_wait(
+                                    request_report,
+                                    dev.transfer_rings.get_mut(0).unwrap(), //ep0 ring
+                                    1,                                      //to ep0
+                                    dev.slot_id,
+                                )
+                            })
+                            .unwrap();
+                        if buffer.iter().any(|n| *n != 0u8) {
+                            debug!("{TAG}: report type{index} got result: {:?}", result);
+                            print_array(&buffer);
+                        }
+                    }
                 });
             })
         }
