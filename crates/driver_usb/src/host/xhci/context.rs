@@ -4,9 +4,9 @@ use crate::host::ControllerArc;
 use crate::{dma::DMA, OsDep};
 use alloc::alloc::Allocator;
 use alloc::collections::{BTreeMap, BTreeSet};
-use alloc::format;
 use alloc::sync::Arc;
 use alloc::{boxed::Box, vec::Vec};
+use alloc::{format, vec};
 use core::borrow::BorrowMut;
 use core::num;
 use log::debug;
@@ -21,6 +21,7 @@ where
     pub dcbaa: DMA<[u64; 256], O::DMA>,
     pub device_out_context_list: Vec<DMA<Device64Byte, O::DMA>>,
     pub device_input_context_list: Vec<DMA<Input64Byte, O::DMA>>,
+    pub transfer_rings: Vec<Vec<Ring<O>>>,
     // pub attached_set: BTreeMap<usize, xhci_device::DeviceAttached<O>, O::DMA>, //大概需要加锁？
     os: O,
 }
@@ -42,12 +43,16 @@ where
             in_context_list
                 .push(DMA::new(Input64Byte::new_64byte(), 4096, os.dma_alloc()).fill_zero());
         }
+        let mut transfer_rings = Vec::with_capacity(max_slots as _);
+        for _ in 0..transfer_rings.capacity() {
+            transfer_rings.push(Vec::new());
+        }
 
         Self {
             dcbaa,
             device_out_context_list: out_context_list,
             device_input_context_list: in_context_list,
-            // attached_set: BTreeMap::new_in(os.dma_alloc()),
+            transfer_rings,
             os,
         }
     }
@@ -77,18 +82,17 @@ where
             .collect();
         debug!("new rings!");
 
+        self.transfer_rings[slot] = trs;
+
         Ok(DeviceAttached {
             hub,
             port_id: port,
             num_endp: 0,
             slot_id: slot,
-            transfer_rings: trs,
-            descriptors: {
-                debug!("new desc container");
-                Vec::new()
-            },
+            configs: Vec::new(),
             current_interface: 0,
             controller,
+            device_desc: descriptors::desc_device::Device::default(),
         })
     }
 }

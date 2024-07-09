@@ -1,4 +1,4 @@
-use crate::{err::*, OsDep};
+use crate::{dma::DMA, err::*, OsDep};
 use alloc::{
     borrow::ToOwned,
     boxed::Box,
@@ -10,7 +10,7 @@ use axalloc::global_no_cache_allocator;
 use axhal::{cpu::this_cpu_is_bsp, irq::IrqHandler, paging::PageSize};
 use core::{
     alloc::Allocator,
-    borrow::BorrowMut,
+    borrow::{Borrow, BorrowMut},
     cell::RefCell,
     num::NonZeroUsize,
     ops::{Deref, DerefMut},
@@ -25,14 +25,15 @@ use num_traits::FromPrimitive;
 use spinlock::SpinNoIrq;
 use xhci::{
     context::{Input, InputHandler, Slot, Slot64Byte},
+    extended_capabilities::debug::Status,
     registers::PortRegisterSet,
     ring::trb::{
         command::{self, AddressDevice, Allowed, EnableSlot, EvaluateContext, Noop},
-        event::{CommandCompletion, CompletionCode},
+        event::{CommandCompletion, CompletionCode, TransferEvent},
         transfer::{self, DataStage, SetupStage, StatusStage, TransferType},
     },
 };
-use xhci_device::DeviceAttached;
+use xhci_device::{DescriptorConfiguration, DescriptorInterface, DeviceAttached};
 
 pub use xhci::ring::trb::transfer::Direction;
 mod registers;
@@ -43,7 +44,10 @@ pub(crate) mod ring;
 pub(crate) mod xhci_device;
 use self::{context::*, event::EventRing, ring::Ring};
 use super::{
-    usb::{self, descriptors},
+    usb::{
+        self,
+        descriptors::{self, desc_device, Descriptor, DescriptorType, RawDescriptorParser},
+    },
     Controller, USBHostConfig,
 };
 use crate::host::device::*;
@@ -153,11 +157,29 @@ where
                 .new_slot(slot as usize, 0, port_id, 32, arc.clone())?;
             debug!("assign complete!");
             self.address_device(&device)?;
-            
-            // self.set_ep0_packet_size(slot);
-            // debug!("packet size complete!");
-            // self.setup_fetch_all_needed_dev_desc(slot);
-            // debug!("fetch all complete!");
+
+            debug!(
+                "ep0: {:?}",
+                self.dev_ctx.device_out_context_list[slot as usize]
+                    .endpoint(1)
+                    .endpoint_state()
+            );
+
+            let packet_size0 = self.fetch_package_size0(&device)?;
+
+            debug!("packet_size0: {}", packet_size0);
+
+            self.set_ep0_packet_size(&device, packet_size0);
+            let desc = self.fetch_device_desc(&device)?;
+            let vid = desc.vendor;
+            let pid = desc.product_id;
+
+            info!("device found, pid: {pid:#04X}, vid: {vid:#04X}");
+
+            device.device_desc = desc;
+
+            let config = self.fetch_config_desc(&device, 0)?;
+            debug!("{:#?}", config);
 
             device_list.push(device);
         }
@@ -174,7 +196,7 @@ where
 
         fence(Ordering::Release);
 
-        let r = self.event_busy_wait_next(addr as _)?;
+        let r = self.event_busy_wait_cmd(addr as _)?;
 
         /// update erdp
         self.regs_mut()
@@ -260,9 +282,10 @@ where
         let port_idx = device.port_id - 1;
         let port_speed = self.get_psi(port_idx);
         let max_packet_size = self.get_speed(port_idx);
+        let dci = 1;
 
-        let transfer_ring_0_addr = device.transfer_rings[0].register();
-        let ring_cycle_bit = device.transfer_rings[0].cycle;
+        let transfer_ring_0_addr = self.ep_ring(device, dci).register();
+        let ring_cycle_bit = self.ep_ring(device, dci).cycle;
         let context_addr = {
             let context_mut = self
                 .dev_ctx
@@ -284,16 +307,16 @@ where
             slot_context.set_route_string(0); // for now, not support more hub ,so hardcode as 0.//TODO: generate route string
             slot_context.set_context_entries(1);
             slot_context.set_max_exit_latency(0);
-            slot_context.set_root_hub_port_number(1); //todo: to use port number
+            slot_context.set_root_hub_port_number(device.port_id as _); //todo: to use port number
             slot_context.set_number_of_ports(0);
             slot_context.set_parent_hub_slot_id(0);
             slot_context.set_tt_think_time(0);
             slot_context.set_interrupter_target(0);
             slot_context.set_speed(port_speed);
 
-            let endpoint_0 = context_mut.device_mut().endpoint_mut(1);
+            let endpoint_0 = context_mut.device_mut().endpoint_mut(dci as _);
             endpoint_0.set_endpoint_type(xhci::context::EndpointType::Control);
-            endpoint_0.set_max_packet_size(max_packet_size);
+            endpoint_0.set_max_packet_size(8);
             endpoint_0.set_max_burst_size(0);
             endpoint_0.set_error_count(3);
             endpoint_0.set_tr_dequeue_pointer(transfer_ring_0_addr);
@@ -306,7 +329,6 @@ where
             endpoint_0.set_max_primary_streams(0);
             endpoint_0.set_mult(0);
             endpoint_0.set_error_count(3);
-            endpoint_0.set_average_trb_length(8);
 
             (context_mut as *const Input<16>).addr() as u64
         };
@@ -353,7 +375,115 @@ where
         self.scratchpad_buf_arr = Some(scratchpad_buf_arr);
     }
 
-    fn event_busy_wait_next(&mut self, addr: u64) -> Result<CommandCompletion> {
+    fn ep_ring(&mut self, device: &DeviceAttached<O>, dci: u8) -> &mut Ring<O> {
+        &mut self.dev_ctx.transfer_rings[device.slot_id][dci as usize - 1]
+    }
+
+    fn control_transfer<T: ?Sized>(
+        &mut self,
+        dev: &DeviceAttached<O>,
+        dci: u8,
+        buffer: &DMA<T, O::DMA>,
+        request_type: u8,
+        request: u8,
+        value: u16,
+        index: u16,
+    ) -> Result {
+        if dci != 1 {}
+
+        let mut setup = transfer::SetupStage::default();
+        setup
+            .set_request_type(request_type)
+            .set_request(request)
+            .set_value(value)
+            .set_index(index)
+            .set_length(buffer.length_for_bytes() as _)
+            .set_transfer_type(TransferType::In);
+
+        let mut data = transfer::DataStage::default();
+        data.set_data_buffer_pointer(buffer.addr() as u64)
+            .set_trb_transfer_length(buffer.length_for_bytes() as _)
+            .set_direction(Direction::In);
+
+        let mut status = transfer::StatusStage::default();
+        status.set_interrupt_on_completion();
+
+        self.post_transfer(setup, data, status, dev, dci)?;
+
+        Ok(())
+    }
+
+    fn post_transfer(
+        &mut self,
+        setup: SetupStage,
+        data: DataStage,
+        status: StatusStage,
+        device: &DeviceAttached<O>,
+        dci: u8,
+    ) -> Result {
+        let mut trbs: [transfer::Allowed; 3] = [setup.into(), data.into(), status.into()];
+        let mut trb_pointers = Vec::new();
+        {
+            let ring = self.ep_ring(device, dci);
+
+            for trb in &mut trbs {
+                if ring.cycle {
+                    trb.set_cycle_bit();
+                } else {
+                    trb.clear_cycle_bit();
+                }
+
+                trb_pointers.push(ring.enque_trb(trb.into_raw()));
+            }
+        }
+        debug!(
+            "[Transfer] >> setup@{:#X}, data@{:#X}, status@{:#X}",
+            trb_pointers[0], trb_pointers[1], trb_pointers[2]
+        );
+
+        self.regs_mut()
+            .doorbell
+            .update_volatile_at(device.slot_id, |r| {
+                r.set_doorbell_target(dci);
+            });
+
+        fence(Ordering::Release);
+
+        self.event_busy_wait_transfer(0)?;
+
+        Ok(())
+    }
+    fn event_busy_wait_transfer(&mut self, addr: u64) -> Result<TransferEvent> {
+        debug!("Wait result");
+        loop {
+            if let Some((event, cycle)) = self.event.next() {
+                match event {
+                    xhci::ring::trb::event::Allowed::TransferEvent(c) => {
+                        let mut code = CompletionCode::Invalid;
+                        if let Ok(c) = c.completion_code() {
+                            code = c;
+                        } else {
+                            continue;
+                        }
+                        debug!(
+                            "[Transfer] << {code:#?} @{:#X} got result, cycle {}",
+                            c.trb_pointer(),
+                            c.cycle_bit()
+                        );
+                        // if c.trb_pointer() != addr {
+                        //     continue;
+                        // }
+                        if let CompletionCode::Success = code {
+                            return Ok(c);
+                        }
+                        return Err(Error::CMD(code));
+                    }
+                    _ => warn!("event: {:?}", event),
+                }
+            }
+        }
+    }
+    fn event_busy_wait_cmd(&mut self, addr: u64) -> Result<CommandCompletion> {
         debug!("Wait result");
         loop {
             if let Some((event, cycle)) = self.event.next() {
@@ -590,5 +720,139 @@ where
 
             debug!("{TAG} Port {} reset ok", i);
         }
+    }
+
+    fn fetch_device_desc(
+        &mut self,
+        dev: &DeviceAttached<O>,
+    ) -> Result<descriptors::desc_device::Device> {
+        let mut buffer = DMA::new_singleton_page4k(
+            descriptors::desc_device::Device::default(),
+            self.config.os.dma_alloc(),
+        );
+        self.control_transfer(
+            dev,
+            1,
+            &mut buffer,
+            0x80,
+            6,
+            DescriptorType::Device.forLowBit(0).bits(),
+            0,
+        )?;
+
+        Ok(buffer.clone())
+    }
+    fn fetch_package_size0(&mut self, dev: &DeviceAttached<O>) -> Result<u16> {
+        let mut buffer = DMA::new_vec(0u8, 8, 64, self.config.os.dma_alloc());
+        self.control_transfer(
+            dev,
+            1,
+            &mut buffer,
+            0x80,
+            6,
+            DescriptorType::Device.forLowBit(0).bits(),
+            0,
+        )?;
+        let mut data = [0u8; 18];
+        data[..8].copy_from_slice(&buffer);
+
+        if let Ok(descriptors::Descriptor::Device(dev)) = descriptors::Descriptor::from_slice(&data)
+        {
+            return Ok(dev.max_packet_size());
+        }
+        Ok(8)
+    }
+    fn fetch_config_desc(
+        &mut self,
+        dev: &DeviceAttached<O>,
+        index: u8,
+    ) -> Result<DescriptorConfiguration> {
+        let mut buffer = DMA::new_vec(
+            0u8,
+            PageSize::Size4K.into(),
+            PageSize::Size4K.into(),
+            self.config.os.dma_alloc(),
+        );
+        self.control_transfer(
+            dev,
+            1,
+            &mut buffer,
+            0x80,
+            6,
+            DescriptorType::Configuration.forLowBit(index).bits(),
+            0,
+        )?;
+
+        let mut config = None;
+        let mut offset = 0;
+
+        while offset < buffer.length_for_bytes() {
+            let len = buffer[offset] as usize;
+            if len == 0 {
+                break;
+            }
+
+            let raw = &buffer[offset..offset + len];
+            offset += len;
+            if let Ok(desc) = Descriptor::from_slice(raw) {
+                match desc {
+                    Descriptor::Configuration(c) => {
+                        if config.is_some() {
+                            break;
+                        }
+                        config = Some(DescriptorConfiguration {
+                            data: c,
+                            interfaces: Vec::new(),
+                        })
+                    }
+                    Descriptor::Interface(i) => {
+                        if let Some(config) = &mut config {
+                            config.interfaces.push(DescriptorInterface {
+                                data: i,
+                                endpoints: Vec::new(),
+                            })
+                        }
+                    }
+                    Descriptor::Endpoint(e) => {
+                        if let Some(config) = &mut config {
+                            if let Some(interface) = config.interfaces.last_mut() {
+                                interface.endpoints.push(e);
+                            }
+                        }
+                    }
+                    _ => debug!("{:#?}", desc),
+                }
+            } else {
+                break;
+            }
+        }
+
+        match config {
+            Some(config) => Ok(config),
+            None => Err(Error::Unknown(format!("config not found"))),
+        }
+    }
+
+    fn set_ep0_packet_size(&mut self, dev: &DeviceAttached<O>, max_packet_size: u16) -> Result {
+        let addr = {
+            let input = self.dev_ctx.device_input_context_list[dev.port_id as usize].deref_mut();
+            input
+                .device_mut()
+                .endpoint_mut(1) //dci=1: endpoint 0
+                .set_max_packet_size(max_packet_size);
+
+            debug!(
+                "CMD: evaluating context for set endpoint0 packet size {}",
+                max_packet_size
+            );
+            (input as *mut Input<16>).addr() as u64
+        };
+        self.post_cmd(Allowed::EvaluateContext(
+            *EvaluateContext::default()
+                .set_slot_id(dev.slot_id as _)
+                .set_input_context_pointer(addr),
+        ))?;
+
+        Ok(())
     }
 }
