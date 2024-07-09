@@ -292,4 +292,14 @@ fn print_array(arr: &[u8]) {
     }
 }
 
-struct USBHIDReportMouse {}
+pub struct USBHIDReportMouse {
+    pub x: i32,       // 鼠标 X 坐标
+    pub y: i32,       // 鼠标 Y 坐标
+    pub dx: i32,      // X 方向上的相对移动
+    pub dy: i32,      // Y 方向上的相对移动
+    pub scroll_y: i32, // Y 方向上的滚动
+    pub left_button: bool,   // 左键状态
+    pub right_button: bool,  // 右键状态
+    pub middle_button: bool, // 中键状态
+}
+
