@@ -67,6 +67,7 @@ where
         hub: usize,
         port: usize,
         num_ep: usize, // cannot lesser than 0, and consider about alignment, use usize
+        os: O,
         controller: ControllerArc<O>,
     ) -> Result<DeviceAttached<O>> {
         if slot > self.device_out_context_list.len() {
@@ -84,16 +85,7 @@ where
 
         self.transfer_rings[slot] = trs;
 
-        Ok(DeviceAttached {
-            hub,
-            port_id: port,
-            num_endp: 0,
-            slot_id: slot,
-            configs: Vec::new(),
-            current_interface: 0,
-            controller,
-            device_desc: descriptors::desc_device::Device::default(),
-        })
+        Ok(DeviceAttached::new(slot, hub, port, os, controller))
     }
 }
 

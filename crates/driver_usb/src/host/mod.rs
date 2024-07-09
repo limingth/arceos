@@ -1,13 +1,20 @@
 pub mod device;
 pub mod usb;
 pub mod xhci;
-use ::xhci::ring::trb::{command, event::CommandCompletion};
+use ::xhci::ring::trb::{
+    command,
+    event::CommandCompletion,
+    transfer::{DataStage, SetupStage, StatusStage},
+};
 use alloc::{boxed::Box, sync::Arc, vec::Vec};
 use core::alloc::Allocator;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use spinlock::SpinNoIrq;
-use xhci::{xhci_device, Xhci};
+use xhci::{
+    xhci_device::{self, DeviceAttached},
+    Xhci,
+};
 
 use crate::{addr::VirtAddr, err::*, OsDep};
 
@@ -47,6 +54,15 @@ where
     fn poll(&mut self, arc: ControllerArc<O>) -> Result<Vec<xhci_device::DeviceAttached<O>>>;
 
     fn post_cmd(&mut self, trb: command::Allowed) -> Result<CommandCompletion>;
+
+    fn post_transfer(
+        &mut self,
+        setup: SetupStage,
+        data: Option<DataStage>,
+        status: StatusStage,
+        device: &DeviceAttached<O>,
+        dci: u8,
+    ) -> Result;
 }
 
 pub(crate) type ControllerArc<O> = Arc<SpinNoIrq<Box<dyn Controller<O>>>>;
@@ -58,6 +74,7 @@ where
 {
     pub(crate) config: USBHostConfig<O>,
     pub(crate) controller: ControllerArc<O>,
+    device_list: Arc<SpinNoIrq<Vec<DeviceAttached<O>>>>,
 }
 
 impl<O> USBHost<O>
@@ -69,26 +86,26 @@ where
 
         let controller = Arc::new(SpinNoIrq::new(controller));
         // let controller = Arc::new( SpinNoIrq::new(controller));
-        Ok(Self { config, controller })
+        Ok(Self {
+            config,
+            controller,
+            device_list: Default::default(),
+        })
     }
 
     pub fn poll(&self) -> Result {
         let controller = self.controller.clone();
         let mut g = self.controller.lock();
-        g.poll(controller)?;
+        let mut device_list = g.poll(controller)?;
 
+        let mut dl = self.device_list.lock();
+        dl.append(&mut device_list);
         Ok(())
     }
 
-    pub fn work_temporary_example(&mut self) {
-        use crate::ax::USBDeviceDriverOps;
-        // unsafe {
-        //     xhci::drivers.iter_mut().for_each(|d| {
-        //         d.lock().work(
-        //             &*((self.controller.as_ref() as *const dyn Controller<O>) as *const Xhci<O>),
-        //         );
-        //     })
-        // }
+    pub fn device_list(&self) -> Vec<DeviceAttached<O>> {
+        let g = self.device_list.lock();
+        g.clone()
     }
 }
 

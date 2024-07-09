@@ -12,6 +12,7 @@ use core::{
     alloc::Allocator,
     borrow::{Borrow, BorrowMut},
     cell::RefCell,
+    f64::consts::E,
     num::NonZeroUsize,
     ops::{Deref, DerefMut},
     sync::atomic::{fence, Ordering},
@@ -24,11 +25,13 @@ use log::*;
 use num_traits::FromPrimitive;
 use spinlock::SpinNoIrq;
 use xhci::{
-    context::{Input, InputHandler, Slot, Slot64Byte},
+    context::{EndpointState, EndpointType, Input, InputHandler, Slot, Slot64Byte},
     extended_capabilities::debug::Status,
     registers::PortRegisterSet,
     ring::trb::{
-        command::{self, AddressDevice, Allowed, EnableSlot, EvaluateContext, Noop},
+        command::{
+            self, AddressDevice, Allowed, ConfigureEndpoint, EnableSlot, EvaluateContext, Noop,
+        },
         event::{CommandCompletion, CompletionCode, TransferEvent},
         transfer::{self, DataStage, SetupStage, StatusStage, TransferType},
     },
@@ -152,18 +155,18 @@ where
         for port_idx in port_id_list {
             let port_id = port_idx + 1;
             let slot = self.device_slot_assignment()?;
-            let mut device = self
-                .dev_ctx
-                .new_slot(slot as usize, 0, port_id, 32, arc.clone())?;
+            let mut device = self.dev_ctx.new_slot(
+                slot as usize,
+                0,
+                port_id,
+                32,
+                self.config.os.clone(),
+                arc.clone(),
+            )?;
             debug!("assign complete!");
             self.address_device(&device)?;
 
-            debug!(
-                "ep0: {:?}",
-                self.dev_ctx.device_out_context_list[slot as usize]
-                    .endpoint(1)
-                    .endpoint_state()
-            );
+            self.print_context(&device);
 
             let packet_size0 = self.fetch_package_size0(&device)?;
 
@@ -174,12 +177,17 @@ where
             let vid = desc.vendor;
             let pid = desc.product_id;
 
-            info!("device found, pid: {pid:#04X}, vid: {vid:#04X}");
+            info!("device found, pid: {pid:#X}, vid: {vid:#X}");
 
             device.device_desc = desc;
 
-            let config = self.fetch_config_desc(&device, 0)?;
-            debug!("{:#?}", config);
+            for i in 0..device.device_desc.num_configurations {
+                let config = self.fetch_config_desc(&device, i)?;
+                debug!("{:#?}", config);
+                device.configs.push(config)
+            }
+
+            self.set_configuration(&device, 0)?;
 
             device_list.push(device);
         }
@@ -208,6 +216,58 @@ where
             });
 
         Ok(r)
+    }
+    fn post_transfer(
+        &mut self,
+        setup: SetupStage,
+        data: Option<DataStage>,
+        status: StatusStage,
+        device: &DeviceAttached<O>,
+        dci: u8,
+    ) -> Result {
+        let mut trbs: Vec<transfer::Allowed> = Vec::new();
+        trbs.push(setup.into());
+        if let Some(data) = data {
+            trbs.push(data.into());
+        }
+        trbs.push(status.into());
+        let mut trb_pointers = Vec::new();
+        {
+            let ring = self.ep_ring_mut(device, dci);
+
+            for trb in &mut trbs {
+                if ring.cycle {
+                    trb.set_cycle_bit();
+                } else {
+                    trb.clear_cycle_bit();
+                }
+
+                trb_pointers.push(ring.enque_trb(trb.into_raw()));
+            }
+        }
+        if trb_pointers.len() == 2 {
+            debug!(
+                "[Transfer] >> setup@{:#X}, status@{:#X}",
+                trb_pointers[0], trb_pointers[1]
+            );
+        } else {
+            debug!(
+                "[Transfer] >> setup@{:#X}, data@{:#X}, status@{:#X}",
+                trb_pointers[0], trb_pointers[1], trb_pointers[2]
+            );
+        }
+
+        self.regs_mut()
+            .doorbell
+            .update_volatile_at(device.slot_id, |r| {
+                r.set_doorbell_target(dci);
+            });
+
+        fence(Ordering::Release);
+
+        self.event_busy_wait_transfer(0)?;
+
+        Ok(())
     }
 }
 
@@ -248,6 +308,16 @@ where
         Ok(())
     }
 
+    fn print_context(&self, device: &DeviceAttached<O>) {
+        let dev = &self.dev_ctx.device_out_context_list[device.slot_id];
+        debug!("slot {} {:?}", device.slot_id, dev.slot().slot_state());
+        for i in 1..32 {
+            if let EndpointState::Disabled = dev.endpoint(i).endpoint_state() {
+                continue;
+            }
+            debug!("  ep dci {}: {:?}", i, dev.endpoint(i).endpoint_state());
+        }
+    }
     fn device_slot_assignment(&mut self) -> Result<u8> {
         // enable slot
         let mut cmd = EnableSlot::new();
@@ -277,15 +347,30 @@ where
         // self.dev_ctx.new_slot(slot_id as usize, 0, port_idx, 16).unwrap(); //assume 16
         Ok(slot_id)
     }
+
+    fn append_port_to_route_string(route_string: u32, port_id: usize) -> u32 {
+        let mut route_string = route_string;
+        for tier in 0..5 {
+            if route_string & (0x0f << (tier * 4)) == 0 {
+                if tier < 5 {
+                    route_string |= (port_id as u32) << (tier * 4);
+                    return route_string;
+                }
+            }
+        }
+
+        route_string
+    }
+
     pub fn address_device(&mut self, device: &DeviceAttached<O>) -> Result {
         let slot_id = device.slot_id;
         let port_idx = device.port_id - 1;
-        let port_speed = self.get_psi(port_idx);
-        let max_packet_size = self.get_speed(port_idx);
+        let port_speed = self.get_speed(port_idx);
+        let max_packet_size = self.get_default_max_packet_size(port_idx);
         let dci = 1;
 
-        let transfer_ring_0_addr = self.ep_ring(device, dci).register();
-        let ring_cycle_bit = self.ep_ring(device, dci).cycle;
+        let transfer_ring_0_addr = self.ep_ring_mut(device, dci).register();
+        let ring_cycle_bit = self.ep_ring_mut(device, dci).cycle;
         let context_addr = {
             let context_mut = self
                 .dev_ctx
@@ -304,7 +389,7 @@ where
             let slot_context = context_mut.device_mut().slot_mut();
             slot_context.clear_multi_tt();
             slot_context.clear_hub();
-            slot_context.set_route_string(0); // for now, not support more hub ,so hardcode as 0.//TODO: generate route string
+            slot_context.set_route_string(Self::append_port_to_route_string(0, device.port_id)); // for now, not support more hub ,so hardcode as 0.//TODO: generate route string
             slot_context.set_context_entries(1);
             slot_context.set_max_exit_latency(0);
             slot_context.set_root_hub_port_number(device.port_id as _); //todo: to use port number
@@ -316,7 +401,7 @@ where
 
             let endpoint_0 = context_mut.device_mut().endpoint_mut(dci as _);
             endpoint_0.set_endpoint_type(xhci::context::EndpointType::Control);
-            endpoint_0.set_max_packet_size(8);
+            endpoint_0.set_max_packet_size(max_packet_size);
             endpoint_0.set_max_burst_size(0);
             endpoint_0.set_error_count(3);
             endpoint_0.set_tr_dequeue_pointer(transfer_ring_0_addr);
@@ -375,37 +460,56 @@ where
         self.scratchpad_buf_arr = Some(scratchpad_buf_arr);
     }
 
-    fn ep_ring(&mut self, device: &DeviceAttached<O>, dci: u8) -> &mut Ring<O> {
+    fn ep_ring_mut(&mut self, device: &DeviceAttached<O>, dci: u8) -> &mut Ring<O> {
         &mut self.dev_ctx.transfer_rings[device.slot_id][dci as usize - 1]
     }
-
+    fn ep_ring(&self, device: &DeviceAttached<O>, dci: u8) -> &Ring<O> {
+        &self.dev_ctx.transfer_rings[device.slot_id][dci as usize - 1]
+    }
     fn control_transfer<T: ?Sized>(
         &mut self,
         dev: &DeviceAttached<O>,
         dci: u8,
-        buffer: &DMA<T, O::DMA>,
+        buffer: Option<&DMA<T, O::DMA>>,
         request_type: u8,
         request: u8,
         value: u16,
         index: u16,
+        direction: Direction,
     ) -> Result {
-        if dci != 1 {}
+        let transfer_type = if buffer.is_some() {
+            match direction {
+                Direction::Out => TransferType::Out,
+                Direction::In => TransferType::In,
+            }
+        } else {
+            TransferType::No
+        };
 
+        let mut len = 0;
+        let data = if let Some(buffer) = buffer {
+            let mut data = transfer::DataStage::default();
+            len = buffer.length_for_bytes();
+            data.set_data_buffer_pointer(buffer.addr() as u64)
+                .set_trb_transfer_length(len as _)
+                .set_direction(direction);
+            Some(data)
+        } else {
+            None
+        };
         let mut setup = transfer::SetupStage::default();
         setup
             .set_request_type(request_type)
             .set_request(request)
             .set_value(value)
             .set_index(index)
-            .set_length(buffer.length_for_bytes() as _)
-            .set_transfer_type(TransferType::In);
+            .set_length(len as _)
+            .set_transfer_type(transfer_type);
 
-        let mut data = transfer::DataStage::default();
-        data.set_data_buffer_pointer(buffer.addr() as u64)
-            .set_trb_transfer_length(buffer.length_for_bytes() as _)
-            .set_direction(Direction::In);
+        debug!("{:#?}", setup);
 
         let mut status = transfer::StatusStage::default();
+
         status.set_interrupt_on_completion();
 
         self.post_transfer(setup, data, status, dev, dci)?;
@@ -413,46 +517,6 @@ where
         Ok(())
     }
 
-    fn post_transfer(
-        &mut self,
-        setup: SetupStage,
-        data: DataStage,
-        status: StatusStage,
-        device: &DeviceAttached<O>,
-        dci: u8,
-    ) -> Result {
-        let mut trbs: [transfer::Allowed; 3] = [setup.into(), data.into(), status.into()];
-        let mut trb_pointers = Vec::new();
-        {
-            let ring = self.ep_ring(device, dci);
-
-            for trb in &mut trbs {
-                if ring.cycle {
-                    trb.set_cycle_bit();
-                } else {
-                    trb.clear_cycle_bit();
-                }
-
-                trb_pointers.push(ring.enque_trb(trb.into_raw()));
-            }
-        }
-        debug!(
-            "[Transfer] >> setup@{:#X}, data@{:#X}, status@{:#X}",
-            trb_pointers[0], trb_pointers[1], trb_pointers[2]
-        );
-
-        self.regs_mut()
-            .doorbell
-            .update_volatile_at(device.slot_id, |r| {
-                r.set_doorbell_target(dci);
-            });
-
-        fence(Ordering::Release);
-
-        self.event_busy_wait_transfer(0)?;
-
-        Ok(())
-    }
     fn event_busy_wait_transfer(&mut self, addr: u64) -> Result<TransferEvent> {
         debug!("Wait result");
         loop {
@@ -667,7 +731,7 @@ where
         Ok(())
     }
 
-    fn get_psi(&self, port: usize) -> u8 {
+    fn get_speed(&self, port: usize) -> u8 {
         self.regs()
             .port_register_set
             .read_volatile_at(port)
@@ -675,8 +739,8 @@ where
             .port_speed()
     }
 
-    fn get_speed(&self, port: usize) -> u16 {
-        match self.get_psi(port) {
+    fn get_default_max_packet_size(&self, port: usize) -> u16 {
+        match self.get_speed(port) {
             1 | 3 => 64,
             2 => 8,
             4 => 512,
@@ -733,11 +797,12 @@ where
         self.control_transfer(
             dev,
             1,
-            &mut buffer,
+            Some(&mut buffer),
             0x80,
             6,
             DescriptorType::Device.forLowBit(0).bits(),
             0,
+            Direction::In,
         )?;
 
         Ok(buffer.clone())
@@ -747,11 +812,12 @@ where
         self.control_transfer(
             dev,
             1,
-            &mut buffer,
+            Some(&mut buffer),
             0x80,
             6,
             DescriptorType::Device.forLowBit(0).bits(),
             0,
+            Direction::In,
         )?;
         let mut data = [0u8; 18];
         data[..8].copy_from_slice(&buffer);
@@ -776,11 +842,12 @@ where
         self.control_transfer(
             dev,
             1,
-            &mut buffer,
+            Some(&mut buffer),
             0x80,
             6,
             DescriptorType::Configuration.forLowBit(index).bits(),
             0,
+            Direction::In,
         )?;
 
         let mut config = None;
@@ -852,6 +919,111 @@ where
                 .set_slot_id(dev.slot_id as _)
                 .set_input_context_pointer(addr),
         ))?;
+
+        Ok(())
+    }
+
+    fn set_configuration(&mut self, device: &DeviceAttached<O>, config_idx: usize) -> Result {
+        let config = &device.configs[config_idx];
+        let config_val = config.data.config_val();
+        let interface = config.interfaces[0].clone();
+        let input_addr = {
+            {
+                let input = self.dev_ctx.device_input_context_list[device.slot_id].deref_mut();
+                {
+                    let control_mut = input.control_mut();
+                    control_mut.set_add_context_flag(0);
+                    control_mut.set_configuration_value(config_val as _);
+
+                    control_mut.set_interface_number(interface.data.interface_number);
+                    control_mut.set_alternate_setting(interface.data.alternate_setting);
+                }
+                let mut entries = 1;
+                if let Some(config) = device.configs.last() {
+                    if let Some(interface) = config.interfaces.last() {
+                        if let Some(ep) = interface.endpoints.last() {
+                            entries = ep.doorbell_value_aka_dci();
+                        }
+                    }
+                }
+
+                input
+                    .device_mut()
+                    .slot_mut()
+                    .set_context_entries(entries as u8);
+            }
+            for ep in &interface.endpoints {
+                let dci = ep.doorbell_value_aka_dci() as usize;
+                let max_packet_size = ep.max_packet_size;
+                let ring_addr = self.ep_ring(device, dci as _).register();
+
+                let input = self.dev_ctx.device_input_context_list[device.slot_id].deref_mut();
+                let control_mut = input.control_mut();
+                debug!("init ep {} {:?}", dci, ep.endpoint_type());
+                control_mut.set_add_context_flag(dci);
+                let ep_mut = input.device_mut().endpoint_mut(dci);
+                ep_mut.set_interval(3);
+                ep_mut.set_endpoint_type(ep.endpoint_type());
+                ep_mut.set_tr_dequeue_pointer(ring_addr);
+                ep_mut.set_max_packet_size(max_packet_size);
+                ep_mut.set_error_count(3);
+                ep_mut.set_dequeue_cycle_state();
+                let endpoint_type = ep.endpoint_type();
+                match endpoint_type {
+                    EndpointType::Control => {}
+                    EndpointType::BulkOut | EndpointType::BulkIn => {
+                        ep_mut.set_max_burst_size(0);
+                        ep_mut.set_max_primary_streams(0);
+                    }
+                    EndpointType::IsochOut
+                    | EndpointType::IsochIn
+                    | EndpointType::InterruptOut
+                    | EndpointType::InterruptIn => {
+                        //init for isoch/interrupt
+                        ep_mut.set_max_packet_size(max_packet_size & 0x7ff); //refer xhci page 162
+                        ep_mut.set_max_burst_size(
+                            ((max_packet_size & 0x1800) >> 11).try_into().unwrap(),
+                        );
+                        ep_mut.set_mult(0); //always 0 for interrupt
+
+                        if let EndpointType::IsochOut | EndpointType::IsochIn = endpoint_type {
+                            ep_mut.set_error_count(0);
+                        }
+
+                        ep_mut.set_tr_dequeue_pointer(ring_addr);
+                        ep_mut.set_max_endpoint_service_time_interval_payload_low(4);
+                        //best guess?
+                    }
+                    EndpointType::NotValid => unreachable!("Not Valid Endpoint should not exist."),
+                }
+            }
+
+            let input = self.dev_ctx.device_input_context_list[device.slot_id].deref_mut();
+            (input as *const Input<16>).addr() as u64
+        };
+
+        self.post_cmd(Allowed::ConfigureEndpoint(
+            *ConfigureEndpoint::default()
+                .set_slot_id(device.slot_id as _)
+                .set_input_context_pointer(input_addr),
+        ))?;
+
+        self.print_context(&device);
+
+        // debug!("set config {}", config_val);
+        // self.control_transfer::<u8>(device, 1, None, 0, 0x09, config_val as _, 0, Direction::Out)?;
+
+        // debug!("set interface {}", interface.data.interface);
+        // self.control_transfer::<u8>(
+        //     device,
+        //     1,
+        //     None,
+        //     1,
+        //     0x09,
+        //     interface.data.alternate_setting as _,
+        //     interface.data.interface_number as _,
+        //     Direction::Out,
+        // )?;
 
         Ok(())
     }
