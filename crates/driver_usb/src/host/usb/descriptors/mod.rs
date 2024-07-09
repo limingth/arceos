@@ -69,8 +69,8 @@ pub(crate) struct RawDescriptorParser<O: OsDep> {
 }
 
 pub(crate) struct DescriptionTypeIndexPairForControlTransfer {
-    ty: DescriptorType,
-    i: u8,
+    pub ty: DescriptorType,
+    pub i: u16,
 }
 
 impl Descriptor {
@@ -141,7 +141,7 @@ where
 impl DescriptorType {
     pub(crate) fn forLowBit(
         self,
-        index: u8,
+        index: u16,
     ) -> DescriptionTypeIndexPairForControlTransfer {
         DescriptionTypeIndexPairForControlTransfer { ty: self, i: index }
     }
