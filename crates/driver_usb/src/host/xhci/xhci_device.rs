@@ -230,6 +230,7 @@ where
 
         status.set_interrupt_on_completion();
 
+        status.set_direction();
         ctl.post_transfer(setup, data, status, self, dci as _)?;
 
         Ok(())
@@ -249,9 +250,47 @@ where
         ctl.post_transfer_normal_in(len, self, dci as _)
     }
 
+    pub fn set_configuration(&self) -> Result {
+        let config = self.current_config();
+        let config_val = config.data.config_val() as u16;
+        debug!("set configuration {}", config_val);
+
+        self.control_transfer_out(
+            0,
+            ENDPOINT_OUT,
+            REQUEST_SET_CONFIGURATION,
+            config_val,
+            0,
+            &[],
+        )?;
+
+        Ok(())
+    }
+    pub fn set_interface(&self) -> Result {
+        let interface = self.current_interface();
+        let interface_num = interface.data.interface_number as u16;
+        let setting = interface.data.alternate_setting as u16;
+
+        debug!("set interface {}", interface_num);
+
+        self.control_transfer_out(
+            0,
+            ENDPOINT_OUT | RECIPIENT_INTERFACE,
+            REQUEST_SET_INTERFACE,
+            setting,
+            interface_num,
+            &[],
+        )?;
+
+        Ok(())
+    }
+
     pub fn test_hid(&self) -> Result {
         debug!("test begin");
         let endpoint_in = 0x81;
+
+        self.set_configuration()?;
+        self.set_interface()?;
 
         let interface = self.current_interface();
         if interface.data.alternate_setting != 0 {
