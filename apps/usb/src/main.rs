@@ -52,5 +52,5 @@ fn main() {
 
     let hid = device_list.pop().unwrap();
 
-    hid.test().unwrap();
+    hid.test_hid().unwrap();
 }

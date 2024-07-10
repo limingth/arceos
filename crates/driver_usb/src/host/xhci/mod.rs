@@ -257,17 +257,47 @@ where
             );
         }
 
+        fence(Ordering::Release);
         self.regs_mut()
             .doorbell
             .update_volatile_at(device.slot_id, |r| {
                 r.set_doorbell_target(dci);
             });
 
-        fence(Ordering::Release);
-
         self.event_busy_wait_transfer(0)?;
 
         Ok(())
+    }
+
+    fn post_transfer_normal_in(
+        &mut self,
+        len: usize,
+        device: &DeviceAttached<O>,
+        dci: u8,
+    ) -> Result<Vec<u8>> {
+        let mut buffer = DMA::new_vec(0u8, len, O::PAGE_SIZE, self.config.os.dma_alloc());
+        let mut request = transfer::Normal::default();
+        request
+            .set_data_buffer_pointer(buffer.addr() as u64)
+            .set_td_size(0)
+            .set_trb_transfer_length(len as _)
+            .set_interrupt_on_short_packet()
+            .set_interrupt_on_completion();
+
+        let ring = self.ep_ring_mut(device, dci);
+        let addr = ring.enque_trb(transfer::Allowed::Normal(request).into_raw());
+
+        fence(Ordering::Release);
+
+        self.regs_mut()
+            .doorbell
+            .update_volatile_at(device.slot_id, |r| {
+                r.set_doorbell_target(dci);
+            });
+
+        self.event_busy_wait_transfer(addr as _)?;
+
+        Ok(buffer.to_vec())
     }
 }
 
@@ -524,6 +554,7 @@ where
                 match event {
                     xhci::ring::trb::event::Allowed::TransferEvent(c) => {
                         let mut code = CompletionCode::Invalid;
+
                         if let Ok(c) = c.completion_code() {
                             code = c;
                         } else {
@@ -926,14 +957,14 @@ where
     fn set_configuration(&mut self, device: &DeviceAttached<O>, config_idx: usize) -> Result {
         let config = &device.configs[config_idx];
         let config_val = config.data.config_val();
-        let interface = config.interfaces[0].clone();
+        let interface = device.current_interface();
         let input_addr = {
             {
                 let input = self.dev_ctx.device_input_context_list[device.slot_id].deref_mut();
                 {
                     let control_mut = input.control_mut();
                     control_mut.set_add_context_flag(0);
-                    control_mut.set_configuration_value(config_val as _);
+                    control_mut.set_configuration_value(config_val);
 
                     control_mut.set_interface_number(interface.data.interface_number);
                     control_mut.set_alternate_setting(interface.data.alternate_setting);

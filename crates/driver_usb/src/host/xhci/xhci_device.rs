@@ -1,6 +1,13 @@
 use core::{fmt::Error, mem::size_of, ops::DerefMut, time::Duration};
 
-use alloc::{borrow::ToOwned, boxed::Box, collections::BTreeSet, format, sync::Arc, vec::Vec};
+use alloc::{
+    borrow::ToOwned,
+    boxed::Box,
+    collections::BTreeSet,
+    format,
+    sync::Arc,
+    vec::{self, Vec},
+};
 use axhal::time::busy_wait_until;
 use axtask::sleep;
 use log::debug;
@@ -119,7 +126,7 @@ where
             if endpoint & 0x80 == 0 {
                 return Err(err::Error::Param(format!("ep {endpoint:#X} not in!")));
             }
-            dci = (endpoint | !0x80) * 2 + 1;
+            dci = ep_num_to_dci(endpoint);
         }
 
         debug!("CTL ep {endpoint:#X}, dci {}", dci);
@@ -178,15 +185,10 @@ where
         data: &[u8],
     ) -> Result {
         let len = data.len();
-        let dci;
-        if endpoint == 0 {
-            dci = 1;
-        } else {
-            if endpoint & 0x80 > 0 {
-                return Err(err::Error::Param(format!("ep {endpoint:#X} not out!")));
-            }
-            dci = endpoint * 2;
+        if endpoint & 0x80 > 0 {
+            return Err(err::Error::Param(format!("ep {endpoint:#X} not out!")));
         }
+        let dci = ep_num_to_dci(endpoint);
 
         debug!("CTL ep {endpoint:#X}, dci {}", dci);
 
@@ -232,43 +234,156 @@ where
 
         Ok(())
     }
-    pub fn test(&self) -> Result {
-        debug!("test begin");
 
-        let raw = self.control_transfer_in(
-            0,
-            ENDPOINT_IN,
-            REQUEST_GET_DESCRIPTOR,
-            DescriptorType::Device.forLowBit(0).bits(),
-            0,
-            size_of::<desc_device::Device>(),
-        )?;
-
-        if let Descriptor::Device(hid) = Descriptor::from_slice(&raw).unwrap() {
-            debug!("{:#?}", hid);
+    pub fn interrupt_in(&self, endpoint: usize, len: usize) -> Result<Vec<u8>> {
+        if endpoint & 0x80 == 0 {
+            return Err(err::Error::Param(format!("ep {endpoint:#X} not in!")));
         }
-        debug!("post idle request to control endpoint");
 
-        self.control_transfer_out(
-            0,
-            0b00100001, //recipient:00001(interface),Type01:class,Direction:0(HostToDevice) //TODO, MAKE A Tool Module to convert type
-            0x0A,       //SET IDLE
-            0x00,       //recommended infini idle rate for mice, refer usb Hid 1.1 spec - page 53
-            // upper 8 bit = 0-> infini idle, lower 8 bit = 0-> apply to all report
-            self.current_interface().data.interface_number as u16,
-            &[],
-        )?;
-        debug!("post set protocol request");
+        let dci = ep_num_to_dci(endpoint);
 
-        self.control_transfer_out(
+        debug!("Itr ep {endpoint:#X}, dci {}", dci);
+
+        let mut ctl = self.controller.lock();
+
+        ctl.post_transfer_normal_in(len, self, dci as _)
+    }
+
+    pub fn test_hid(&self) -> Result {
+        debug!("test begin");
+        let endpoint_in = 0x81;
+
+        let interface = self.current_interface();
+        if interface.data.alternate_setting != 0 {
+            debug!("set interface");
+            self.control_transfer_out(
+                0,
+                ENDPOINT_OUT | RECIPIENT_INTERFACE,
+                REQUEST_SET_INTERFACE,
+                self.current_interface().data.alternate_setting as _,
+                self.current_interface().data.interface_number as _,
+                &[],
+            )?;
+        }
+
+        debug!("reading HID report descriptors");
+
+        let data = self.control_transfer_in(
             0,
-            ENDPOINT_OUT | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
-            0x0B,
-            1,
+            ENDPOINT_IN | REQUEST_TYPE_STANDARD | RECIPIENT_INTERFACE,
+            REQUEST_GET_DESCRIPTOR,
+            DescriptorType::HIDReport.forLowBit(0).bits(),
             0,
-            &[],
+            256,
         )?;
+        let descriptor_size = 256;
+        debug!("descriptor_size {}", descriptor_size);
+
+        let size = get_hid_record_size(&data, HID_REPORT_TYPE_FEATURE);
+        if size <= 0 {
+            debug!("Skipping Feature Report readout (None detected)");
+        } else {
+            debug!("Reading Feature Report (length {})...", size);
+
+            let report_buffer = self.control_transfer_in(
+                0,
+                ENDPOINT_IN | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
+                HID_GET_REPORT,
+                (HID_REPORT_TYPE_FEATURE << 8) | 0,
+                0,
+                size as _,
+            )?;
+        }
+
+        let size = get_hid_record_size(&data, HID_REPORT_TYPE_INPUT);
+
+        if (size <= 0) {
+            debug!("Skipping Input Report readout (None detected)");
+        } else {
+            debug!("Reading Input Report (length {})...", size);
+            let report_buffer = self.control_transfer_in(
+                0,
+                ENDPOINT_IN | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
+                HID_GET_REPORT,
+                ((HID_REPORT_TYPE_INPUT << 8) | 0x00),
+                0,
+                size as _,
+            )?;
+
+            // Attempt a bulk read from endpoint 0 (this should just return a raw input report)
+            debug!(
+                "Testing interrupt read using endpoint {:#X}...",
+                endpoint_in
+            );
+
+            loop {
+                let report_buffer = self.interrupt_in(endpoint_in, size as _)?;
+                debug!("rcv data");
+            }
+        }
 
         Ok(())
+    }
+}
+
+/// HID
+fn get_hid_record_size(hid_report_descriptor: &[u8], r#type: u16) -> isize {
+    let mut i = hid_report_descriptor[0] as usize + 1;
+    let mut j = 0;
+    let mut offset = 0;
+    let mut record_size = [0, 0, 0];
+    let mut nb_bits = 0;
+    let mut nb_items = 0;
+    let mut found_record_marker = false;
+
+    while i < hid_report_descriptor.len() {
+        offset = (hid_report_descriptor[i] & 0x03) as usize + 1;
+        if offset == 4 {
+            offset = 5;
+        }
+        match hid_report_descriptor[i] & 0xFC {
+            0x74 => {
+                // bitsize
+                nb_bits = hid_report_descriptor[i + 1] as isize;
+            }
+            0x94 => {
+                // count
+                nb_items = 0;
+                for j in 1..offset {
+                    nb_items = ((hid_report_descriptor[i + j] as u32) << (8 * (j - 1))) as isize;
+                }
+            }
+            0x80 => {
+                // input
+                found_record_marker = true;
+                j = 0;
+            }
+            0x90 => {
+                // output
+                found_record_marker = true;
+                j = 1;
+            }
+            0xB0 => {
+                // feature
+                found_record_marker = true;
+                j = 2;
+            }
+            0xC0 => {
+                // end of collection
+                nb_items = 0;
+                nb_bits = 0;
+            }
+            _ => {}
+        }
+        if found_record_marker {
+            found_record_marker = false;
+            record_size[j as usize] += nb_items * nb_bits;
+        }
+        i += offset;
+    }
+    if r#type < HID_REPORT_TYPE_INPUT || r#type > HID_REPORT_TYPE_FEATURE {
+        0
+    } else {
+        (record_size[(r#type - HID_REPORT_TYPE_INPUT) as usize] + 7) / 8
     }
 }
