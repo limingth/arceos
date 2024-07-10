@@ -1,6 +1,7 @@
 pub use super::ring::{Ring, TrbData};
 use crate::err::*;
 use crate::{dma::DMA, OsDep};
+use log::debug;
 use tock_registers::interfaces::Writeable;
 use tock_registers::register_structs;
 use tock_registers::registers::{ReadOnly, ReadWrite, WriteOnly};
@@ -35,6 +36,7 @@ where
             ste: DMA::zeroed(1, 64, a),
             ring: Ring::new(os, 256, false)?,
         };
+        ring.ring.cycle = true;
         ring.ste[0].addr_low.set(ring.ring.register() as u32);
         ring.ste[0]
             .addr_high
@@ -44,14 +46,25 @@ where
         Ok(ring)
     }
 
-    pub fn next(&mut self) -> Allowed {
-        let (data, cycle) = self.ring.next_data();
-        Allowed::try_from(data.clone()).unwrap()
-    }
+    /// 完成一次循环返回 true
+    pub fn next(&mut self) -> Option<(Allowed, bool)> {
+        let (data, flag) = self.ring.current_data();
+        let data = unsafe {
+            let mut out = [0u32; 4];
+            for i in 0..out.len() {
+                out[i] = data.as_ptr().offset(i as _).read_volatile();
+            }
+            out
+        };
 
-    pub fn busy_wait_next(&mut self) -> Option<Allowed> {
-        let (data, flag) = self.ring.peek_next_data();
-        Allowed::try_from(data.clone()).ok()
+        let mut allowed = Allowed::try_from(data).ok()?;
+
+        if flag != allowed.cycle_bit() {
+            return None;
+        }
+
+        let cycle = self.ring.inc_deque();
+        Some((allowed, cycle))
     }
 
     pub fn erdp(&self) -> u64 {

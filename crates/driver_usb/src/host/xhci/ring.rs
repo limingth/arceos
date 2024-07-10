@@ -35,6 +35,9 @@ impl<O: OsDep> Ring<O> {
             link,
         })
     }
+    pub fn len(&self) -> usize {
+        self.trbs.len()
+    }
 
     fn get_trb(&self) -> &TrbData {
         unsafe { &self.trbs[self.i] }
@@ -44,11 +47,22 @@ impl<O: OsDep> Ring<O> {
         self.get_trb().as_ptr() as usize as u64
     }
 
+    pub fn enque_command(&mut self, mut trb: Allowed) -> usize {
+        if self.cycle {
+            trb.set_cycle_bit();
+        } else {
+            trb.clear_cycle_bit();
+        }
+        let addr = self.enque_trb(trb.clone().into_raw());
+        debug!("[CMD] >> {:?} @{:X}", trb, addr);
+        addr
+    }
+
     pub fn enque_trb(&mut self, mut trb: TrbData) -> usize {
-        debug!("enqueue trb: {:?}", trb);
         self.trbs[self.i].copy_from_slice(&trb);
         let addr = self.trbs[self.i].as_ptr() as usize;
-        let next_index = self.next_index();
+        debug!("enqueued {} @{:#X}", self.i, addr);
+        self.next_index();
         addr
     }
 
@@ -59,47 +73,61 @@ impl<O: OsDep> Ring<O> {
     }
 
     fn next_index(&mut self) -> usize {
-        let mut i;
-        loop {
-            i = self.i;
-            self.i += 1;
-            if self.i >= self.trbs.len() {
-                self.i = 0;
+        self.i += 1;
+        let mut need_link = false;
+        let len = self.len();
 
-                if self.link {
-                    debug!("link!");
-                    let address = self.trbs[self.i].as_ptr() as usize;
-                    let mut link = Link::new();
-                    link.set_ring_segment_pointer(address as u64)
-                        .set_toggle_cycle();
+        // link模式下，最后一个是Link
+        if self.link && self.i >= len - 1 {
+            self.i = 0;
+            need_link = true;
+        } else if self.i >= len {
+            self.i = 0;
+        }
 
-                    if self.cycle {
-                        link.set_cycle_bit();
-                    } else {
-                        link.clear_cycle_bit();
-                    }
-                    let trb = Allowed::Link(link);
-                    let link_trb = trb.into_raw();
-                    let mut this_trb = &mut self.trbs[self.i];
-                    this_trb.copy_from_slice(&link_trb);
+        debug!("index {}", self.i);
 
-                    self.cycle = !self.cycle;
-                } else {
-                    break;
-                }
+        if need_link {
+            debug!("link!");
+            let address = self.trbs[0].as_ptr() as usize;
+            let mut link = Link::new();
+            link.set_ring_segment_pointer(address as u64)
+                .set_toggle_cycle();
+
+            if self.cycle {
+                link.set_cycle_bit();
             } else {
-                break;
+                link.clear_cycle_bit();
+            }
+            let trb = Allowed::Link(link);
+            let link_trb = trb.into_raw();
+            let mut this_trb = &mut self.trbs[len - 1];
+            this_trb.copy_from_slice(&link_trb);
+
+            self.cycle = !self.cycle;
+        }
+
+        self.i
+    }
+
+    /// 完成一次循环返回true
+    pub fn inc_deque(&mut self) -> bool {
+        self.i += 1;
+        let mut is_cycle = false;
+        let len = self.len();
+        if self.link {
+        } else {
+            if self.i >= len {
+                self.i = 0;
+                self.cycle = !self.cycle;
+                is_cycle = true;
             }
         }
-        i
+
+        is_cycle
     }
 
-    pub fn next_data(&mut self) -> (&mut TrbData, bool) {
-        let i = self.next_index();
-        (&mut self.trbs[i], self.cycle)
-    }
-
-    pub fn peek_next_data(&mut self) -> (&TrbData, bool) {
+    pub fn current_data(&mut self) -> (&TrbData, bool) {
         (&self.trbs[self.i], self.cycle)
     }
 
