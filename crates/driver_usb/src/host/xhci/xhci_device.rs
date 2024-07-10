@@ -250,6 +250,10 @@ where
         ctl.post_transfer_normal_in(len, self, dci as _)
     }
 
+    pub fn bulk_in(&self, endpoint: usize, len: usize) -> Result<Vec<u8>> {
+        self.interrupt_in(endpoint, len)
+    }
+
     pub fn set_configuration(&self) -> Result {
         let config = self.current_config();
         let config_val = config.data.config_val() as u16;
