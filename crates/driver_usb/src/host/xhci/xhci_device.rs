@@ -296,19 +296,6 @@ where
         self.set_configuration()?;
         self.set_interface()?;
 
-        let interface = self.current_interface();
-        if interface.data.alternate_setting != 0 {
-            debug!("set interface");
-            self.control_transfer_out(
-                0,
-                ENDPOINT_OUT | RECIPIENT_INTERFACE,
-                REQUEST_SET_INTERFACE,
-                self.current_interface().data.alternate_setting as _,
-                self.current_interface().data.interface_number as _,
-                &[],
-            )?;
-        }
-
         debug!("reading HID report descriptors");
 
         let data = self.control_transfer_in(
