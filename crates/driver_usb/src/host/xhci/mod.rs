@@ -269,13 +269,15 @@ where
         Ok(())
     }
 
-    fn post_transfer_normal_in(
+    fn post_transfer_normal(
         &mut self,
-        len: usize,
+        data: &mut [u8],
         device: &DeviceAttached<O>,
         dci: u8,
-    ) -> Result<Vec<u8>> {
+    ) -> Result {
+        let len = data.len();
         let mut buffer = DMA::new_vec(0u8, len, O::PAGE_SIZE, self.config.os.dma_alloc());
+        buffer.copy_from_slice(data);
         let mut request = transfer::Normal::default();
         request
             .set_data_buffer_pointer(buffer.addr() as u64)
@@ -297,7 +299,9 @@ where
 
         self.event_busy_wait_transfer(addr as _)?;
 
-        Ok(buffer.to_vec())
+        data.copy_from_slice(&buffer);
+
+        Ok(())
     }
 }
 

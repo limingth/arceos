@@ -64,12 +64,12 @@ where
         dci: u8,
     ) -> Result;
 
-    fn post_transfer_normal_in(
+    fn post_transfer_normal(
         &mut self,
-        len: usize,
+        data: &mut [u8],
         device: &DeviceAttached<O>,
         dci: u8,
-    ) -> Result<Vec<u8>>;
+    ) -> Result;
 }
 
 pub(crate) type ControllerArc<O> = Arc<SpinNoIrq<Box<dyn Controller<O>>>>;
