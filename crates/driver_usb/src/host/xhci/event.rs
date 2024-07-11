@@ -1,3 +1,5 @@
+use core::sync::atomic::{fence, Ordering};
+
 pub use super::ring::{Ring, TrbData};
 use crate::err::*;
 use crate::{dma::DMA, OsDep};
@@ -62,6 +64,8 @@ where
         if flag != allowed.cycle_bit() {
             return None;
         }
+
+        fence(Ordering::SeqCst);
 
         let cycle = self.ring.inc_deque();
         Some((allowed, cycle))

@@ -255,7 +255,7 @@ where
 
         let mut ctl = self.controller.lock();
 
-        ctl.post_transfer_normal(&mut data, self, dci as _);
+        ctl.post_transfer_normal(&mut data, self, dci as _)?;
 
         Ok(data)
     }
@@ -271,7 +271,7 @@ where
 
         let mut ctl = self.controller.lock();
 
-        ctl.post_transfer_normal(data, self, dci as _);
+        ctl.post_transfer_normal(data, self, dci as _)?;
 
         Ok(())
     }
@@ -355,6 +355,24 @@ where
 
         debug!("reading HID report descriptors");
 
+        if self.current_interface().data.interface_class != 3 {
+            debug!("not hid");
+            return Ok(());
+        }
+        let protocol = self.current_interface().data.interface_protocol;
+        if self.current_interface().data.interface_subclass == 1 && protocol > 0 {
+            debug!("set protocol");
+
+            self.control_transfer_out(
+                0,
+                ENDPOINT_OUT | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
+                0x0B,
+                if protocol == 2 { 1 } else { 0 },
+                self.current_interface().data.interface_number as _,
+                &[],
+            )?;
+        }
+
         let data = self.control_transfer_in(
             0,
             ENDPOINT_IN | REQUEST_TYPE_STANDARD | RECIPIENT_INTERFACE,
@@ -405,7 +423,7 @@ where
 
             loop {
                 let report_buffer = self.interrupt_in(endpoint_in, size as _)?;
-                debug!("rcv data");
+                debug!("rcv data {:?}", report_buffer);
             }
         }
 
