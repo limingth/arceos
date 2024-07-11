@@ -1,11 +1,12 @@
 use crate::err::*;
 use crate::host::usb::descriptors;
+use crate::host::ControllerArc;
 use crate::{dma::DMA, OsDep};
 use alloc::alloc::Allocator;
 use alloc::collections::{BTreeMap, BTreeSet};
-use alloc::format;
 use alloc::sync::Arc;
 use alloc::{boxed::Box, vec::Vec};
+use alloc::{format, vec};
 use core::borrow::BorrowMut;
 use core::num;
 use log::debug;
@@ -20,7 +21,8 @@ where
     pub dcbaa: DMA<[u64; 256], O::DMA>,
     pub device_out_context_list: Vec<DMA<Device64Byte, O::DMA>>,
     pub device_input_context_list: Vec<DMA<Input64Byte, O::DMA>>,
-    pub attached_set: BTreeMap<usize, xhci_device::DeviceAttached<O>, O::DMA>, //大概需要加锁？
+    pub transfer_rings: Vec<Vec<Ring<O>>>,
+    // pub attached_set: BTreeMap<usize, xhci_device::DeviceAttached<O>, O::DMA>, //大概需要加锁？
     os: O,
 }
 
@@ -41,12 +43,16 @@ where
             in_context_list
                 .push(DMA::new(Input64Byte::new_64byte(), 4096, os.dma_alloc()).fill_zero());
         }
+        let mut transfer_rings = Vec::with_capacity(max_slots as _);
+        for _ in 0..transfer_rings.capacity() {
+            transfer_rings.push(Vec::new());
+        }
 
         Self {
             dcbaa,
             device_out_context_list: out_context_list,
             device_input_context_list: in_context_list,
-            attached_set: BTreeMap::new_in(os.dma_alloc()),
+            transfer_rings,
             os,
         }
     }
@@ -61,7 +67,9 @@ where
         hub: usize,
         port: usize,
         num_ep: usize, // cannot lesser than 0, and consider about alignment, use usize
-    ) -> Result<&mut xhci_device::DeviceAttached<O>> {
+        os: O,
+        controller: ControllerArc<O>,
+    ) -> Result<DeviceAttached<O>> {
         if slot > self.device_out_context_list.len() {
             return Err(Error::Param(format!(
                 "slot {} > max {}",
@@ -75,24 +83,9 @@ where
             .collect();
         debug!("new rings!");
 
-        self.attached_set.insert(
-            slot,
-            xhci_device::DeviceAttached {
-                hub,
-                port,
-                num_endp: 0,
-                slot_id: slot,
-                transfer_rings: trs,
-                descriptors: {
-                    debug!("new desc container");
-                    Vec::new()
-                },
-                current_interface: 0,
-            },
-        );
-        debug!("insert complete!");
+        self.transfer_rings[slot] = trs;
 
-        Ok(self.attached_set.get_mut(&slot).unwrap())
+        Ok(DeviceAttached::new(slot, hub, port, os, controller))
     }
 }
 
@@ -101,6 +94,7 @@ use tock_registers::register_structs;
 use tock_registers::registers::{ReadOnly, ReadWrite, WriteOnly};
 
 use super::ring::Ring;
+use super::xhci_device::DeviceAttached;
 use super::{xhci_device, Error, Xhci};
 
 register_structs! {

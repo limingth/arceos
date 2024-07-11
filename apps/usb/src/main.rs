@@ -47,5 +47,10 @@ fn main() {
     sleep(Duration::from_millis(300));
 
     usb.poll().unwrap();
-    usb.work_temporary_example();
+
+    let mut device_list = usb.device_list();
+
+    let hid = device_list.pop().unwrap();
+
+    hid.test_hid().unwrap();
 }
