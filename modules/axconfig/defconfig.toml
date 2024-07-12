@@ -9,6 +9,8 @@ family = "dummy"
 phys-memory-base = "0"
 # Size of the whole physical memory.
 phys-memory-size = "0"
+# Size of the nocache memory region
+nocache-memory-size = "0"
 # Base physical address of the kernel image.
 kernel-base-paddr = "0"
 # Base virtual address of the kernel image.

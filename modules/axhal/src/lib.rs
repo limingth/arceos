@@ -27,10 +27,9 @@
 #![no_std]
 #![feature(asm_const)]
 #![feature(naked_functions)]
-#![feature(const_maybe_uninit_zeroed)]
 #![feature(const_option)]
 #![feature(doc_auto_cfg)]
-
+#![allow(warnings)]
 #[allow(unused_imports)]
 #[macro_use]
 extern crate log;

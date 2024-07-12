@@ -6,3 +6,11 @@
 actual.out
 qemu.log
 rusty-tags.vi
+.vscode-ctags
+.gdb_history
+.idea
+bin
+lib
+lib64
+/.cargo
+/*.log

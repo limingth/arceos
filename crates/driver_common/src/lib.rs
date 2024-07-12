@@ -27,6 +27,8 @@ pub enum DeviceType {
     Net,
     /// Graphic display device (e.g., GPU)
     Display,
+    /// USB host controller
+    USBHost,
 }
 
 /// The error type for device operation failures.
@@ -54,7 +56,7 @@ pub enum DevError {
 pub type DevResult<T = ()> = Result<T, DevError>;
 
 /// Common operations that require all device drivers to implement.
-#[const_trait]
+// #[const_trait]
 pub trait BaseDriverOps: Send + Sync {
     /// The name of the device.
     fn device_name(&self) -> &str;

@@ -3,13 +3,17 @@
 #![allow(unused_imports)]
 
 use crate::AxDeviceEnum;
+use axalloc::{global_allocator, global_no_cache_allocator};
+use cfg_if::cfg_if;
 use driver_common::DeviceType;
+use driver_pci::device_types::{self, PCI_CLASS_NETWORK_ETHERNET};
+use driver_usb::OsDep;
 
 #[cfg(feature = "virtio")]
 use crate::virtio::{self, VirtIoDevMeta};
 
 #[cfg(feature = "bus-pci")]
-use driver_pci::{DeviceFunction, DeviceFunctionInfo, PciRoot};
+use driver_pci::{types::ConfigSpace, DeviceFunction, DeviceFunctionInfo, PciAddress, PciRoot};
 
 pub use super::dummy::*;
 
@@ -28,7 +32,10 @@ pub trait DriverProbe {
         _root: &mut PciRoot,
         _bdf: DeviceFunction,
         _dev_info: &DeviceFunctionInfo,
+        _config: &ConfigSpace,
     ) -> Option<AxDeviceEnum> {
+        use driver_pci::types::ConfigSpace;
+
         None
     }
 }
@@ -81,6 +88,53 @@ cfg_if::cfg_if! {
     }
 }
 
+//todo maybe we should re arrange these code
+cfg_if::cfg_if! {
+    if #[cfg(usb_host_dev = "phytium-xhci")] {
+        use axalloc::GlobalNoCacheAllocator;
+        use driver_usb::ax::USBHostDriverOps;
+        use driver_usb::host::USBHost;
+        use driver_usb::host::xhci::Xhci;
+        pub struct VL805Driver;
+
+        #[derive(Clone)]
+        pub struct OsDepImp;
+
+        impl OsDep for OsDepImp{
+            const PAGE_SIZE: usize = axalloc::PAGE_SIZE;
+            type DMA = GlobalNoCacheAllocator;
+            fn dma_alloc(&self)->Self::DMA {
+                axalloc::global_no_cache_allocator()
+            }
+
+            fn force_sync_cache() {
+                unsafe{
+                core::arch::asm!("
+                    dc cisw
+                ")
+            }
+            }
+        }
+
+        register_usb_host_driver!(VL805Driver, USBHost<OsDepImp>);
+        // use driver_usb::host::xhci::vl805::VL805;
+
+        impl DriverProbe for VL805Driver {
+            fn probe_pci(
+                    root: &mut PciRoot,
+                    bdf: DeviceFunction,
+                    dev_info: &DeviceFunctionInfo,
+                    cfg: &ConfigSpace,
+                ) -> Option<AxDeviceEnum> {
+                debug!("probing!");
+
+                None
+                // VL805::probe_pci(cfg, global_no_cache_allocator()).map(|d| AxDeviceEnum::from_usb_host(d))
+            }
+        }
+    }
+}
+
 cfg_if::cfg_if! {
     if #[cfg(net_dev = "ixgbe")] {
         use crate::ixgbe::IxgbeHalImpl;
@@ -92,6 +146,7 @@ cfg_if::cfg_if! {
                     root: &mut driver_pci::PciRoot,
                     bdf: driver_pci::DeviceFunction,
                     dev_info: &driver_pci::DeviceFunctionInfo,
+                    _cfg: &ConfigSpace
                 ) -> Option<crate::AxDeviceEnum> {
                     use crate::ixgbe::IxgbeHalImpl;
                     use driver_net::ixgbe::{INTEL_82599, INTEL_VEND, IxgbeNic};
@@ -105,7 +160,7 @@ cfg_if::cfg_if! {
                         const QS: usize = 1024;
                         let bar_info = root.bar_info(bdf, 0).unwrap();
                         match bar_info {
-                            driver_pci::BarInfo::Memory {
+                            driver_pci::BarInfo::Memory64 {
                                 address,
                                 size,
                                 ..
@@ -117,7 +172,19 @@ cfg_if::cfg_if! {
                                 .expect("failed to initialize ixgbe device");
                                 return Some(AxDeviceEnum::from_net(ixgbe_nic));
                             }
-                            driver_pci::BarInfo::IO { .. } => {
+                            driver_pci::BarInfo::Memory32 {
+                                address,
+                                size,
+                                ..
+                            } => {
+                                let ixgbe_nic = IxgbeNic::<IxgbeHalImpl, QS, QN>::init(
+                                    phys_to_virt((address as usize).into()).into(),
+                                    size as usize
+                                )
+                                .expect("failed to initialize ixgbe device");
+                                return Some(AxDeviceEnum::from_net(ixgbe_nic));
+                            }
+                            driver_pci::BarInfo::Io { .. } => {
                                 error!("ixgbe: BAR0 is of I/O type");
                                 return None;
                             }

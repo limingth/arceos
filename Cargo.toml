@@ -19,6 +19,7 @@ members = [
     "crates/driver_net",
     "crates/driver_pci",
     "crates/driver_virtio",
+    "crates/driver_usb",
     "crates/flatten_objects",
     "crates/handler_table",
     "crates/kernel_guard",
@@ -35,6 +36,7 @@ members = [
     "crates/spinlock",
     "crates/timer_list",
     "crates/tuple_for_each",
+
 
     "modules/axalloc",
     "modules/axconfig",
@@ -71,7 +73,7 @@ members = [
     "apps/task/priority",
     "apps/task/tls",
     "apps/cli",
-    "apps/boards/raspi4",
+    "apps/usb"
 ]
 
 

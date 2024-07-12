@@ -18,8 +18,13 @@ kernel-base-vaddr = "0xffff_0000_0008_0000"
 phys-virt-offset = "0xffff_0000_0000_0000"
 # MMIO regions with format (`base_paddr`, `size`).
 mmio-regions = [
+    ["0xFE00_B000", "0x1000"],      # mailbox
     ["0xFE20_1000", "0x1000"],      # PL011 UART
-    ["0xFF84_1000", "0x8000"],      # GICv2
+    ["0xFF84_1000", "0x8000"],      # GICv2    
+    ["0xFD50_0000", "0x20_0000"],      # pcie ecam
+
+
+    ["0x6_0000_0000", "0x4000_0000"] # pcie control
 ]
 virtio-mmio-regions = []
 # UART Address
@@ -29,3 +34,24 @@ uart-irq = "0x79"
 # GIC Address
 gicc-paddr = "0xFF84_2000"
 gicd-paddr = "0xFF84_1000"
+
+
+# Base physical address of the PCIe ECAM space.
+pci-ecam-base = "0xfd50_0000"
+# End PCI bus number.
+pci-bus-end = "0x2" #?
+# PCI device memory ranges.
+pci-ranges = [
+    # just for known config structure, not real address
+    # copy from virt.toml or something
+    # ["0x3ef_f0000", "0x1_0000"],            # PIO space
+    # ["0x1000_0000", "0x2eff_0000"],         # 32-bit MMIO space
+    ["0x00","0x3800000"],
+    # ["0x6_0000_0000", "0x7_FFFF_FFFF"],   # 64-bit MMIO space
+    ["0x6_0000_0000", "0x6_3fff_ffff"],   # xhci space: https://blog.csdn.net/qq_26989627/article/details/122024901
+    # ["0xFD50_0000", "0xFD50_9310"],      # pcie
+    # ["0x04","0x7c000000"],
+] #TODO: findout ranges
+
+# Size of the nocache memory region
+nocache-memory-size = "0x20_0000"
