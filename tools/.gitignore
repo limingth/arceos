@@ -3,3 +3,5 @@ deptool/target
 deptool/output.txt
 bwbench_client/target
 bwbench_client/Cargo.lock
+!raspi4/common/image/*/*
+!raspi4/X1_JTAG_boot/*

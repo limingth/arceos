@@ -1,0 +1,17 @@
+[package]
+name = "page_box"
+version = "0.1.0"
+authors = ["dbydd <dbyddmfrf@gmail.com>"]
+edition = "2021"
+license = "GPL-3.0-or-later"
+description = "modified from toku-sa-n's pagebox crate, try to make it into multi platform, adapt for arceos"
+
+[dependencies]
+
+axhal = {path = "../../modules/axhal"}
+axalloc = {path = "../../modules/axalloc"}
+page_table = {path = "../page_table"}
+page_table_entry = {path = "../page_table_entry"}
+lazy_static = {version="1.4", features=["spin_no_std"]}
+os_units = "0.4.0"
+log="0.4"

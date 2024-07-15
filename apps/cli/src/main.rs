@@ -1,5 +1,6 @@
 #![cfg_attr(feature = "axstd", no_std)]
 #![cfg_attr(feature = "axstd", no_main)]
+#![allow(warnings)]
 
 #[macro_use]
 #[cfg(feature = "axstd")]

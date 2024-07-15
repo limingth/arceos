@@ -23,8 +23,10 @@ ifeq ($(BSP),rpi4)
     OBJDUMP_BINARY    = aarch64-none-elf-objdump
     NM_BINARY         = aarch64-none-elf-nm
     READELF_BINARY    = aarch64-none-elf-readelf
-    OPENOCD_ARG       = -f /openocd/tcl/interface/ftdi/olimex-arm-usb-tiny-h.cfg -f /openocd/rpi4.cfg
-    JTAG_BOOT_IMAGE   = tools/raspi4/X1_JTAG_boot/jtag_boot_rpi4.img
+    # OPENOCD_ARG       = -f /openocd/tcl/interface/ftdi/olimex-arm-usb-tiny-h.cfg -f /openocd/rpi4.cfg
+    OPENOCD_ARG       = -f /openocd/tcl/interface/jlink.cfg -f /openocd/rpi4.cfg
+    # JTAG_BOOT_IMAGE   = tools/raspi4/X1_JTAG_boot/jtag_boot_rpi4.img
+	JTAG_BOOT_IMAGE   := $(OUT_BIN)
     RUSTC_MISC_ARGS   = -C target-cpu=cortex-a72
 endif
 
@@ -33,12 +35,13 @@ EXEC_MINIPUSH      = ruby tools/raspi4/common/serial/minipush.rb
 ##------------------------------------------------------------------------------
 ## Dockerization
 ##------------------------------------------------------------------------------
-DOCKER_CMD            = docker run -t --rm -v $(shell pwd):/work/tutorial -w /work/tutorial
+DOCKER_CMD            = sudo docker run -t --rm -v $(shell pwd):/work/tutorial -w /work/tutorial
 DOCKER_CMD_INTERACT   = $(DOCKER_CMD) -i
 DOCKER_ARG_DIR_COMMON = -v $(shell pwd)/tools/raspi4/common:/work/common
 DOCKER_ARG_DIR_JTAG   = -v $(shell pwd)/tools/raspi4/X1_JTAG_boot:/work/X1_JTAG_boot
 DOCKER_ARG_DEV        = --privileged -v /dev:/dev
-DOCKER_ARG_NET        = --network host
+# DOCKER_ARG_NET        = --network host
+DOCKER_ARG_NET        = --expose 3333
 
 # DOCKER_IMAGE defined in include file (see top of this file).
 DOCKER_GDB   = $(DOCKER_CMD_INTERACT) $(DOCKER_ARG_NET) $(DOCKER_IMAGE)
@@ -48,7 +51,7 @@ ifeq ($(shell uname -s),Linux)
     DOCKER_CMD_DEV = $(DOCKER_CMD_INTERACT) $(DOCKER_ARG_DEV)
     DOCKER_CHAINBOOT = $(DOCKER_CMD_DEV) $(DOCKER_ARG_DIR_COMMON) $(DOCKER_IMAGE)
     DOCKER_JTAGBOOT  = $(DOCKER_CMD_DEV) $(DOCKER_ARG_DIR_COMMON) $(DOCKER_ARG_DIR_JTAG) $(DOCKER_IMAGE)
-    DOCKER_OPENOCD   = $(DOCKER_CMD_DEV) $(DOCKER_ARG_NET) $(DOCKER_IMAGE)
+    DOCKER_OPENOCD   = $(DOCKER_CMD_DEV) $(DOCKER_ARG_NET) $(DOCKER_IMAGE) 
 else
     DOCKER_OPENOCD   = echo "Not yet supported on non-Linux systems."; \#
 endif
@@ -88,7 +91,8 @@ openocd:
 ##------------------------------------------------------------------------------
 ## Start GDB session
 ##------------------------------------------------------------------------------
+KERNEL_ELF := $(patsubst %.bin,%.elf,$(KERNEL_BIN))
 gdb: RUSTC_MISC_ARGS += -C debuginfo=2
 gdb: $(KERNEL_ELF)
-	$(call color_header, "Launching GDB")
+	$(call color_header, "Launching GDB kernel: $(KERNEL_ELF)")
 	@$(DOCKER_GDB) gdb-multiarch -q $(KERNEL_ELF)

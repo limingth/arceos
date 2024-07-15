@@ -9,5 +9,17 @@ homepage = "https://github.com/rcore-os/arceos"
 repository = "https://github.com/rcore-os/arceos/tree/main/crates/driver_pci"
 documentation = "https://rcore-os.github.io/arceos/driver_pci/index.html"
 
+[features]
+phytium-pci = []
+virtio = []
+
 [dependencies]
-virtio-drivers = { git = "https://github.com/rcore-os/virtio-drivers.git", rev = "409ee72" }
+virtio-drivers = { git = "https://github.com/rcore-os/virtio-drivers.git", rev = "4b60f5d" }
+log="0.4"
+ratio = { path = "../../crates/ratio" }
+pci_types = "0.6"
+tock-registers="0.8"
+bit_field = "0.10"
+
+[target.'cfg(target_arch = "aarch64")'.dependencies]
+aarch64-cpu = "9.4"

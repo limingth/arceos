@@ -27,6 +27,8 @@ pub enum DeviceType {
     Net,
     /// Graphic display device (e.g., GPU)
     Display,
+    /// USB host controller
+    USBHost,
 }
 
 /// The error type for device operation failures.

@@ -1,5 +1,4 @@
 use std::io::{self};
-
 #[cfg(all(not(feature = "axstd"), unix))]
 
 macro_rules! print_err {
@@ -18,8 +17,27 @@ const CMD_TABLE: &[(&str, CmdHandler)] = &[
     ("help", do_help),
     ("uname", do_uname),
     ("ldr", do_ldr),
-    ("str", do_str)
+    ("str", do_str),
+    ("test_xhci", test_xhci),
+    ("enum_port", enum_port),
+    ("iicoled", do_iicoled),
 ];
+
+fn do_iicoled(_args: &str) {
+    // if let Err(()) = driver_i2c::run_iicoled() {
+    //     println!("Failed to start iicoled: {}", err);
+    // }
+    driver_i2c::run_iicoled();
+}
+
+fn test_xhci(_args: &str) {
+    driver_usb::try_init(0x31a08000 as usize)
+    // unsafe { xhci::Registers::new(0xffff_0000_31a0_8000 as usize, MemoryMapper {}) };
+}
+
+fn enum_port(_args: &str) {
+    driver_usb::enum_port()
+}
 
 fn do_uname(_args: &str) {
     let arch = option_env!("AX_ARCH").unwrap_or("");
@@ -53,36 +71,57 @@ fn do_exit(_args: &str) {
 fn do_ldr(args: &str) {
     println!("ldr");
     if args.is_empty() {
-        println!("try: ldr ffff0000400fe000 / ldr ffff000040080000 ffff000040080008");
+        println!("try: ldr ffff0000400fe000 4");
     }
 
-    fn ldr_one(addr: &str) -> io::Result<()> {
-        println!("addr = {}", addr);
+    fn ldr_one(addr: &str, offset: &str) -> io::Result<()> {
+        // println!("addr = {}", addr);
 
-        if let Ok(parsed_addr) = u64::from_str_radix(addr, 16) {
-            let address: *const u64 = parsed_addr as *const u64; // 强制转换为合适的指针类型
+        if let (Ok(parsed_addr), Ok(parsed_offset)) = (
+            u64::from_str_radix(addr, 16),
+            u64::from_str_radix(offset, 10),
+        ) {
+            for i in 0..parsed_offset {
+                let address: *const u64 = (parsed_addr + i * 8) as *const u64; // 强制转换为合适的指针类型
+                if address.is_aligned() {
+                    let value: u64;
+                    // println!("Parsed address: {:p}", address); // 打印地址时使用 %p 格式化符号
 
-            let value: u64;
-            println!("Parsed address: {:p}", address); // 打印地址时使用 %p 格式化符号
+                    unsafe {
+                        value = *address;
+                    }
 
-            unsafe {
-                value = *address;
+                    let le_bytes = value.to_le_bytes();
+
+                    // println!("Value at address {}: 0x{:X}", addr, value); // 使用输入的地址打印值
+                    // println!("value at address{} = 0x{:X}: ", addr, value);
+                    for chunk in le_bytes.chunks(4) {
+                        let mut chunk_value: u32 = 0;
+                        for (i, byte) in chunk.iter().enumerate() {
+                            chunk_value |= (*byte as u32) << (i * 8);
+                        }
+                        println!("{:032b}", chunk_value);
+                    }
+                } else {
+                    println!("addr not aligned!");
+                }
             }
-
-            println!("Value at address {}: 0x{:X}", addr, value); // 使用输入的地址打印值
         } else {
             println!("Failed to parse address.");
         }
         return Ok(());
     }
 
-    for addr in args.split_whitespace() {
-        if let Err(e) = ldr_one(addr) {
-            println!("ldr {} {}", addr, e);
-        }
-    }
+    // for addr in args.split_whitespace() {
+    //     if let Err(e) = ldr_one(addr) {
+    //         println!("ldr {} {}", addr, e);
+    //     }
+    // }
+    let mut split_ascii_whitespace = args.split_ascii_whitespace();
+    let base_addr = split_ascii_whitespace.next();
+    let byte_counts = split_ascii_whitespace.next().unwrap_or("1");
+    ldr_one(base_addr.unwrap(), byte_counts);
 }
-
 
 // use crate::mem::phys_to_virt;
 // use core::ptr::{read_volatile, write_volatile};
@@ -131,7 +170,6 @@ fn do_str(args: &str) {
             str_one(addr, val).unwrap(); // 调用 str_one 函数并传递 addr 和 val
         }
     }
-
 }
 
 pub fn run_cmd(line: &[u8]) {
@@ -153,3 +191,5 @@ fn split_whitespace(str: &str) -> (&str, &str) {
     str.find(char::is_whitespace)
         .map_or((str, ""), |n| (&str[..n], str[n + 1..].trim()))
 }
+
+fn test_net(str: &str) {}

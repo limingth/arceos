@@ -28,7 +28,7 @@ const CMD_TABLE: &[(&str, CmdHandler)] = &[
     ("rm", do_rm),
     ("uname", do_uname),
     ("ldr", do_ldr),
-    ("str", do_str)
+    ("str", do_str),
 ];
 
 fn file_type_to_char(ty: FileType) -> char {
@@ -348,7 +348,6 @@ fn do_str(args: &str) {
             str_one(addr, val).unwrap(); // 调用 str_one 函数并传递 addr 和 val
         }
     }
-
 }
 
 pub fn run_cmd(line: &[u8]) {

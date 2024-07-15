@@ -1,0 +1,15 @@
+[package]
+name = "driver_i2c"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies.ssd1306]
+version = "0.8.4"
+
+[dependencies.tinybmp]
+version = "0.5.0"
+
+[dependencies.embedded-graphics]
+version = "0.8.1"
+
+    
