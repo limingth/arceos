@@ -7,6 +7,7 @@ pub enum Error {
     Unknown(String),
     Param(String),
     CMD(CompletionCode),
+    Pip,
     TimeOut,
 }
 
@@ -17,6 +18,7 @@ impl Display for Error {
             Error::Param(msg) => write!(f, "param err: {}", msg),
             Error::TimeOut => write!(f, "timeout"),
             Error::CMD(cmd) => write!(f, "cmd fail: {:#?}", cmd),
+            Error::Pip => write!(f, "piped"),
         }
     }
 }

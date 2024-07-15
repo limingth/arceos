@@ -1,4 +1,10 @@
-use core::{fmt::Error, mem::size_of, ops::DerefMut, time::Duration};
+use core::{
+    fmt::Error,
+    mem::size_of,
+    ops::DerefMut,
+    ptr::{slice_from_raw_parts, slice_from_raw_parts_mut},
+    time::Duration,
+};
 
 use alloc::{
     borrow::ToOwned,
@@ -6,11 +12,11 @@ use alloc::{
     collections::BTreeSet,
     format,
     sync::Arc,
-    vec::{self, Vec},
+    vec::{self, *},
 };
 use axhal::time::busy_wait_until;
 use axtask::sleep;
-use log::debug;
+use log::{debug, error};
 use num_derive::FromPrimitive;
 use num_traits::{ops::mul_add, FromPrimitive, ToPrimitive};
 use spinlock::SpinNoIrq;
@@ -244,16 +250,37 @@ where
         let dci = ep_num_to_dci(endpoint);
 
         debug!("Itr ep {endpoint:#X}, dci {}", dci);
+        let mut data = Vec::with_capacity(len);
+        data.resize_with(len, || 0);
 
         let mut ctl = self.controller.lock();
 
-        ctl.post_transfer_normal_in(len, self, dci as _)
-    }
+        ctl.post_transfer_normal(&mut data, self, dci as _)?;
 
+        Ok(data)
+    }
+    pub fn interrupt_out(&self, endpoint: usize, data: &[u8]) -> Result {
+        if endpoint & 0x80 > 0 {
+            return Err(err::Error::Param(format!("ep {endpoint:#X} not out!")));
+        }
+
+        let dci = ep_num_to_dci(endpoint);
+
+        debug!("Itr ep {endpoint:#X}, dci {}", dci);
+        let data = unsafe { &mut *slice_from_raw_parts_mut(data.as_ptr() as *mut u8, data.len()) };
+
+        let mut ctl = self.controller.lock();
+
+        ctl.post_transfer_normal(data, self, dci as _)?;
+
+        Ok(())
+    }
     pub fn bulk_in(&self, endpoint: usize, len: usize) -> Result<Vec<u8>> {
         self.interrupt_in(endpoint, len)
     }
-
+    pub fn bulk_out(&self, endpoint: usize, data: &[u8]) -> Result {
+        self.interrupt_out(endpoint, data)
+    }
     pub fn set_configuration(&self) -> Result {
         let config = self.current_config();
         let config_val = config.data.config_val() as u16;
@@ -288,15 +315,63 @@ where
 
         Ok(())
     }
+    pub fn test_mass_storage(&self) -> Result {
+        debug!("test mass storage");
+        let endpoint_in = 0x81;
+        let endpoint_out = 0x2;
 
+        self.set_configuration()?;
+        self.set_interface()?;
+
+        debug!("Reading Max LUN:");
+
+        let lun = self.control_transfer_in(
+            0,
+            ENDPOINT_IN | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
+            BOMS_GET_MAX_LUN,
+            0,
+            0,
+            1,
+        )?[0];
+
+        debug!("   Max LUN = {}", lun);
+        const INQUIRY_LENGTH: u8 = 0x24;
+        let mut cdb = [0u8; 16];
+        cdb[0] = 0x12;
+        cdb[4] = INQUIRY_LENGTH;
+
+        self.send_mass_storage_command(endpoint_out, lun, &cdb, ENDPOINT_IN, INQUIRY_LENGTH as _)?;
+
+        self.get_mass_storage_status(endpoint_in)?;
+
+        Ok(())
+    }
     pub fn test_hid(&self) -> Result {
-        debug!("test begin");
+        debug!("test hid");
         let endpoint_in = 0x81;
 
         self.set_configuration()?;
         self.set_interface()?;
 
         debug!("reading HID report descriptors");
+
+        if self.current_interface().data.interface_class != 3 {
+            debug!("not hid");
+            return Ok(());
+        }
+        let protocol = self.current_interface().data.interface_protocol;
+        if self.current_interface().data.interface_subclass == 1 && protocol > 0 {
+            debug!("set protocol");
+
+            self.control_transfer_out(
+                0,
+                ENDPOINT_OUT | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
+                0x0B,
+                if protocol == 2 { 1 } else { 0 },
+                self.current_interface().data.interface_number as _,
+                &[],
+            )?;
+        }
 
         let data = self.control_transfer_in(
             0,
@@ -348,9 +423,62 @@ where
 
             loop {
                 let report_buffer = self.interrupt_in(endpoint_in, size as _)?;
-                debug!("rcv data");
+                debug!("rcv data {:?}", report_buffer);
             }
         }
+
+        Ok(())
+    }
+
+    fn get_mass_storage_status(&self, endpoint: usize) -> Result {
+        // The device is allowed to STALL this transfer. If it does, you have to
+        // clear the stall and try again.
+        let r = self.bulk_in(endpoint, 13)?;
+
+        let status = unsafe { &*(r.as_ptr() as *const CommandStatusWrapper) };
+
+        debug!("{status:#?}");
+
+        Ok(())
+    }
+
+    fn send_mass_storage_command(
+        &self,
+        endpoint: usize,
+        lun: u8,
+        cdb: &[u8],
+        direction: u8,
+        data_length: u32,
+    ) -> Result {
+        let cdb_len = CDB_LENGTH[cdb[0] as usize];
+        let mut cbw = CommandBlockWrapper::default();
+        let mut tag = 1;
+
+        tag += 1;
+
+        cbw.cbw_signature[0] = b'U';
+        cbw.cbw_signature[1] = b'S';
+        cbw.cbw_signature[2] = b'B';
+        cbw.cbw_signature[3] = b'C';
+        cbw.cbw_tag = tag;
+        cbw.cbw_data_transfer_length = data_length;
+        cbw.cbw_flags = direction;
+        cbw.cbw_lun = lun;
+        // Subclass is 1 or 6 => cdb_len
+        cbw.cbw_cb_length = cdb_len;
+        cbw.cbw_cb[..cdb_len as usize].copy_from_slice(&cdb[..cdb_len as usize]);
+
+        let data = unsafe {
+            &*slice_from_raw_parts(
+                (&cbw) as *const CommandBlockWrapper as *const u8,
+                size_of::<CommandBlockWrapper>(),
+            )
+        };
+
+        // The device is allowed to STALL this transfer. If it does, you have to
+        // clear the stall and try again.
+        self.bulk_out(endpoint, data)?;
+        debug!("  sent {} CDB bytes", cdb_len);
 
         Ok(())
     }
