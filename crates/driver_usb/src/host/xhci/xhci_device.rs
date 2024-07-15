@@ -14,9 +14,9 @@ use alloc::{
     sync::Arc,
     vec::{self, *},
 };
-use axhal::time::busy_wait_until;
+use axhal::time::{busy_wait_until,busy_wait};
 use axtask::sleep;
-use log::{debug, error};
+use log::{debug, error,info};
 use num_derive::FromPrimitive;
 use num_traits::{ops::mul_add, FromPrimitive, ToPrimitive};
 use spinlock::SpinNoIrq;
@@ -347,83 +347,123 @@ where
         Ok(())
     }
     pub fn test_hid(&self) -> Result {
-        debug!("test hid");
+        info!("test begin");
         let endpoint_in = 0x81;
 
-        self.set_configuration()?;
-        self.set_interface()?;
+        self.set_configuration().unwrap();
+        self.set_interface().unwrap();
 
-        debug!("reading HID report descriptors");
+        info!("reading HID report descriptors");
 
-        if self.current_interface().data.interface_class != 3 {
-            debug!("not hid");
-            return Ok(());
-        }
-        let protocol = self.current_interface().data.interface_protocol;
-        if self.current_interface().data.interface_subclass == 1 && protocol > 0 {
-            debug!("set protocol");
-
-            self.control_transfer_out(
+        let data = self
+            .control_transfer_in(
                 0,
-                ENDPOINT_OUT | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
-                0x0B,
-                if protocol == 2 { 1 } else { 0 },
-                self.current_interface().data.interface_number as _,
-                &[],
-            )?;
-        }
-
-        let data = self.control_transfer_in(
-            0,
-            ENDPOINT_IN | REQUEST_TYPE_STANDARD | RECIPIENT_INTERFACE,
-            REQUEST_GET_DESCRIPTOR,
-            DescriptorType::HIDReport.forLowBit(0).bits(),
-            0,
-            256,
-        )?;
+                ENDPOINT_IN | REQUEST_TYPE_STANDARD | RECIPIENT_INTERFACE,
+                REQUEST_GET_DESCRIPTOR,
+                DescriptorType::HIDReport.forLowBit(0).bits(),
+                0,
+                256,
+            )
+            .unwrap();
         let descriptor_size = 256;
-        debug!("descriptor_size {}", descriptor_size);
+        info!("descriptor_size {}", descriptor_size);
 
         let size = get_hid_record_size(&data, HID_REPORT_TYPE_FEATURE);
         if size <= 0 {
-            debug!("Skipping Feature Report readout (None detected)");
+            info!("Skipping Feature Report readout (None detected)");
         } else {
-            debug!("Reading Feature Report (length {})...", size);
+            info!("Reading Feature Report (length {})...", size);
 
-            let report_buffer = self.control_transfer_in(
-                0,
-                ENDPOINT_IN | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
-                HID_GET_REPORT,
-                (HID_REPORT_TYPE_FEATURE << 8) | 0,
-                0,
-                size as _,
-            )?;
+            let report_buffer = self
+                .control_transfer_in(
+                    0,
+                    ENDPOINT_IN | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
+                    HID_GET_REPORT,
+                    (HID_REPORT_TYPE_FEATURE << 8) | 0,
+                    0,
+                    size as _,
+                )
+                .unwrap();
         }
-
         let size = get_hid_record_size(&data, HID_REPORT_TYPE_INPUT);
 
         if (size <= 0) {
-            debug!("Skipping Input Report readout (None detected)");
+            info!("Skipping Input Report readout (None detected)");
         } else {
-            debug!("Reading Input Report (length {})...", size);
-            let report_buffer = self.control_transfer_in(
-                0,
-                ENDPOINT_IN | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
-                HID_GET_REPORT,
-                ((HID_REPORT_TYPE_INPUT << 8) | 0x00),
-                0,
-                size as _,
-            )?;
+            info!("Reading Input Report (length {})...", size);
+            let report_buffer = self
+                .control_transfer_in(
+                    0,
+                    ENDPOINT_IN | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
+                    HID_GET_REPORT,
+                    ((HID_REPORT_TYPE_INPUT << 8) | 0x00),
+                    0,
+                    size as _,
+                )
+                .unwrap();
 
             // Attempt a bulk read from endpoint 0 (this should just return a raw input report)
-            debug!(
+            info!(
                 "Testing interrupt read using endpoint {:#X}...",
                 endpoint_in
             );
 
+            // self.controller.lock().fill_transfer_normal_in(size as _, self, ep_num_to_dci(endpoint_in) as _);
+            info!("===============================");
+            info!("start mouse,please action");
+            info!("===============================");
+            let mut j = 1;
             loop {
-                let report_buffer = self.interrupt_in(endpoint_in, size as _)?;
-                debug!("rcv data {:?}", report_buffer);
+                busy_wait(Duration::from_millis(100));
+                let report_buffer=self.interrupt_in(endpoint_in, size as _);
+                debug!("----------------------------");
+                info!("report_buffer is: {:?}", report_buffer);
+                // if report_buffer.iter().any(|b| *b != 0) {
+                //     j += 1;
+                //     if report_buffer[0] != 0 {
+                //         match report_buffer[0] {
+                //             1 => {
+                //                 info!("left button press");
+                //             }
+                //             2 => {
+                //                 info!("right button press");
+                //             }
+                //             3 => {
+                //                 info!("both button press");
+                //             }
+                //             4 => {
+                //                 info!("middle button press");
+                //             }
+                //             _ => {}
+                //         }
+                //     } else {
+                //         for i in 1..4 {
+                //             if i == 1 {
+                //                 if report_buffer[i] & 0b0000_1000 == 0 {
+                //                     info!("turn left move {:?} units", report_buffer[i]);
+                //                 } else {
+                //                     info!("turn right move {:?} units", report_buffer[i]);
+                //                 }
+                //             } else if i == 2 {
+                //                 if report_buffer[i] & 0b0000_1000 == 0 {
+                //                     info!("turn down move {:?} units", report_buffer[i]);
+                //                 } else {
+                //                     info!("turn up move {:?} units", report_buffer[i]);
+                //                 }
+                //             } else if i == 3 {
+                //                 if report_buffer[i] < 128 {
+                //                     info!("wheel turn front {:?} units", report_buffer[i]);
+                //                 } else if report_buffer[i] > 128 {
+                //                     info!("wheel turn back {:?} units", 255 - report_buffer[i]);
+                //                 }
+                //             }
+                //         }
+                //     }
+                //     //info!("rcv data");
+                // }
+                // if j == 2 {
+                //     loop {}
+                // }
             }
         }
 
