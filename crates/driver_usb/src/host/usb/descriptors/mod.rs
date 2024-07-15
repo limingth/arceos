@@ -8,6 +8,7 @@ use desc_endpoint::Endpoint;
 use desc_hid::Hid;
 use desc_interface::Interface;
 use desc_str::Str;
+use desc_InterfaceAssociation::InterfaceAssociation;
 use log::debug;
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::{FromPrimitive, ToPrimitive};
@@ -20,6 +21,7 @@ pub mod desc_endpoint;
 pub mod desc_hid;
 pub mod desc_interface;
 pub mod desc_str;
+pub mod desc_InterfaceAssociation;
 
 #[derive(Copy, Clone, Debug)]
 pub(crate) enum Descriptor {
@@ -29,6 +31,7 @@ pub(crate) enum Descriptor {
     Interface(Interface),
     Endpoint(Endpoint),
     Hid(Hid),
+    InterfaceAssociation(InterfaceAssociation),
 }
 
 #[derive(FromPrimitive, ToPrimitive, Copy, Clone, Debug)]
@@ -94,6 +97,9 @@ impl Descriptor {
                         Ok(Self::Endpoint(unsafe { ptr::read(raw.cast()) }))
                     }
                     DescriptorType::Hid => Ok(Self::Hid(unsafe { ptr::read(raw.cast()) })),
+                    DescriptorType::InterfaceAssociation => {
+                        Ok(Self::InterfaceAssociation(unsafe{ptr::read(raw.cast())}))
+                    } 
                     other => unimplemented!("please implement descriptor type:{:?}", other),
                 }
             }

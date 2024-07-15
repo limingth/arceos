@@ -7,7 +7,7 @@ use alloc::{
     vec::{self, Vec},
 };
 use axalloc::global_no_cache_allocator;
-use axhal::{cpu::this_cpu_is_bsp, irq::IrqHandler, paging::PageSize};
+use axhal::{cpu::this_cpu_is_bsp, irq::IrqHandler, paging::PageSize, time::{busy_wait_until,busy_wait}};
 use core::{
     alloc::Allocator,
     borrow::{Borrow, BorrowMut},
@@ -15,7 +15,7 @@ use core::{
     f64::consts::E,
     num::NonZeroUsize,
     ops::{Deref, DerefMut},
-    sync::atomic::{fence, Ordering},
+    sync::atomic::{fence, Ordering}, time::Duration,
 };
 use core::{
     cell::{Ref, RefMut},
@@ -176,7 +176,7 @@ where
             let desc = self.fetch_device_desc(&device)?;
             let vid = desc.vendor;
             let pid = desc.product_id;
-
+            debug!("desc's buffer is:{:?}",desc);
             info!("device found, pid: {pid:#X}, vid: {vid:#X}");
 
             device.device_desc = desc;
@@ -188,7 +188,7 @@ where
             }
 
             self.set_configuration(&device, 0)?;
-
+            debug!("=====================================");
             device_list.push(device);
         }
         Ok(device_list)
@@ -561,6 +561,7 @@ where
     fn event_busy_wait_transfer(&mut self, addr: u64) -> Result<TransferEvent> {
         debug!("Wait result @{addr:#X}");
         loop {
+            busy_wait(Duration::from_millis(10));
             if let Some((event, cycle)) = self.event.next() {
                 self.update_erdp();
 
@@ -573,7 +574,7 @@ where
                             c.cycle_bit(),
                             c.trb_transfer_length()
                         );
-
+                        debug!("trb is:{:?}",c);
                         if c.trb_pointer() != addr {
                             debug!("  @{:#X} != @{:#X}", c.trb_pointer(), addr);
                             // return Err(Error::Pip);
