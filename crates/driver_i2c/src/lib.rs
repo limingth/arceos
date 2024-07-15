@@ -9,8 +9,6 @@ use ssd1306::{
     mode::BasicMode,
 };
 
-
-
 pub fn run_iicoled() {
 	let mut oled_sda = io.pins.gpio21.into_push_pull_output();
     let mut oled_scl = io.pins.gpio22.into_push_pull_output();
