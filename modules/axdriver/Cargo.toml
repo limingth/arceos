@@ -30,6 +30,8 @@ bcm2835-sdhci = ["block", "driver_block/bcm2835-sdhci"]
 ixgbe = ["net", "driver_net/ixgbe", "dep:axalloc", "dep:axhal"]
 phytium-xhci = ["usb_host", "bus-pci","dep:axalloc" ]
 phytium-pci = ["driver_pci/phytium-pci"]
+vl805 = ["usb_host", "bus-pci","driver_usb/vl805","dep:axalloc" ]
+bcm2711 = ["driver_pci/bcm2711"]
 # more devices example: e1000 = ["net", "driver_net/e1000"]
 
 default = ["bus-mmio"]

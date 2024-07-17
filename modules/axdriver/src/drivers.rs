@@ -6,8 +6,11 @@ use crate::AxDeviceEnum;
 use axalloc::{global_allocator, global_no_cache_allocator};
 use cfg_if::cfg_if;
 use driver_common::DeviceType;
-use driver_pci::device_types::{self, PCI_CLASS_NETWORK_ETHERNET};
+use driver_usb::platform_spec::vl805::VL805;
 use driver_usb::OsDep;
+
+const VL805_VENDOR_ID: u16 = 0x1106;
+const VL805_DEVICE_ID: u16 = 0x3483;
 
 #[cfg(feature = "virtio")]
 use crate::virtio::{self, VirtIoDevMeta};
@@ -88,53 +91,6 @@ cfg_if::cfg_if! {
     }
 }
 
-//todo maybe we should re arrange these code
-cfg_if::cfg_if! {
-    if #[cfg(usb_host_dev = "phytium-xhci")] {
-        use axalloc::GlobalNoCacheAllocator;
-        use driver_usb::ax::USBHostDriverOps;
-        use driver_usb::host::USBHost;
-        use driver_usb::host::xhci::Xhci;
-        pub struct VL805Driver;
-
-        #[derive(Clone)]
-        pub struct OsDepImp;
-
-        impl OsDep for OsDepImp{
-            const PAGE_SIZE: usize = axalloc::PAGE_SIZE;
-            type DMA = GlobalNoCacheAllocator;
-            fn dma_alloc(&self)->Self::DMA {
-                axalloc::global_no_cache_allocator()
-            }
-
-            fn force_sync_cache() {
-                unsafe{
-                core::arch::asm!("
-                    dc cisw
-                ")
-            }
-            }
-        }
-
-        register_usb_host_driver!(VL805Driver, USBHost<OsDepImp>);
-        // use driver_usb::host::xhci::vl805::VL805;
-
-        impl DriverProbe for VL805Driver {
-            fn probe_pci(
-                    root: &mut PciRoot,
-                    bdf: DeviceFunction,
-                    dev_info: &DeviceFunctionInfo,
-                    cfg: &ConfigSpace,
-                ) -> Option<AxDeviceEnum> {
-                debug!("probing!");
-
-                None
-                // VL805::probe_pci(cfg, global_no_cache_allocator()).map(|d| AxDeviceEnum::from_usb_host(d))
-            }
-        }
-    }
-}
-
 cfg_if::cfg_if! {
     if #[cfg(net_dev = "ixgbe")] {
         use crate::ixgbe::IxgbeHalImpl;
@@ -195,3 +151,54 @@ cfg_if::cfg_if! {
         }
     }
 }
+
+//todo maybe we should re arrange these code
+//------------------------------------------
+use axalloc::GlobalNoCacheAllocator;
+use driver_usb::ax::USBHostDriverOps;
+use driver_usb::host::xhci::Xhci;
+use driver_usb::host::USBHost;
+pub struct XHCIUSBDriver;
+
+#[derive(Clone)]
+pub struct OsDepImp;
+
+impl OsDep for OsDepImp {
+    const PAGE_SIZE: usize = axalloc::PAGE_SIZE;
+    type DMA = GlobalNoCacheAllocator;
+    fn dma_alloc(&self) -> Self::DMA {
+        axalloc::global_no_cache_allocator()
+    }
+
+    fn force_sync_cache() {
+        cfg_if::cfg_if! {
+            if #[cfg(usb_host_dev = "phytium-xhci")] {
+                unsafe{
+                    core::arch::asm!("
+                    dc cisw
+                    ")
+                }
+            }
+        }
+    }
+}
+
+// register_usb_host_driver!(XHCIUSBDriver, USBHost<OsDepImp>);
+
+#[cfg(usb_host_dev = "vl805")]
+register_usb_host_driver!(XHCIUSBDriver, VL805<OsDepImp>);
+
+impl DriverProbe for XHCIUSBDriver {
+    fn probe_pci(
+        root: &mut PciRoot,
+        bdf: DeviceFunction,
+        dev_info: &DeviceFunctionInfo,
+        config: &ConfigSpace,
+    ) -> Option<AxDeviceEnum> {
+        let osdep = OsDepImp {};
+
+        #[cfg(usb_host_dev = "vl805")]
+        VL805::probe_pci(config, osdep).map(|d| AxDeviceEnum::from_usb_host(d))
+    }
+}
+//------------------------------------------

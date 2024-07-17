@@ -17,6 +17,7 @@ pub(crate) mod device_types;
 pub(crate) mod dma;
 pub mod err;
 pub mod host;
+pub mod platform_spec;
 
 #[cfg(feature = "arceos")]
 pub mod ax;
