@@ -264,24 +264,23 @@ where
                 r.set_doorbell_target(dci);
             });
 
-        self.event_busy_wait_transfer(0)?;
-
+        let r = self.event_busy_wait_transfer(*trb_pointers.last().unwrap() as _)?;
         Ok(())
     }
 
-    fn post_transfer_normal_in(
+    fn post_transfer_normal(
         &mut self,
-        len: usize,
+        data: &mut [u8],
         device: &DeviceAttached<O>,
         dci: u8,
-    ) -> Result<Vec<u8>> {
+    ) -> Result {
+        let len = data.len();
         let mut buffer = DMA::new_vec(0u8, len, O::PAGE_SIZE, self.config.os.dma_alloc());
+        buffer.copy_from_slice(data);
         let mut request = transfer::Normal::default();
         request
             .set_data_buffer_pointer(buffer.addr() as u64)
-            .set_td_size(0)
             .set_trb_transfer_length(len as _)
-            .set_interrupt_on_short_packet()
             .set_interrupt_on_completion();
 
         let ring = self.ep_ring_mut(device, dci);
@@ -297,7 +296,9 @@ where
 
         self.event_busy_wait_transfer(addr as _)?;
 
-        Ok(buffer.to_vec())
+        data.copy_from_slice(&buffer);
+
+        Ok(())
     }
 }
 
@@ -547,28 +548,38 @@ where
         Ok(())
     }
 
+    fn update_erdp(&mut self) {
+        self.regs_mut()
+            .interrupter_register_set
+            .interrupter_mut(0)
+            .erdp
+            .update_volatile(|f| {
+                f.set_event_ring_dequeue_pointer(self.event.erdp());
+            });
+    }
+
     fn event_busy_wait_transfer(&mut self, addr: u64) -> Result<TransferEvent> {
-        debug!("Wait result");
+        debug!("Wait result @{addr:#X}");
         loop {
             if let Some((event, cycle)) = self.event.next() {
+                self.update_erdp();
+
                 match event {
                     xhci::ring::trb::event::Allowed::TransferEvent(c) => {
-                        let mut code = CompletionCode::Invalid;
+                        let code = c.completion_code().unwrap();
+                        debug!(
+                            "[Transfer] << {code:#?} @{:#X} got result, cycle {}, len {}",
+                            c.trb_pointer(),
+                            c.cycle_bit(),
+                            c.trb_transfer_length()
+                        );
 
-                        if let Ok(c) = c.completion_code() {
-                            code = c;
-                        } else {
+                        if c.trb_pointer() != addr {
+                            debug!("  @{:#X} != @{:#X}", c.trb_pointer(), addr);
+                            // return Err(Error::Pip);
                             continue;
                         }
-                        debug!(
-                            "[Transfer] << {code:#?} @{:#X} got result, cycle {}",
-                            c.trb_pointer(),
-                            c.cycle_bit()
-                        );
-                        // if c.trb_pointer() != addr {
-                        //     continue;
-                        // }
-                        if let CompletionCode::Success = code {
+                        if CompletionCode::Success == code || CompletionCode::ShortPacket == code {
                             return Ok(c);
                         }
                         return Err(Error::CMD(code));
