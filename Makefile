@@ -166,6 +166,14 @@ disasm:
 
 run: build justrun
 
+shumei:
+	qemu-system-aarch64 -m 2G -smp 4 -cpu cortex-a72 -machine raspi4b -nographic -kernel kernel8.img
+
+# debugs:
+#     qemu-system-aarch64 -s -S -machine raspi4b -m 2G -cpu cortex-a72 -kernel kernel8.img -nographic
+
+
+
 justrun:
 	$(call run_qemu)
 
