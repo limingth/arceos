@@ -94,10 +94,13 @@ fn is_init_ok() -> bool {
 }
 
 unsafe extern "C" fn put_debug_paged3() {
-    let state = (0xFFFF00002800D018 as usize) as *mut u8;
-    let put = (0xFFFF00002800D000 as usize) as *mut u8;
-    while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
-    *put = b'c';
+    #[cfg(platform_family = "aarch64-phytium-pi")]
+    {
+        let state = (0xFFFF00002800D018 as usize) as *mut u8;
+        let put = (0xFFFF00002800D000 as usize) as *mut u8;
+        while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
+        *put = b'c';
+    }
 }
 
 /// The main entry point of the ArceOS runtime.
