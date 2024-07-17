@@ -8,7 +8,7 @@ platform = aarch64-phytium-pi
 target = aarch64-unknown-none-softfloat
 smp = 1
 build_mode = release
-log_level = debug
+log_level = debugaaa
 
 ccc[ 93.802098 0 axruntime:138] Logging is enabled.
 [ 93.807826 0 axruntime:139] Primary CPU 512 started, dtb = 0x1.
