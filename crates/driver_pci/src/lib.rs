@@ -8,6 +8,7 @@
 
 #![no_std]
 #![allow(warnings)]
+#![feature(cfg_match)]
 
 #[cfg(feature = "bcm2711")]
 mod bcm2711;
@@ -33,8 +34,24 @@ impl core::fmt::Display for PciAddress {
     }
 }
 
-#[cfg(feature = "bcm2711")]
-pub type RootComplex = PciRootComplex<bcm2711::BCM2711>;
+cfg_match! {
+    cfg(feature = "bcm2711")=>{
+        pub type RootComplex = PciRootComplex<bcm2711::BCM2711>;
+    }
+    _=>{
+        struct DummyPciRoot;
+        pub type RootComplex = PciRootComplex<DummyPciRoot>;
+        impl Access for DummyPciRoot {
+            fn setup(mmio_base: usize) {}
+
+            fn probe_bridge(mmio_base: usize, bridge_header: &ConifgPciPciBridge) {}
+
+            fn map_conf(mmio_base: usize, addr: PciAddress) -> Option<usize> {
+                None
+            }
+        }
+    }
+}
 
 pub type PciRoot = RootComplex;
 pub type DeviceFunction = PciAddress;

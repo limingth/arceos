@@ -6,7 +6,6 @@ use crate::AxDeviceEnum;
 use axalloc::{global_allocator, global_no_cache_allocator};
 use cfg_if::cfg_if;
 use driver_common::DeviceType;
-use driver_usb::platform_spec::vl805::VL805;
 use driver_usb::OsDep;
 
 const VL805_VENDOR_ID: u16 = 0x1106;
@@ -183,22 +182,40 @@ impl OsDep for OsDepImp {
     }
 }
 
-// register_usb_host_driver!(XHCIUSBDriver, USBHost<OsDepImp>);
-
-#[cfg(usb_host_dev = "vl805")]
-register_usb_host_driver!(XHCIUSBDriver, VL805<OsDepImp>);
+cfg_match! {
+    cfg(usb_host_dev = "vl805")=>{
+        register_usb_host_driver!(XHCIUSBDriver, VL805<OsDepImp>);
+    }
+    _=>{
+        register_usb_host_driver!(XHCIUSBDriver, USBHost<OsDepImp>);
+    }
+}
 
 impl DriverProbe for XHCIUSBDriver {
-    fn probe_pci(
-        root: &mut PciRoot,
-        bdf: DeviceFunction,
-        dev_info: &DeviceFunctionInfo,
-        config: &ConfigSpace,
-    ) -> Option<AxDeviceEnum> {
-        let osdep = OsDepImp {};
-
-        #[cfg(usb_host_dev = "vl805")]
-        VL805::probe_pci(config, osdep).map(|d| AxDeviceEnum::from_usb_host(d))
+    #[cfg(bus = "pci")]
+    cfg_match! {
+        cfg(usb_host_dev = "vl805")=>{
+        use driver_usb::platform_spec::vl805::VL805;
+            fn probe_pci(
+                root: &mut PciRoot,
+                bdf: DeviceFunction,
+                dev_info: &DeviceFunctionInfo,
+                config: &ConfigSpace,
+            ) -> Option<AxDeviceEnum> {
+                let osdep = OsDepImp {};
+                VL805::probe_pci(config, osdep).map(|d| AxDeviceEnum::from_usb_host(d))
+            }
+        }
+        _=>{
+            fn probe_pci(
+                root: &mut PciRoot,
+                bdf: DeviceFunction,
+                dev_info: &DeviceFunctionInfo,
+                config: &ConfigSpace,
+            ) -> Option<AxDeviceEnum> {
+                None
+            }
+        }
     }
 }
 //------------------------------------------
