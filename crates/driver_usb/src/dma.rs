@@ -122,7 +122,7 @@ where
         let layout = Layout::from_size_align(size, align).unwrap();
         // 使用分配器分配内存
         let mut data = allocator.allocate(layout).unwrap();
-        debug!("allocated data:{:?}", data);
+        // debug!("allocated data:{:?}", data);
 
         unsafe {
             for i in 0..count {

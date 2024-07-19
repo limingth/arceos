@@ -1,13 +1,8 @@
 use crate::{dma::DMA, err::*, OsDep};
-use alloc::{
-    borrow::ToOwned,
-    boxed::Box,
-    format,
-    rc::Rc,
-    vec::{self, Vec},
-};
+use alloc::{borrow::ToOwned, boxed::Box, format, rc::Rc, vec, vec::Vec};
 use axalloc::global_no_cache_allocator;
 use axhal::{cpu::this_cpu_is_bsp, irq::IrqHandler, paging::PageSize};
+use axtask::sleep;
 use core::{
     alloc::Allocator,
     borrow::{Borrow, BorrowMut},
@@ -16,6 +11,7 @@ use core::{
     num::NonZeroUsize,
     ops::{Deref, DerefMut},
     sync::atomic::{fence, Ordering},
+    time::Duration,
 };
 use core::{
     cell::{Ref, RefMut},
@@ -26,7 +22,7 @@ use num_traits::FromPrimitive;
 use spinlock::SpinNoIrq;
 use xhci::{
     context::{EndpointState, EndpointType, Input, InputHandler, Slot, Slot64Byte},
-    extended_capabilities::debug::Status,
+    extended_capabilities::debug::{self, Status},
     registers::PortRegisterSet,
     ring::trb::{
         command::{
@@ -268,6 +264,14 @@ where
         Ok(())
     }
 
+    fn prepare_transfer_normal(&mut self, device: &DeviceAttached<O>, dci: u8) {
+        //in our code , the init state of transfer ring always has ccs = 0, so we use ccs =1 to fill transfer ring
+        let mut normal = transfer::Normal::default();
+        normal.set_cycle_bit();
+        let ring = self.ep_ring_mut(device, dci);
+        ring.enque_trbs(vec![normal.into_raw(); 31]) //the 32 is link trb
+    }
+
     fn post_transfer_normal(
         &mut self,
         data: &mut [u8],
@@ -281,10 +285,18 @@ where
         request
             .set_data_buffer_pointer(buffer.addr() as u64)
             .set_trb_transfer_length(len as _)
+            .set_interrupter_target(0)
+            .set_interrupt_on_short_packet()
             .set_interrupt_on_completion();
 
         let ring = self.ep_ring_mut(device, dci);
-        let addr = ring.enque_trb(transfer::Allowed::Normal(request).into_raw());
+        let mut normal = transfer::Allowed::Normal(request);
+        if ring.cycle {
+            normal.set_cycle_bit();
+        } else {
+            normal.clear_cycle_bit();
+        }
+        let addr = ring.enque_trb(normal.into_raw());
 
         fence(Ordering::Release);
 
@@ -299,6 +311,35 @@ where
         data.copy_from_slice(&buffer);
 
         Ok(())
+    }
+
+    fn clear_interrupt_pending(&mut self) {
+        self.regs
+            .regs
+            .interrupter_register_set
+            .interrupter_mut(0)
+            .iman
+            .update_volatile(|r| {
+                r.clear_interrupt_pending();
+            });
+    }
+
+    fn debug_dump_output_ctx(&self, slot: usize) {
+        debug!(
+            "{:#?}",
+            **(self.dev_ctx.device_out_context_list.get(slot).unwrap())
+        );
+    }
+
+    fn debug_dump_eventring_before_after(&self, before: isize, after: isize) {
+        let index = self.event.ring.i;
+        for i in before..after {
+            debug!(
+                "dump at index {} relative {i}: {:?}",
+                index as isize + i,
+                self.event.ring.trbs[(i + index as isize) as usize]
+            );
+        }
     }
 }
 
@@ -561,6 +602,7 @@ where
     fn event_busy_wait_transfer(&mut self, addr: u64) -> Result<TransferEvent> {
         debug!("Wait result @{addr:#X}");
         loop {
+            // sleep(Duration::from_millis(2));
             if let Some((event, cycle)) = self.event.next() {
                 self.update_erdp();
 
@@ -568,20 +610,23 @@ where
                     xhci::ring::trb::event::Allowed::TransferEvent(c) => {
                         let code = c.completion_code().unwrap();
                         debug!(
-                            "[Transfer] << {code:#?} @{:#X} got result, cycle {}, len {}",
+                            "[Transfer] << {code:#?} @{:#X} got result{}, cycle {}, len {}",
                             c.trb_pointer(),
+                            code as usize,
                             c.cycle_bit(),
                             c.trb_transfer_length()
                         );
 
-                        if c.trb_pointer() != addr {
-                            debug!("  @{:#X} != @{:#X}", c.trb_pointer(), addr);
-                            // return Err(Error::Pip);
-                            continue;
-                        }
+                        // if c.trb_pointer() != addr {
+                        //     debug!("  @{:#X} != @{:#X}", c.trb_pointer(), addr);
+                        //     // return Err(Error::Pip);
+                        //     continue;
+                        // }
+                        debug!("code:{:?},pointer:{:x}", code, c.trb_pointer());
                         if CompletionCode::Success == code || CompletionCode::ShortPacket == code {
                             return Ok(c);
                         }
+                        debug!("error!");
                         return Err(Error::CMD(code));
                     }
                     _ => warn!("event: {:?}", event),

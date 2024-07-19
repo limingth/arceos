@@ -63,7 +63,10 @@ impl<O: OsDep> Ring<O> {
     pub fn enque_trb(&mut self, mut trb: TrbData) -> usize {
         self.trbs[self.i].copy_from_slice(&trb);
         let addr = self.trbs[self.i].as_ptr() as usize;
-        debug!("enqueued {} @{:#X}", self.i, addr);
+        debug!(
+            "enqueued {} @{:#X}\n{:x}\n{:x}\n{:x}\n{:x}\n------------------------------------------------",
+            self.i, addr, trb[0], trb[1], trb[2], trb[3]
+        );
         self.next_index();
         addr
     }
@@ -83,11 +86,10 @@ impl<O: OsDep> Ring<O> {
         if self.link && self.i >= len - 1 {
             self.i = 0;
             need_link = true;
+            debug!("flip and link!")
         } else if self.i >= len {
             self.i = 0;
         }
-
-        debug!("index {}", self.i);
 
         if need_link {
             debug!("link!");

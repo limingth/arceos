@@ -79,7 +79,7 @@ where
         }
         let trs = (0..num_ep)
             .into_iter()
-            .map(|_| Ring::new(self.os.clone(), 32, true).unwrap())
+            .map(|i| Ring::new(self.os.clone(), 32, true).unwrap())
             .collect();
         debug!("new rings!");
 

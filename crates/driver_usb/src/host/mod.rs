@@ -70,6 +70,12 @@ where
         device: &DeviceAttached<O>,
         dci: u8,
     ) -> Result;
+
+    fn prepare_transfer_normal(&mut self, device: &DeviceAttached<O>, dci: u8);
+
+    fn clear_interrupt_pending(&mut self);
+    fn debug_dump_output_ctx(&self, slot: usize);
+    fn debug_dump_eventring_before_after(&self, before: isize, after: isize);
 }
 
 pub(crate) type ControllerArc<O> = Arc<SpinNoIrq<Box<dyn Controller<O>>>>;

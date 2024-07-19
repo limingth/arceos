@@ -53,5 +53,6 @@ fn main() {
     let hid = device_list.pop().unwrap();
 
     hid.test_hid().unwrap();
+    println!("test done!");
     // hid.test_mass_storage().unwrap();
 }

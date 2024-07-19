@@ -1,5 +1,5 @@
  
-## Total Size      = 0x0002c040 = 180288 Bytes
+## Total Size      = 0x0002e040 = 188480 Bytes
 ## Start Addr      = 0x90100000
 Phytium-Pi#go 0x90100000
 ## Starting application at 0x90100000 ...
@@ -10,143 +10,128 @@ smp = 1
 build_mode = release
 log_level = debug
 
-[ 57.141380 0 axruntime:141] Logging is enabled.
-[ 57.147108 0 axruntime:142] Primary CPU 512 started, dtb = 0x1.
-[ 57.154226 0 axruntime:144] Found physcial memory regions:
-[ 57.160910 0 axruntime:147]   [PA:0x90100000, PA:0x90122000) .text (READ | EXECUTE | RESERVED)
-[ 57.170718 0 axruntime:147]   [PA:0x90122000, PA:0x90129000) .rodata (READ | RESERVED)
-[ 57.179831 0 axruntime:147]   [PA:0x90129000, PA:0x9012d000) .data .tdata .tbss .percpu (READ | WRITE | RESERVED)
-[ 57.191289 0 axruntime:147]   [PA:0x9012d000, PA:0x9016d000) boot stack (READ | WRITE | RESERVED)
-[ 57.201358 0 axruntime:147]   [PA:0x9016d000, PA:0x90193000) .bss (READ | WRITE | RESERVED)
-[ 57.210906 0 axruntime:147]   [PA:0x0, PA:0x1000) spintable (READ | WRITE | RESERVED)
-[ 57.219933 0 axruntime:147]   [PA:0x90193000, PA:0x90893000) nocache memory (READ | WRITE | DEVICE)
-[ 57.230175 0 axruntime:147]   [PA:0x90893000, PA:0xff900000) free memory (READ | WRITE | FREE)
-[ 57.239984 0 axruntime:147]   [PA:0x2800c000, PA:0x2800d000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 57.250313 0 axruntime:147]   [PA:0x2800d000, PA:0x2800e000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 57.260642 0 axruntime:147]   [PA:0x2800e000, PA:0x2800f000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 57.270972 0 axruntime:147]   [PA:0x2800f000, PA:0x28010000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 57.281301 0 axruntime:147]   [PA:0x30000000, PA:0x38000000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 57.291630 0 axruntime:147]   [PA:0x40000000, PA:0x80000000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 57.301959 0 axruntime:147]   [PA:0x1000000000, PA:0x3000000000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 57.312636 0 axruntime:226] Initialize global memory allocator...
-[ 57.319927 0 axruntime:227]   use TLSF allocator.
-[ 57.325831 0 axalloc:284] initialize global allocator at: free-[0xffff000090893000, 0xffff0000ff900000)
-[ 57.336742 0 axruntime:161] Initialize kernel page table...
-[ 57.343283 0 axruntime:261] Initialize global no cache memory allocator...
-[ 57.351263 0 axalloc:300] initialize global allocator at: nocache-[0x90193000,0x90893000)
-[ 57.360638 0 axruntime:168] Initialize platform devices...
-[ 57.367320 0 axhal::platform::aarch64_common::gic:51] Initialize GICv2...
-[ 57.375306 0 axtask::api:66] Initialize scheduling...
-[ 57.381559 0 axtask::task:146] new task: Task(1, "idle")
-[ 57.388069 0 axtask::task:146] new task: Task(3, "gc")
-[ 57.394405 0 axalloc:126] expand heap memory: [0xffff0000908a5000, 0xffff0000908e5000)
-[ 57.403522 0 axalloc:126] expand heap memory: [0xffff0000908e5000, 0xffff000090965000)
-[ 57.412632 0 axtask::api:72]   use Round-robin scheduler.
-[ 57.419226 0 axdriver:160] Initialize device drivers...
-[ 57.425649 0 axdriver:161]   device model: static
-[ 57.431552 0 axdriver:192] number of usb host controller: 0
-[ 57.438322 0 axruntime:194] Initialize interrupt handlers...
-[ 57.445180 0 axruntime:204] Primary CPU 512 init OK.
-[ 57.451343 0:2 driver_usb::host::xhci:89] [XHCI] Base addr: VA:0xffff000031a08000
-[ 57.460025 0:2 driver_usb::host::xhci:100] [XHCI] Max_slots: 16, max_ports: 2, max_irqs: 1, page size: 1
-[ 57.471409 0:2 driver_usb::dma:125] allocated data:0x901b4880
-[ 57.477677 0:2 driver_usb::dma:125] allocated data:0x901b5900
-[ 57.484621 0:2 driver_usb::host::xhci:113] [XHCI] ring size 256
-[ 57.491705 0:2 driver_usb::host::xhci:633] [XHCI] Reset begin
-[ 57.498648 0:2 driver_usb::host::xhci:634] [XHCI] Stop
-[ 57.504985 0:2 driver_usb::host::xhci:639] [XHCI] Until halt
-[ 57.511842 0:2 driver_usb::host::xhci:641] [XHCI] Halted
-[ 57.518352 0:2 driver_usb::host::xhci:646] [XHCI] Wait for ready...
-[ 57.525817 0:2 driver_usb::host::xhci:648] [XHCI] Ready
-[ 57.532241 0:2 driver_usb::host::xhci:656] [XHCI] Reset HC
-[ 57.538924 0:2 driver_usb::host::xhci:672] [XHCI] XCHI reset ok
-[ 57.546041 0:2 driver_usb::host::xhci:678] [XHCI] Setting enabled slots to 16.
-[ 57.554461 0:2 driver_usb::host::xhci:687] [XHCI] Writing DCBAAP: 90194000
-[ 57.562534 0:2 driver_usb::host::xhci:700] [XHCI] Writing CRCR: 901B4880
-[ 57.570433 0:2 driver_usb::host::xhci:733] [XHCI] Disable interrupts
-[ 57.577984 0:2 driver_usb::host::xhci:742] [XHCI] Writing ERSTZ
-[ 57.585101 0:2 driver_usb::host::xhci:746] [XHCI] Writing ERDP: 901B5900
-[ 57.593000 0:2 driver_usb::host::xhci:753] [XHCI] Writing ERSTBA: 901B58C0
-[ 57.601074 0:2 driver_usb::host::xhci:763] [XHCI] Enabling primary interrupter.
-[ 57.609580 0:2 driver_usb::host::xhci:473] [XHCI] Scratch buf count: 0
-[ 57.617304 0:2 driver_usb::host::xhci:715] [XHCI] Start run
-[ 57.624075 0:2 driver_usb::host::xhci:722] [XHCI] Is running
-[ 57.630932 0:2 driver_usb::host::xhci:325] [XHCI] Test command ring
-[ 57.638397 0:2 driver_usb::host::xhci::ring:66] enqueued 0 @0x901B4880
-[ 57.646121 0:2 driver_usb::host::xhci::ring:90] index 1
-[ 57.652545 0:2 driver_usb::host::xhci::ring:59] [CMD] >> Noop(Noop { cycle_bit: true }) @901B4880
-[ 57.662614 0:2 driver_usb::host::xhci:593] Wait result
-[ 57.668952 0:2 driver_usb::host::xhci:618] event: PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 1, cycle_bit: true })
-[ 57.683273 0:2 driver_usb::host::xhci:604] [CMD] << Success @901B4880 got result, cycle true
-[ 57.692907 0:2 driver_usb::host::xhci::ring:66] enqueued 1 @0x901B4890
-[ 57.700632 0:2 driver_usb::host::xhci::ring:90] index 2
-[ 57.707055 0:2 driver_usb::host::xhci::ring:59] [CMD] >> Noop(Noop { cycle_bit: true }) @901B4890
-[ 57.717124 0:2 driver_usb::host::xhci:593] Wait result
-[ 57.723461 0:2 driver_usb::host::xhci:604] [CMD] << Success @901B4890 got result, cycle true
-[ 57.733096 0:2 driver_usb::host::xhci::ring:66] enqueued 2 @0x901B48A0
-[ 57.740820 0:2 driver_usb::host::xhci::ring:90] index 3
-[ 57.747243 0:2 driver_usb::host::xhci::ring:59] [CMD] >> Noop(Noop { cycle_bit: true }) @901B48A0
-[ 57.757313 0:2 driver_usb::host::xhci:593] Wait result
-[ 57.763649 0:2 driver_usb::host::xhci:604] [CMD] << Success @901B48A0 got result, cycle true
-[ 57.773284 0:2 driver_usb::host::xhci:329] [XHCI] Command ring ok
-[ 57.780575 0:2 driver_usb::host::xhci:814] [XHCI] Port 0 start reset
-[ 57.845969 0:2 driver_usb::host::xhci:827] [XHCI] Port 0 reset ok
-[ 57.850388 0:2 driver_usb::host::xhci:814] [XHCI] Port 1 start reset
-[ 57.857946 0:2 driver_usb::host::xhci:827] [XHCI] Port 1 reset ok
-[ 57.865231 0:2 driver_usb::host::xhci:127] [XHCI] Init success
-[ 58.172265 0:2 driver_usb::host::xhci:139] [XHCI] Port 0: Enabled: true, Connected: true, Speed 2, Power true
-[ 58.180506 0:2 driver_usb::host::xhci:139] [XHCI] Port 1: Enabled: false, Connected: false, Speed 0, Power true
-[ 58.191788 0:2 driver_usb::host::xhci::ring:66] enqueued 3 @0x901B48B0
-[ 58.199513 0:2 driver_usb::host::xhci::ring:90] index 4
-[ 58.205936 0:2 driver_usb::host::xhci::ring:59] [CMD] >> EnableSlot(EnableSlot { slot_type: 0, cycle_bit: true }) @901B48B0
-[ 58.218262 0:2 driver_usb::host::xhci:593] Wait result
-[ 58.224599 0:2 driver_usb::host::xhci:618] event: PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 1, cycle_bit: true })
-[ 58.238921 0:2 driver_usb::host::xhci:604] [CMD] << Success @901B48B0 got result, cycle true
-[ 58.248556 0:2 driver_usb::host::xhci:377] new slot id: 1
-[ 58.255153 0:2 driver_usb::dma:125] allocated data:0x901b6940
-[ 58.262100 0:2 driver_usb::dma:125] allocated data:0x901b6b80
-[ 58.269044 0:2 driver_usb::dma:125] allocated data:0x901b6dc0
-[ 58.275988 0:2 driver_usb::dma:125] allocated data:0x901b7000
-[ 58.282932 0:2 driver_usb::dma:125] allocated data:0x901b7240
-[ 58.289876 0:2 driver_usb::dma:125] allocated data:0x901b7480
-[ 58.296820 0:2 driver_usb::dma:125] allocated data:0x901b76c0
-[ 58.303764 0:2 driver_usb::dma:125] allocated data:0x901b7900
-[ 58.310708 0:2 driver_usb::dma:125] allocated data:0x901b7b40
-[ 58.317652 0:2 driver_usb::dma:125] allocated data:0x901b7d80
-[ 58.324596 0:2 driver_usb::dma:125] allocated data:0x901b7fc0
-[ 58.331540 0:2 driver_usb::dma:125] allocated data:0x901b8200
-[ 58.338484 0:2 driver_usb::dma:125] allocated data:0x901b8440
-[ 58.345428 0:2 driver_usb::dma:125] allocated data:0x901b8680
-[ 58.352372 0:2 driver_usb::dma:125] allocated data:0x901b88c0
-[ 58.359316 0:2 driver_usb::dma:125] allocated data:0x901b8b00
-[ 58.366260 0:2 driver_usb::dma:125] allocated data:0x901b8d40
-[ 58.373204 0:2 driver_usb::dma:125] allocated data:0x901b8f80
-[ 58.380148 0:2 driver_usb::dma:125] allocated data:0x901b91c0
-[ 58.387092 0:2 driver_usb::dma:125] allocated data:0x901b9400
-[ 58.394036 0:2 driver_usb::dma:125] allocated data:0x901b9640
-[ 58.400980 0:2 driver_usb::dma:125] allocated data:0x901b9880
-[ 58.407924 0:2 driver_usb::dma:125] allocated data:0x901b9ac0
-[ 58.414868 0:2 driver_usb::dma:125] allocated data:0x901b9d00
-[ 58.421812 0:2 driver_usb::dma:125] allocated data:0x901b9f40
-[ 58.428756 0:2 driver_usb::dma:125] allocated data:0x901ba180
-[ 58.435700 0:2 driver_usb::dma:125] allocated data:0x901ba3c0
-[ 58.442644 0:2 driver_usb::dma:125] allocated data:0x901ba600
-[ 58.449588 0:2 driver_usb::dma:125] allocated data:0x901ba840
-[ 58.456532 0:2 driver_usb::dma:125] allocated data:0x901baa80
-[ 58.463476 0:2 driver_usb::dma:125] allocated data:0x901bacc0
-[ 58.470420 0:2 driver_usb::dma:125] allocated data:0x901baf00
-[ 58.477363 0:2 driver_usb::host::xhci::context:84] new rings!
-[ 58.484305 0:2 driver_usb::host::xhci:166] assign complete!
-[ 58.491080 0:2 driver_usb::host::xhci::ring:66] enqueued 4 @0x901B48C0
-[ 58.498799 0:2 driver_usb::host::xhci::ring:90] index 5
-[ 58.505223 0:2 driver_usb::host::xhci::ring:59] [CMD] >> AddressDevice(AddressDevice { input_context_pointer: 2417590272, block_set_address_request: false, slot_id: 1, cycle_bit: true }) @901B48C0
-[ 58.523885 0:2 driver_usb::host::xhci:593] Wait result
-[ 58.530222 0:2 driver_usb::host::xhci:604] [CMD] << Success @901B48C0 got result, cycle true
-[ 58.539857 0:2 driver_usb::host::xhci:460] address slot [1] ok
-[ 58.546887 0:2 driver_usb::host::xhci:344] slot 1 Addressed
-[ 58.553657 0:2 driver_usb::host::xhci:349]   ep dci 1: Running
-[ 58.560693 0:2 driver_usb::dma:125] allocated data:0x901bb140
-[ 58.567633 0:2 driver_usb::host::xhci:540] SetupStage {
+[ 44.772105 0 axruntime:141] Logging is enabled.
+[ 44.777833 0 axruntime:142] Primary CPU 512 started, dtb = 0x1.
+[ 44.784950 0 axruntime:144] Found physcial memory regions:
+[ 44.791635 0 axruntime:147]   [PA:0x90100000, PA:0x90124000) .text (READ | EXECUTE | RESERVED)
+[ 44.801442 0 axruntime:147]   [PA:0x90124000, PA:0x9012b000) .rodata (READ | RESERVED)
+[ 44.810556 0 axruntime:147]   [PA:0x9012b000, PA:0x9012f000) .data .tdata .tbss .percpu (READ | WRITE | RESERVED)
+[ 44.822014 0 axruntime:147]   [PA:0x9012f000, PA:0x9016f000) boot stack (READ | WRITE | RESERVED)
+[ 44.832083 0 axruntime:147]   [PA:0x9016f000, PA:0x90195000) .bss (READ | WRITE | RESERVED)
+[ 44.841631 0 axruntime:147]   [PA:0x0, PA:0x1000) spintable (READ | WRITE | RESERVED)
+[ 44.850658 0 axruntime:147]   [PA:0x90195000, PA:0x90895000) nocache memory (READ | WRITE | DEVICE)
+[ 44.860900 0 axruntime:147]   [PA:0x90895000, PA:0xff900000) free memory (READ | WRITE | FREE)
+[ 44.870709 0 axruntime:147]   [PA:0x2800c000, PA:0x2800d000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 44.881038 0 axruntime:147]   [PA:0x2800d000, PA:0x2800e000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 44.891367 0 axruntime:147]   [PA:0x2800e000, PA:0x2800f000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 44.901696 0 axruntime:147]   [PA:0x2800f000, PA:0x28010000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 44.912025 0 axruntime:147]   [PA:0x30000000, PA:0x38000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 44.922355 0 axruntime:147]   [PA:0x40000000, PA:0x80000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 44.932684 0 axruntime:147]   [PA:0x1000000000, PA:0x3000000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 44.943360 0 axruntime:226] Initialize global memory allocator...
+[ 44.950652 0 axruntime:227]   use TLSF allocator.
+[ 44.956556 0 axalloc:284] initialize global allocator at: free-[0xffff000090895000, 0xffff0000ff900000)
+[ 44.967468 0 axruntime:161] Initialize kernel page table...
+[ 44.974007 0 axruntime:261] Initialize global no cache memory allocator...
+[ 44.981987 0 axalloc:300] initialize global allocator at: nocache-[0x90195000,0x90895000)
+[ 44.991363 0 axruntime:168] Initialize platform devices...
+[ 44.998044 0 axhal::platform::aarch64_common::gic:51] Initialize GICv2...
+[ 45.006031 0 axtask::api:66] Initialize scheduling...
+[ 45.012283 0 axtask::task:146] new task: Task(1, "idle")
+[ 45.018794 0 axtask::task:146] new task: Task(3, "gc")
+[ 45.025130 0 axalloc:126] expand heap memory: [0xffff0000908a7000, 0xffff0000908e7000)
+[ 45.034247 0 axalloc:126] expand heap memory: [0xffff0000908e7000, 0xffff000090967000)
+[ 45.043357 0 axtask::api:72]   use Round-robin scheduler.
+[ 45.049951 0 axdriver:160] Initialize device drivers...
+[ 45.056374 0 axdriver:161]   device model: static
+[ 45.062276 0 axdriver:192] number of usb host controller: 0
+[ 45.069047 0 axruntime:194] Initialize interrupt handlers...
+[ 45.075904 0 axruntime:204] Primary CPU 512 init OK.
+[ 45.082067 0:2 driver_usb::host::xhci:85] [XHCI] Base addr: VA:0xffff000031a08000
+[ 45.090750 0:2 driver_usb::host::xhci:96] [XHCI] Max_slots: 16, max_ports: 2, max_irqs: 1, page size: 1
+[ 45.102117 0:2 driver_usb::host::xhci:109] [XHCI] ring size 256
+[ 45.108455 0:2 driver_usb::host::xhci:678] [XHCI] Reset begin
+[ 45.115398 0:2 driver_usb::host::xhci:679] [XHCI] Stop
+[ 45.121735 0:2 driver_usb::host::xhci:684] [XHCI] Until halt
+[ 45.128592 0:2 driver_usb::host::xhci:686] [XHCI] Halted
+[ 45.135102 0:2 driver_usb::host::xhci:691] [XHCI] Wait for ready...
+[ 45.142567 0:2 driver_usb::host::xhci:693] [XHCI] Ready
+[ 45.148991 0:2 driver_usb::host::xhci:701] [XHCI] Reset HC
+[ 45.155674 0:2 driver_usb::host::xhci:717] [XHCI] XCHI reset ok
+[ 45.162791 0:2 driver_usb::host::xhci:723] [XHCI] Setting enabled slots to 16.
+[ 45.171211 0:2 driver_usb::host::xhci:732] [XHCI] Writing DCBAAP: 90196000
+[ 45.179283 0:2 driver_usb::host::xhci:745] [XHCI] Writing CRCR: 901B6880
+[ 45.187182 0:2 driver_usb::host::xhci:778] [XHCI] Disable interrupts
+[ 45.194734 0:2 driver_usb::host::xhci:787] [XHCI] Writing ERSTZ
+[ 45.201851 0:2 driver_usb::host::xhci:791] [XHCI] Writing ERDP: 901B7900
+[ 45.209750 0:2 driver_usb::host::xhci:798] [XHCI] Writing ERSTBA: 901B78C0
+[ 45.217823 0:2 driver_usb::host::xhci:808] [XHCI] Enabling primary interrupter.
+[ 45.226329 0:2 driver_usb::host::xhci:514] [XHCI] Scratch buf count: 0
+[ 45.234054 0:2 driver_usb::host::xhci:760] [XHCI] Start run
+[ 45.240825 0:2 driver_usb::host::xhci:767] [XHCI] Is running
+[ 45.247682 0:2 driver_usb::host::xhci:366] [XHCI] Test command ring
+[ 45.255147 0:2 driver_usb::host::xhci::ring:66] enqueued 0 @0x901B6880
+0
+0
+0
+5c01
+------------------------------------------------
+[ 45.268513 0:2 driver_usb::host::xhci::ring:59] [CMD] >> Noop(Noop { cycle_bit: true }) @901B6880
+[ 45.278583 0:2 driver_usb::host::xhci:638] Wait result
+[ 45.284920 0:2 driver_usb::host::xhci:663] event: PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 1, cycle_bit: true })
+[ 45.299241 0:2 driver_usb::host::xhci:649] [CMD] << Success @901B6880 got result, cycle true
+[ 45.308876 0:2 driver_usb::host::xhci::ring:66] enqueued 1 @0x901B6890
+0
+0
+0
+5c01
+------------------------------------------------
+[ 45.322242 0:2 driver_usb::host::xhci::ring:59] [CMD] >> Noop(Noop { cycle_bit: true }) @901B6890
+[ 45.332312 0:2 driver_usb::host::xhci:638] Wait result
+[ 45.338648 0:2 driver_usb::host::xhci:649] [CMD] << Success @901B6890 got result, cycle true
+[ 45.348283 0:2 driver_usb::host::xhci::ring:66] enqueued 2 @0x901B68A0
+0
+0
+0
+5c01
+------------------------------------------------
+[ 45.361649 0:2 driver_usb::host::xhci::ring:59] [CMD] >> Noop(Noop { cycle_bit: true }) @901B68A0
+[ 45.371719 0:2 driver_usb::host::xhci:638] Wait result
+[ 45.378055 0:2 driver_usb::host::xhci:649] [CMD] << Success @901B68A0 got result, cycle true
+[ 45.387690 0:2 driver_usb::host::xhci:370] [XHCI] Command ring ok
+[ 45.394981 0:2 driver_usb::host::xhci:859] [XHCI] Port 0 start reset
+[ 45.460375 0:2 driver_usb::host::xhci:872] [XHCI] Port 0 reset ok
+[ 45.464794 0:2 driver_usb::host::xhci:859] [XHCI] Port 1 start reset
+[ 45.472351 0:2 driver_usb::host::xhci:872] [XHCI] Port 1 reset ok
+[ 45.479637 0:2 driver_usb::host::xhci:123] [XHCI] Init success
+[ 45.786671 0:2 driver_usb::host::xhci:135] [XHCI] Port 0: Enabled: true, Connected: true, Speed 2, Power true
+[ 45.794912 0:2 driver_usb::host::xhci:135] [XHCI] Port 1: Enabled: false, Connected: false, Speed 0, Power true
+[ 45.806194 0:2 driver_usb::host::xhci::ring:66] enqueued 3 @0x901B68B0
+0
+0
+0
+2401
+------------------------------------------------
+[ 45.819561 0:2 driver_usb::host::xhci::ring:59] [CMD] >> EnableSlot(EnableSlot { slot_type: 0, cycle_bit: true }) @901B68B0
+[ 45.831887 0:2 driver_usb::host::xhci:638] Wait result
+[ 45.838223 0:2 driver_usb::host::xhci:663] event: PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 1, cycle_bit: true })
+[ 45.852545 0:2 driver_usb::host::xhci:649] [CMD] << Success @901B68B0 got result, cycle true
+[ 45.862181 0:2 driver_usb::host::xhci:418] new slot id: 1
+[ 45.868926 0:2 driver_usb::host::xhci::context:84] new rings!
+[ 45.875721 0:2 driver_usb::host::xhci:162] assign complete!
+[ 45.882496 0:2 driver_usb::host::xhci::ring:66] enqueued 4 @0x901B68C0
+9019a000
+0
+0
+1002c01
+------------------------------------------------
+[ 45.896726 0:2 driver_usb::host::xhci::ring:59] [CMD] >> AddressDevice(AddressDevice { input_context_pointer: 2417598464, block_set_address_request: false, slot_id: 1, cycle_bit: true }) @901B68C0
+[ 45.915389 0:2 driver_usb::host::xhci:638] Wait result
+[ 45.921725 0:2 driver_usb::host::xhci:649] [CMD] << Success @901B68C0 got result, cycle true
+[ 45.931360 0:2 driver_usb::host::xhci:501] address slot [1] ok
+[ 45.938390 0:2 driver_usb::host::xhci:385] slot 1 Addressed
+[ 45.945161 0:2 driver_usb::host::xhci:390]   ep dci 1: Running
+[ 45.952197 0:2 driver_usb::host::xhci:581] SetupStage {
     interrupt_on_completion: false,
     request_type: 128,
     request: 6,
@@ -157,23 +142,40 @@ log_level = debug
     transfer_type: In,
     cycle_bit: false,
 }
-[ 58.592545 0:2 driver_usb::host::xhci::ring:66] enqueued 0 @0x901B6940
-[ 58.600268 0:2 driver_usb::host::xhci::ring:90] index 1
-[ 58.606692 0:2 driver_usb::host::xhci::ring:66] enqueued 1 @0x901B6950
-[ 58.614417 0:2 driver_usb::host::xhci::ring:90] index 2
-[ 58.620841 0:2 driver_usb::host::xhci::ring:66] enqueued 2 @0x901B6960
-[ 58.628565 0:2 driver_usb::host::xhci::ring:90] index 3
-[ 58.634989 0:2 driver_usb::host::xhci:254] [Transfer] >> setup@0x901B6940, data@0x901B6950, status@0x901B6960
-[ 58.646100 0:2 driver_usb::host::xhci:562] Wait result @0x901B6960
-[ 58.653479 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6960 got result, cycle true, len 0
-[ 58.664330 0:2 driver_usb::host::xhci:173] packet_size0: 8
-[ 58.671011 0:2 driver_usb::host::xhci:953] CMD: evaluating context for set endpoint0 packet size 8
-[ 58.681166 0:2 driver_usb::host::xhci::ring:66] enqueued 5 @0x901B48D0
-[ 58.688891 0:2 driver_usb::host::xhci::ring:90] index 6
-[ 58.695315 0:2 driver_usb::host::xhci::ring:59] [CMD] >> EvaluateContext(EvaluateContext { input_context_pointer: 2417590272, slot_id: 1, cycle_bit: true }) @901B48D0
-[ 58.711373 0:2 driver_usb::host::xhci:593] Wait result
-[ 58.717710 0:2 driver_usb::host::xhci:604] [CMD] << Success @901B48D0 got result, cycle true
-[ 58.727346 0:2 driver_usb::host::xhci:540] SetupStage {
+[ 45.977104 0:2 driver_usb::host::xhci::ring:66] enqueued 0 @0x901B8940
+1000680
+80000
+8
+30841
+------------------------------------------------
+[ 45.991425 0:2 driver_usb::host::xhci::ring:66] enqueued 1 @0x901B8950
+901bd140
+0
+8
+10c01
+------------------------------------------------
+[ 46.005487 0:2 driver_usb::host::xhci::ring:66] enqueued 2 @0x901B8960
+0
+0
+0
+1021
+------------------------------------------------
+[ 46.018854 0:2 driver_usb::host::xhci:250] [Transfer] >> setup@0x901B8940, data@0x901B8950, status@0x901B8960
+[ 46.029965 0:2 driver_usb::host::xhci:603] Wait result @0x901B8960
+[ 46.037344 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8960 got result1, cycle true, len 0
+[ 46.048279 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8960
+[ 46.056181 0:2 driver_usb::host::xhci:169] packet_size0: 8
+[ 46.062861 0:2 driver_usb::host::xhci:998] CMD: evaluating context for set endpoint0 packet size 8
+[ 46.073017 0:2 driver_usb::host::xhci::ring:66] enqueued 5 @0x901B68D0
+9019a000
+0
+0
+1003401
+------------------------------------------------
+[ 46.087252 0:2 driver_usb::host::xhci::ring:59] [CMD] >> EvaluateContext(EvaluateContext { input_context_pointer: 2417598464, slot_id: 1, cycle_bit: true }) @901B68D0
+[ 46.103310 0:2 driver_usb::host::xhci:638] Wait result
+[ 46.109647 0:2 driver_usb::host::xhci:649] [CMD] << Success @901B68D0 got result, cycle true
+[ 46.119284 0:2 driver_usb::host::xhci:581] SetupStage {
     interrupt_on_completion: false,
     request_type: 128,
     request: 6,
@@ -184,18 +186,30 @@ log_level = debug
     transfer_type: In,
     cycle_bit: false,
 }
-[ 58.752343 0:2 driver_usb::host::xhci::ring:66] enqueued 3 @0x901B6970
-[ 58.760067 0:2 driver_usb::host::xhci::ring:90] index 4
-[ 58.766491 0:2 driver_usb::host::xhci::ring:66] enqueued 4 @0x901B6980
-[ 58.774216 0:2 driver_usb::host::xhci::ring:90] index 5
-[ 58.780639 0:2 driver_usb::host::xhci::ring:66] enqueued 5 @0x901B6990
-[ 58.788364 0:2 driver_usb::host::xhci::ring:90] index 6
-[ 58.794787 0:2 driver_usb::host::xhci:254] [Transfer] >> setup@0x901B6970, data@0x901B6980, status@0x901B6990
-[ 58.805898 0:2 driver_usb::host::xhci:562] Wait result @0x901B6990
-[ 58.813277 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6990 got result, cycle true, len 0
-[ 58.824130 0:2 driver_usb::host::xhci:180] device found, pid: 0x302, vid: 0x30FA
-[ 58.832720 0:2 driver_usb::dma:125] allocated data:0x901bc000
-[ 58.839932 0:2 driver_usb::host::xhci:540] SetupStage {
+[ 46.144280 0:2 driver_usb::host::xhci::ring:66] enqueued 3 @0x901B8970
+1000680
+120000
+8
+30841
+------------------------------------------------
+[ 46.158688 0:2 driver_usb::host::xhci::ring:66] enqueued 4 @0x901B8980
+901be000
+0
+12
+10c01
+------------------------------------------------
+[ 46.172837 0:2 driver_usb::host::xhci::ring:66] enqueued 5 @0x901B8990
+0
+0
+0
+1021
+------------------------------------------------
+[ 46.186204 0:2 driver_usb::host::xhci:250] [Transfer] >> setup@0x901B8970, data@0x901B8980, status@0x901B8990
+[ 46.197315 0:2 driver_usb::host::xhci:603] Wait result @0x901B8990
+[ 46.204693 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8990 got result1, cycle true, len 0
+[ 46.215629 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8990
+[ 46.223531 0:2 driver_usb::host::xhci:176] device found, pid: 0x300, vid: 0x30FA
+[ 46.232392 0:2 driver_usb::host::xhci:581] SetupStage {
     interrupt_on_completion: false,
     request_type: 128,
     request: 6,
@@ -206,16 +220,29 @@ log_level = debug
     transfer_type: In,
     cycle_bit: false,
 }
-[ 58.864835 0:2 driver_usb::host::xhci::ring:66] enqueued 6 @0x901B69A0
-[ 58.872560 0:2 driver_usb::host::xhci::ring:90] index 7
-[ 58.878984 0:2 driver_usb::host::xhci::ring:66] enqueued 7 @0x901B69B0
-[ 58.886708 0:2 driver_usb::host::xhci::ring:90] index 8
-[ 58.893132 0:2 driver_usb::host::xhci::ring:66] enqueued 8 @0x901B69C0
-[ 58.900857 0:2 driver_usb::host::xhci::ring:90] index 9
-[ 58.907280 0:2 driver_usb::host::xhci:254] [Transfer] >> setup@0x901B69A0, data@0x901B69B0, status@0x901B69C0
-[ 58.918391 0:2 driver_usb::host::xhci:562] Wait result @0x901B69C0
-[ 58.925770 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B69C0 got result, cycle true, len 0
-[ 58.936625 0:2 driver_usb::host::xhci:932] Hid(
+[ 46.257293 0:2 driver_usb::host::xhci::ring:66] enqueued 6 @0x901B89A0
+2000680
+10000000
+8
+30841
+------------------------------------------------
+[ 46.271876 0:2 driver_usb::host::xhci::ring:66] enqueued 7 @0x901B89B0
+901be000
+0
+1000
+10c01
+------------------------------------------------
+[ 46.286198 0:2 driver_usb::host::xhci::ring:66] enqueued 8 @0x901B89C0
+0
+0
+0
+1021
+------------------------------------------------
+[ 46.299565 0:2 driver_usb::host::xhci:250] [Transfer] >> setup@0x901B89A0, data@0x901B89B0, status@0x901B89C0
+[ 46.310676 0:2 driver_usb::host::xhci:603] Wait result @0x901B89C0
+[ 46.318054 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B89C0 got result1, cycle true, len 0
+[ 46.328990 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b89c0
+[ 46.336895 0:2 driver_usb::host::xhci:977] Hid(
     Hid {
         len: 9,
         descriptor_type: 33,
@@ -226,7 +253,7 @@ log_level = debug
         report_descriptor_len: 64,
     },
 )
-[ 58.961535 0:2 driver_usb::host::xhci:186] DescriptorConfiguration {
+[ 46.361805 0:2 driver_usb::host::xhci:182] DescriptorConfiguration {
     data: Configuration {
         length: 9,
         ty: 2,
@@ -264,19 +291,23 @@ log_level = debug
         },
     ],
 }
-[ 59.057359 0:2 driver_usb::host::xhci:1004] init ep 3 InterruptIn
-[ 59.064650 0:2 driver_usb::host::xhci::ring:66] enqueued 6 @0x901B48E0
-[ 59.072374 0:2 driver_usb::host::xhci::ring:90] index 7
-[ 59.078797 0:2 driver_usb::host::xhci::ring:59] [CMD] >> ConfigureEndpoint(ConfigureEndpoint { input_context_pointer: 2417590272, deconfigure: false, slot_id: 1, cycle_bit: true }) @901B48E0
-[ 59.096939 0:2 driver_usb::host::xhci:593] Wait result
-[ 59.103275 0:2 driver_usb::host::xhci:604] [CMD] << Success @901B48E0 got result, cycle true
-[ 59.112911 0:2 driver_usb::host::xhci:344] slot 1 Configured
-[ 59.119767 0:2 driver_usb::host::xhci:349]   ep dci 1: Running
-[ 59.126798 0:2 driver_usb::host::xhci:349]   ep dci 3: Running
-[ 59.133838 0:2 driver_usb::host::xhci::xhci_device:350] test hid
-[ 59.141033 0:2 driver_usb::host::xhci::xhci_device:287] set configuration 1
-[ 59.149192 0:2 driver_usb::host::xhci::xhci_device:199] CTL ep 0x0, dci 1
-[ 59.157178 0:2 driver_usb::host::xhci::xhci_device:233] SetupStage {
+[ 46.457629 0:2 driver_usb::host::xhci:1049] init ep 3 InterruptIn
+[ 46.464921 0:2 driver_usb::host::xhci::ring:66] enqueued 6 @0x901B68E0
+9019a000
+0
+0
+1003001
+------------------------------------------------
+[ 46.479154 0:2 driver_usb::host::xhci::ring:59] [CMD] >> ConfigureEndpoint(ConfigureEndpoint { input_context_pointer: 2417598464, deconfigure: false, slot_id: 1, cycle_bit: true }) @901B68E0
+[ 46.497296 0:2 driver_usb::host::xhci:638] Wait result
+[ 46.503632 0:2 driver_usb::host::xhci:649] [CMD] << Success @901B68E0 got result, cycle true
+[ 46.513268 0:2 driver_usb::host::xhci:385] slot 1 Configured
+[ 46.520124 0:2 driver_usb::host::xhci:390]   ep dci 1: Running
+[ 46.527155 0:2 driver_usb::host::xhci:390]   ep dci 3: Running
+[ 46.534195 0:2 driver_usb::host::xhci::xhci_device:350] test hid
+[ 46.541390 0:2 driver_usb::host::xhci::xhci_device:287] set configuration 1
+[ 46.549549 0:2 driver_usb::host::xhci::xhci_device:199] CTL ep 0x0, dci 1
+[ 46.557535 0:2 driver_usb::host::xhci::xhci_device:233] SetupStage {
     interrupt_on_completion: false,
     request_type: 0,
     request: 9,
@@ -287,16 +318,25 @@ log_level = debug
     transfer_type: No,
     cycle_bit: false,
 }
-[ 59.182871 0:2 driver_usb::host::xhci::ring:66] enqueued 9 @0x901B69D0
-[ 59.190595 0:2 driver_usb::host::xhci::ring:90] index 10
-[ 59.197106 0:2 driver_usb::host::xhci::ring:66] enqueued 10 @0x901B69E0
-[ 59.204917 0:2 driver_usb::host::xhci::ring:90] index 11
-[ 59.211428 0:2 driver_usb::host::xhci:249] [Transfer] >> setup@0x901B69D0, status@0x901B69E0
-[ 59.221063 0:2 driver_usb::host::xhci:562] Wait result @0x901B69E0
-[ 59.228441 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B69E0 got result, cycle true, len 0
-[ 59.239291 0:2 driver_usb::host::xhci::xhci_device:305] set interface 0
-[ 59.247102 0:2 driver_usb::host::xhci::xhci_device:199] CTL ep 0x0, dci 1
-[ 59.255088 0:2 driver_usb::host::xhci::xhci_device:233] SetupStage {
+[ 46.583228 0:2 driver_usb::host::xhci::ring:66] enqueued 9 @0x901B89D0
+10900
+0
+8
+841
+------------------------------------------------
+[ 46.596855 0:2 driver_usb::host::xhci::ring:66] enqueued 10 @0x901B89E0
+0
+0
+0
+11021
+------------------------------------------------
+[ 46.610396 0:2 driver_usb::host::xhci:245] [Transfer] >> setup@0x901B89D0, status@0x901B89E0
+[ 46.620031 0:2 driver_usb::host::xhci:603] Wait result @0x901B89E0
+[ 46.627409 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B89E0 got result1, cycle true, len 0
+[ 46.638345 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b89e0
+[ 46.646245 0:2 driver_usb::host::xhci::xhci_device:305] set interface 0
+[ 46.654056 0:2 driver_usb::host::xhci::xhci_device:199] CTL ep 0x0, dci 1
+[ 46.662041 0:2 driver_usb::host::xhci::xhci_device:233] SetupStage {
     interrupt_on_completion: false,
     request_type: 1,
     request: 11,
@@ -307,17 +347,26 @@ log_level = debug
     transfer_type: No,
     cycle_bit: false,
 }
-[ 59.280868 0:2 driver_usb::host::xhci::ring:66] enqueued 11 @0x901B69F0
-[ 59.288679 0:2 driver_usb::host::xhci::ring:90] index 12
-[ 59.295190 0:2 driver_usb::host::xhci::ring:66] enqueued 12 @0x901B6A00
-[ 59.303001 0:2 driver_usb::host::xhci::ring:90] index 13
-[ 59.309511 0:2 driver_usb::host::xhci:249] [Transfer] >> setup@0x901B69F0, status@0x901B6A00
-[ 59.319147 0:2 driver_usb::host::xhci:562] Wait result @0x901B6A00
-[ 59.326525 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6A00 got result, cycle true, len 0
-[ 59.337375 0:2 driver_usb::host::xhci::xhci_device:356] reading HID report descriptors
-[ 59.346489 0:2 driver_usb::host::xhci::xhci_device:364] set protocol
-[ 59.354040 0:2 driver_usb::host::xhci::xhci_device:199] CTL ep 0x0, dci 1
-[ 59.362025 0:2 driver_usb::host::xhci::xhci_device:233] SetupStage {
+[ 46.687821 0:2 driver_usb::host::xhci::ring:66] enqueued 11 @0x901B89F0
+b01
+0
+8
+841
+------------------------------------------------
+[ 46.701362 0:2 driver_usb::host::xhci::ring:66] enqueued 12 @0x901B8A00
+0
+0
+0
+11021
+------------------------------------------------
+[ 46.714903 0:2 driver_usb::host::xhci:245] [Transfer] >> setup@0x901B89F0, status@0x901B8A00
+[ 46.724538 0:2 driver_usb::host::xhci:603] Wait result @0x901B8A00
+[ 46.731917 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8A00 got result1, cycle true, len 0
+[ 46.742852 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8a00
+[ 46.750751 0:2 driver_usb::host::xhci::xhci_device:356] reading HID report descriptors
+[ 46.759865 0:2 driver_usb::host::xhci::xhci_device:364] set protocol
+[ 46.767417 0:2 driver_usb::host::xhci::xhci_device:199] CTL ep 0x0, dci 1
+[ 46.775402 0:2 driver_usb::host::xhci::xhci_device:233] SetupStage {
     interrupt_on_completion: false,
     request_type: 33,
     request: 11,
@@ -328,16 +377,54 @@ log_level = debug
     transfer_type: No,
     cycle_bit: false,
 }
-[ 59.387892 0:2 driver_usb::host::xhci::ring:66] enqueued 13 @0x901B6A10
-[ 59.395704 0:2 driver_usb::host::xhci::ring:90] index 14
-[ 59.402214 0:2 driver_usb::host::xhci::ring:66] enqueued 14 @0x901B6A20
-[ 59.410026 0:2 driver_usb::host::xhci::ring:90] index 15
-[ 59.416536 0:2 driver_usb::host::xhci:249] [Transfer] >> setup@0x901B6A10, status@0x901B6A20
-[ 59.426171 0:2 driver_usb::host::xhci:562] Wait result @0x901B6A20
-[ 59.433550 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6A20 got result, cycle true, len 0
-[ 59.444399 0:2 driver_usb::host::xhci::xhci_device:138] CTL ep 0x0, dci 1
-[ 59.452385 0:2 driver_usb::dma:125] allocated data:0x901bb140
-[ 59.459345 0:2 driver_usb::host::xhci::xhci_device:170] SetupStage {
+[ 46.801269 0:2 driver_usb::host::xhci::ring:66] enqueued 13 @0x901B8A10
+10b21
+0
+8
+841
+------------------------------------------------
+[ 46.814983 0:2 driver_usb::host::xhci::ring:66] enqueued 14 @0x901B8A20
+0
+0
+0
+11021
+------------------------------------------------
+[ 46.828524 0:2 driver_usb::host::xhci:245] [Transfer] >> setup@0x901B8A10, status@0x901B8A20
+[ 46.838159 0:2 driver_usb::host::xhci:603] Wait result @0x901B8A20
+[ 46.845538 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8A20 got result1, cycle true, len 0
+[ 46.856473 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8a20
+[ 46.864373 0:2 driver_usb::host::xhci::xhci_device:376] set idle
+[ 46.871577 0:2 driver_usb::host::xhci::xhci_device:199] CTL ep 0x0, dci 1
+[ 46.879562 0:2 driver_usb::host::xhci::xhci_device:233] SetupStage {
+    interrupt_on_completion: false,
+    request_type: 33,
+    request: 10,
+    value: 0,
+    index: 0,
+    length: 0,
+    interrupt_on_completion: false,
+    transfer_type: No,
+    cycle_bit: false,
+}
+[ 46.905429 0:2 driver_usb::host::xhci::ring:66] enqueued 15 @0x901B8A30
+a21
+0
+8
+841
+------------------------------------------------
+[ 46.918970 0:2 driver_usb::host::xhci::ring:66] enqueued 16 @0x901B8A40
+0
+0
+0
+11021
+------------------------------------------------
+[ 46.932510 0:2 driver_usb::host::xhci:245] [Transfer] >> setup@0x901B8A30, status@0x901B8A40
+[ 46.942145 0:2 driver_usb::host::xhci:603] Wait result @0x901B8A40
+[ 46.949524 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8A40 got result1, cycle true, len 0
+[ 46.960460 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8a40
+[ 46.968359 0:2 driver_usb::host::xhci::xhci_device:386] request feature report
+[ 46.976779 0:2 driver_usb::host::xhci::xhci_device:138] CTL ep 0x0, dci 1
+[ 46.984782 0:2 driver_usb::host::xhci::xhci_device:170] SetupStage {
     interrupt_on_completion: false,
     request_type: 129,
     request: 6,
@@ -348,21 +435,33 @@ log_level = debug
     transfer_type: In,
     cycle_bit: false,
 }
-[ 59.485629 0:2 driver_usb::host::xhci::ring:66] enqueued 15 @0x901B6A30
-[ 59.493440 0:2 driver_usb::host::xhci::ring:90] index 16
-[ 59.499951 0:2 driver_usb::host::xhci::ring:66] enqueued 16 @0x901B6A40
-[ 59.507762 0:2 driver_usb::host::xhci::ring:90] index 17
-[ 59.514273 0:2 driver_usb::host::xhci::ring:66] enqueued 17 @0x901B6A50
-[ 59.522084 0:2 driver_usb::host::xhci::ring:90] index 18
-[ 59.528594 0:2 driver_usb::host::xhci:254] [Transfer] >> setup@0x901B6A30, data@0x901B6A40, status@0x901B6A50
-[ 59.539705 0:2 driver_usb::host::xhci:562] Wait result @0x901B6A50
-[ 59.547084 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6A50 got result, cycle true, len 0
-[ 59.557939 0:2 driver_usb::host::xhci::xhci_device:385] descriptor_size 256
-[ 59.566095 0:2 driver_usb::host::xhci::xhci_device:389] Skipping Feature Report readout (None detected)
-[ 59.576684 0:2 driver_usb::host::xhci::xhci_device:408] Reading Input Report (length 5)...
-[ 59.586143 0:2 driver_usb::host::xhci::xhci_device:138] CTL ep 0x0, dci 1
-[ 59.594129 0:2 driver_usb::dma:125] allocated data:0x901bb140
-[ 59.601073 0:2 driver_usb::host::xhci::xhci_device:170] SetupStage {
+[ 47.011065 0:2 driver_usb::host::xhci::ring:66] enqueued 17 @0x901B8A50
+22000681
+1000000
+8
+30841
+------------------------------------------------
+[ 47.025734 0:2 driver_usb::host::xhci::ring:66] enqueued 18 @0x901B8A60
+901bd140
+0
+100
+10c01
+------------------------------------------------
+[ 47.040055 0:2 driver_usb::host::xhci::ring:66] enqueued 19 @0x901B8A70
+0
+0
+0
+1021
+------------------------------------------------
+[ 47.053509 0:2 driver_usb::host::xhci:250] [Transfer] >> setup@0x901B8A50, data@0x901B8A60, status@0x901B8A70
+[ 47.064620 0:2 driver_usb::host::xhci:603] Wait result @0x901B8A70
+[ 47.071999 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8A70 got result1, cycle true, len 0
+[ 47.082935 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8a70
+[ 47.090840 0:2 driver_usb::host::xhci::xhci_device:396] descriptor_size 256
+[ 47.098995 0:2 driver_usb::host::xhci::xhci_device:400] Skipping Feature Report readout (None detected)
+[ 47.109584 0:2 driver_usb::host::xhci::xhci_device:419] Reading Input Report (length 5)...
+[ 47.119043 0:2 driver_usb::host::xhci::xhci_device:138] CTL ep 0x0, dci 1
+[ 47.127029 0:2 driver_usb::host::xhci::xhci_device:170] SetupStage {
     interrupt_on_completion: false,
     request_type: 161,
     request: 1,
@@ -373,531 +472,852 @@ log_level = debug
     transfer_type: In,
     cycle_bit: false,
 }
-[ 59.627113 0:2 driver_usb::host::xhci::ring:66] enqueued 18 @0x901B6A60
-[ 59.634925 0:2 driver_usb::host::xhci::ring:90] index 19
-[ 59.641435 0:2 driver_usb::host::xhci::ring:66] enqueued 19 @0x901B6A70
-[ 59.649246 0:2 driver_usb::host::xhci::ring:90] index 20
-[ 59.655756 0:2 driver_usb::host::xhci::ring:66] enqueued 20 @0x901B6A80
-[ 59.663568 0:2 driver_usb::host::xhci::ring:90] index 21
-[ 59.670079 0:2 driver_usb::host::xhci:254] [Transfer] >> setup@0x901B6A60, data@0x901B6A70, status@0x901B6A80
-[ 59.681189 0:2 driver_usb::host::xhci:562] Wait result @0x901B6A80
-[ 59.688568 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6A80 got result, cycle true, len 0
-[ 59.699420 0:2 driver_usb::host::xhci::xhci_device:419] Testing interrupt read using endpoint 0x81...
-[ 59.709834 0:2 driver_usb::host::xhci::xhci_device:252] Itr ep 0x81, dci 3
-[ 59.717906 0:2 driver_usb::dma:125] allocated data:0x901bc000
-[ 59.724849 0:2 driver_usb::host::xhci::ring:66] enqueued 0 @0x901B6DC0
-[ 59.732575 0:2 driver_usb::host::xhci::ring:90] index 1
-[ 59.738998 0:2 driver_usb::host::xhci:562] Wait result @0x901B6DC0
-[ 61.920144 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x0 got result, cycle true, len 0
-[ 61.927515 0:2 driver_usb::host::xhci:578]   @0x0 != @0x901B6DC0
-[ 61.934721 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 61.945569 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 61.953383 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 61.964231 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 61.972045 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 61.982893 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 61.990707 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.001555 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.009369 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.020217 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.028031 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.038879 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.046693 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.057541 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.065355 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.076203 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.084017 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.094865 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.102679 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.113527 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.121341 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.132189 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.140003 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.150851 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.158665 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.169513 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.177327 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.188175 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.195989 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.206837 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.214651 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.225499 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.233313 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.244161 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.251975 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.262823 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.270637 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.281485 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.289299 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.300147 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.307961 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.318809 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.326623 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.337471 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.345285 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.356133 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.363947 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.374795 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.382609 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.393457 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.401271 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.412119 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.419933 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.430781 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.438595 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.449443 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.457257 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.468105 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.475919 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.486767 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.494581 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.505429 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.513243 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.524091 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.531905 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.542753 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.550567 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.561415 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.569229 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.580077 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.587891 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.598739 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.606553 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.617401 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.625215 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.636063 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.643877 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.654725 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.662538 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.673387 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.681201 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.692049 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.699863 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.710711 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.718525 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.729373 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.737187 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.748035 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.755849 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.766697 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.774511 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.785359 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.793173 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.804021 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.811835 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.822683 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.830497 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.841345 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.849159 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.860007 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.867821 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.878669 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.886483 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.897331 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.905145 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.915993 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.923807 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.934655 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.942469 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.953317 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.961131 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.971979 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.979793 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 62.990641 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 62.998455 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.009303 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.017117 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.027965 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.035778 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.046627 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.054441 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.065289 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.073103 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.083951 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.091765 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.102613 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.110427 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.121275 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.129089 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.139937 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.147751 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.158599 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.166413 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.177261 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.185075 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.195923 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.203736 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.214585 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.222399 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.233247 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.241061 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.251909 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.259723 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.270571 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.278385 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.289233 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.297047 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.307895 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.315709 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.326557 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.334371 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.345219 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.353033 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.363881 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.371695 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.382543 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.390357 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.401205 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.409019 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.419867 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.427681 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.438529 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.446343 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.457191 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.465005 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.475853 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.483667 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.494515 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.502329 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.513177 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.520991 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.531839 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.539653 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.550501 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.558315 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.569163 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.576977 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.587825 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.595639 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.606487 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.614301 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.625149 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.632963 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.643811 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.651625 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.662473 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.670287 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.681135 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.688949 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.699797 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.707610 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.718459 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.726273 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.737121 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.744935 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.755783 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.763597 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.774445 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.782259 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.793107 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.800921 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.811769 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.819583 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.830431 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.838245 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.849093 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.856907 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.867755 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.875568 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.886417 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.894231 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.905079 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.912893 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.923741 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.931555 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.942403 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.950217 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.961065 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.968879 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.979727 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 63.987541 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 63.998389 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.006203 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.017051 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.024865 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.035713 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.043527 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.054375 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.062189 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.073037 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.080851 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.091699 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.099513 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.110361 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.118175 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.129023 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.136837 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.147685 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.155499 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.166347 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.174161 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.185009 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.192823 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.203671 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.211485 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.222333 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.230147 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.240995 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.248809 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.259657 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.267471 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.278319 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.286133 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.296981 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.304795 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.315643 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.323457 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.334305 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.342119 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.352967 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.360781 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.371629 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.379443 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.390291 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.398105 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.408953 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.416767 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.427615 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.435429 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.446277 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.454091 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.464939 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.472753 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.483601 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.491415 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.502263 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.510077 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.520925 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.528739 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.539587 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.547400 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.558249 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.566063 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.576911 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.584725 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.595573 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.603387 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.614235 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.622049 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.632897 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.640711 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.651559 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.659373 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.670221 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.678034 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.688883 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.696697 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.707545 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.715359 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.726207 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.734021 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.744869 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.752683 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.763531 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.771345 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.782193 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.790007 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.800855 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.808669 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.819517 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.827331 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.838179 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.845993 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.856841 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.864654 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.875503 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.883317 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.894165 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.901979 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.912827 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.920641 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.931489 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.939303 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.950151 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.957965 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.968813 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.976627 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 64.987475 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 64.995289 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.006137 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.013951 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.024799 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.032613 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.043461 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.051275 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.062123 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.069937 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.080785 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.088599 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.099447 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.107261 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.118109 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.125923 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.136771 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.144585 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.155433 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.163247 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.174095 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.181908 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.192757 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.200571 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.211419 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.219233 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.230081 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.237895 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.248743 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.256557 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.267405 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.275219 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.286067 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.293881 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.304729 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.312543 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.323391 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.331205 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.342053 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.349867 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.360715 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.368529 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.379377 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.387191 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.398039 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.405853 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.416701 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.424515 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.435363 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.443177 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.454025 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.461839 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.472687 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.480501 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.491349 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.499163 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.510011 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.517825 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.528673 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.536487 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.547335 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.555149 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.565997 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.573811 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.584659 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.592472 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.603321 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.611135 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.621983 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.629797 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.640645 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.648459 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.659307 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.667121 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.677969 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.685783 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.696631 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.704445 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.715293 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.723107 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.733955 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.741769 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.752617 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.760431 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.771279 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.779093 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.789941 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.797755 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.808603 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.816417 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.827265 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.835079 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.845927 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.853741 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.864589 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.872403 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.883251 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.891065 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.901913 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.909727 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.920575 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.928389 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.939237 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.947051 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.957899 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.965713 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.976561 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 65.984375 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 65.995223 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.003037 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.013885 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.021699 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.032547 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.040361 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.051209 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.059023 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.069871 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.077685 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.088533 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.096347 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.107195 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.115009 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.125857 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.133671 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.144519 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.152333 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.163181 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.170995 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.181843 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.189657 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.200505 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.208319 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.219167 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.226981 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.237829 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.245643 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.256491 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.264305 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.275153 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.282967 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.293815 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.301629 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.312477 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.320291 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.331139 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.338953 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.349801 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.357615 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle true, len 0
-[ 66.368463 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.376277 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle false, len 0
-[ 66.387212 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.395025 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle false, len 0
-[ 66.405961 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.413774 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle false, len 0
-[ 66.424710 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.432523 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle false, len 0
-[ 66.443458 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.451272 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle false, len 0
-[ 66.462207 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.470021 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle false, len 0
-[ 66.480956 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.488769 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle false, len 0
-[ 66.499705 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.507518 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle false, len 0
-[ 66.518454 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.526267 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle false, len 0
-[ 66.537202 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.545016 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle false, len 0
-[ 66.555951 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.563765 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle false, len 0
-[ 66.574700 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.582513 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle false, len 0
-[ 66.593449 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.601262 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle false, len 0
-[ 66.612198 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.620011 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle false, len 0
-[ 66.630946 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.638760 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle false, len 0
-[ 66.649695 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.657508 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle false, len 0
-[ 66.668444 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.676257 0:2 driver_usb::host::xhci:570] [Transfer] << Success @0x901B6DD0 got result, cycle false, len 0
-[ 66.687193 0:2 driver_usb::host::xhci:578]   @0x901B6DD0 != @0x901B6DC0
-[ 66.695006 0:2 driver_usb::host::xhci:587] event: HostController(HostController { completion_code: Ok(EventRingFullError), cycle_bit: false })
+[ 47.153069 0:2 driver_usb::host::xhci::ring:66] enqueued 20 @0x901B8A80
+10001a1
+50000
+8
+30841
+------------------------------------------------
+[ 47.167478 0:2 driver_usb::host::xhci::ring:66] enqueued 21 @0x901B8A90
+901bd140
+0
+5
+10c01
+------------------------------------------------
+[ 47.181626 0:2 driver_usb::host::xhci::ring:66] enqueued 22 @0x901B8AA0
+0
+0
+0
+1021
+------------------------------------------------
+[ 47.195080 0:2 driver_usb::host::xhci:250] [Transfer] >> setup@0x901B8A80, data@0x901B8A90, status@0x901B8AA0
+[ 47.206191 0:2 driver_usb::host::xhci:603] Wait result @0x901B8AA0
+[ 47.213570 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8AA0 got result1, cycle true, len 0
+[ 47.224505 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8aa0
+[ 47.232407 0:2 driver_usb::host::xhci::xhci_device:430] ==============================================
+Testing interrupt read using endpoint 0x81...
+[ 47.246988 0:2 driver_usb::host::xhci::ring:66] enqueued 0 @0x901B8DC0
+0
+0
+0
+401
+------------------------------------------------
+[ 47.260267 0:2 driver_usb::host::xhci::ring:66] enqueued 1 @0x901B8DD0
+0
+0
+0
+401
+------------------------------------------------
+[ 47.273548 0:2 driver_usb::host::xhci::ring:66] enqueued 2 @0x901B8DE0
+0
+0
+0
+401
+------------------------------------------------
+[ 47.286828 0:2 driver_usb::host::xhci::ring:66] enqueued 3 @0x901B8DF0
+0
+0
+0
+401
+------------------------------------------------
+[ 47.300108 0:2 driver_usb::host::xhci::ring:66] enqueued 4 @0x901B8E00
+0
+0
+0
+401
+------------------------------------------------
+[ 47.313389 0:2 driver_usb::host::xhci::ring:66] enqueued 5 @0x901B8E10
+0
+0
+0
+401
+------------------------------------------------
+[ 47.326669 0:2 driver_usb::host::xhci::ring:66] enqueued 6 @0x901B8E20
+0
+0
+0
+401
+------------------------------------------------
+[ 47.339950 0:2 driver_usb::host::xhci::ring:66] enqueued 7 @0x901B8E30
+0
+0
+0
+401
+------------------------------------------------
+[ 47.353230 0:2 driver_usb::host::xhci::ring:66] enqueued 8 @0x901B8E40
+0
+0
+0
+401
+------------------------------------------------
+[ 47.366510 0:2 driver_usb::host::xhci::ring:66] enqueued 9 @0x901B8E50
+0
+0
+0
+401
+------------------------------------------------
+[ 47.379791 0:2 driver_usb::host::xhci::ring:66] enqueued 10 @0x901B8E60
+0
+0
+0
+401
+------------------------------------------------
+[ 47.393158 0:2 driver_usb::host::xhci::ring:66] enqueued 11 @0x901B8E70
+0
+0
+0
+401
+------------------------------------------------
+[ 47.406525 0:2 driver_usb::host::xhci::ring:66] enqueued 12 @0x901B8E80
+0
+0
+0
+401
+------------------------------------------------
+[ 47.419892 0:2 driver_usb::host::xhci::ring:66] enqueued 13 @0x901B8E90
+0
+0
+0
+401
+------------------------------------------------
+[ 47.433259 0:2 driver_usb::host::xhci::ring:66] enqueued 14 @0x901B8EA0
+0
+0
+0
+401
+------------------------------------------------
+[ 47.446627 0:2 driver_usb::host::xhci::ring:66] enqueued 15 @0x901B8EB0
+0
+0
+0
+401
+------------------------------------------------
+[ 47.459994 0:2 driver_usb::host::xhci::ring:66] enqueued 16 @0x901B8EC0
+0
+0
+0
+401
+------------------------------------------------
+[ 47.473361 0:2 driver_usb::host::xhci::ring:66] enqueued 17 @0x901B8ED0
+0
+0
+0
+401
+------------------------------------------------
+[ 47.486728 0:2 driver_usb::host::xhci::ring:66] enqueued 18 @0x901B8EE0
+0
+0
+0
+401
+------------------------------------------------
+[ 47.500096 0:2 driver_usb::host::xhci::ring:66] enqueued 19 @0x901B8EF0
+0
+0
+0
+401
+------------------------------------------------
+[ 47.513463 0:2 driver_usb::host::xhci::ring:66] enqueued 20 @0x901B8F00
+0
+0
+0
+401
+------------------------------------------------
+[ 47.526830 0:2 driver_usb::host::xhci::ring:66] enqueued 21 @0x901B8F10
+0
+0
+0
+401
+------------------------------------------------
+[ 47.540197 0:2 driver_usb::host::xhci::ring:66] enqueued 22 @0x901B8F20
+0
+0
+0
+401
+------------------------------------------------
+[ 47.553564 0:2 driver_usb::host::xhci::ring:66] enqueued 23 @0x901B8F30
+0
+0
+0
+401
+------------------------------------------------
+[ 47.566931 0:2 driver_usb::host::xhci::ring:66] enqueued 24 @0x901B8F40
+0
+0
+0
+401
+------------------------------------------------
+[ 47.580299 0:2 driver_usb::host::xhci::ring:66] enqueued 25 @0x901B8F50
+0
+0
+0
+401
+------------------------------------------------
+[ 47.593666 0:2 driver_usb::host::xhci::ring:66] enqueued 26 @0x901B8F60
+0
+0
+0
+401
+------------------------------------------------
+[ 47.607033 0:2 driver_usb::host::xhci::ring:66] enqueued 27 @0x901B8F70
+0
+0
+0
+401
+------------------------------------------------
+[ 47.620400 0:2 driver_usb::host::xhci::ring:66] enqueued 28 @0x901B8F80
+0
+0
+0
+401
+------------------------------------------------
+[ 47.633767 0:2 driver_usb::host::xhci::ring:66] enqueued 29 @0x901B8F90
+0
+0
+0
+401
+------------------------------------------------
+[ 47.647135 0:2 driver_usb::host::xhci::ring:66] enqueued 30 @0x901B8FA0
+0
+0
+0
+401
+------------------------------------------------
+[ 47.660502 0:2 driver_usb::host::xhci::ring:89] flip and link!
+[ 47.667533 0:2 driver_usb::host::xhci::ring:95] link!
+[ 47.673785 0:2 driver_usb::host::xhci::ring:66] enqueued 0 @0x901B8DC0
+901be000
+0
+5
+424
+------------------------------------------------
+[ 47.687671 0:2 driver_usb::host::xhci:603] Wait result @0x901B8DC0
+[ 47.695050 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8DC0 got result1, cycle true, len 0
+[ 47.705985 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8dc0
+[ 47.713886 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 239, 255, 1, 0]
+[ 47.722825 0:2 driver_usb::host::xhci::ring:66] enqueued 1 @0x901B8DD0
+901be000
+0
+5
+424
+------------------------------------------------
+[ 47.736713 0:2 driver_usb::host::xhci:603] Wait result @0x901B8DD0
+[ 47.744091 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8DD0 got result1, cycle true, len 0
+[ 47.755027 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8dd0
+[ 47.762927 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 238, 47, 0, 0]
+[ 47.771780 0:2 driver_usb::host::xhci::ring:66] enqueued 2 @0x901B8DE0
+901be000
+0
+5
+424
+------------------------------------------------
+[ 47.785668 0:2 driver_usb::host::xhci:603] Wait result @0x901B8DE0
+[ 47.793047 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8DE0 got result1, cycle true, len 0
+[ 47.803982 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8de0
+[ 47.811883 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [3, 85, 143, 0, 0]
+[ 47.820735 0:2 driver_usb::host::xhci::ring:66] enqueued 3 @0x901B8DF0
+901be000
+0
+5
+424
+------------------------------------------------
+[ 47.834623 0:2 driver_usb::host::xhci:603] Wait result @0x901B8DF0
+[ 47.842002 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8DF0 got result1, cycle true, len 0
+[ 47.852937 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8df0
+[ 47.860838 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [3, 50, 111, 0, 0]
+[ 47.869691 0:2 driver_usb::host::xhci::ring:66] enqueued 4 @0x901B8E00
+901be000
+0
+5
+424
+------------------------------------------------
+[ 47.883578 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E00
+[ 47.890957 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E00 got result1, cycle true, len 0
+[ 47.901893 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e00
+[ 47.909793 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 1, 48, 0, 0]
+[ 47.918472 0:2 driver_usb::host::xhci::ring:66] enqueued 5 @0x901B8E10
+901be000
+0
+5
+424
+------------------------------------------------
+[ 47.932360 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E10
+[ 47.939739 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E10 got result1, cycle true, len 0
+[ 47.950674 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e10
+[ 47.958575 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 114, 160, 0, 0]
+[ 47.967514 0:2 driver_usb::host::xhci::ring:66] enqueued 6 @0x901B8E20
+901be000
+0
+5
+424
+------------------------------------------------
+[ 47.981402 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E20
+[ 47.988781 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E20 got result1, cycle true, len 0
+[ 47.999716 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e20
+[ 48.007617 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [3, 30, 0, 1, 0]
+[ 48.016296 0:2 driver_usb::host::xhci::ring:66] enqueued 7 @0x901B8E30
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.030183 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E30
+[ 48.037562 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E30 got result1, cycle true, len 0
+[ 48.048498 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e30
+[ 48.056398 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 141, 191, 254, 0]
+[ 48.065511 0:2 driver_usb::host::xhci::ring:66] enqueued 8 @0x901B8E40
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.079399 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E40
+[ 48.086778 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E40 got result1, cycle true, len 0
+[ 48.097713 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e40
+[ 48.105614 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 205, 175, 254, 0]
+[ 48.114727 0:2 driver_usb::host::xhci::ring:66] enqueued 9 @0x901B8E50
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.128615 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E50
+[ 48.135993 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E50 got result1, cycle true, len 0
+[ 48.146929 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e50
+[ 48.154830 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 134, 80, 255, 0]
+[ 48.163856 0:2 driver_usb::host::xhci::ring:66] enqueued 10 @0x901B8E60
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.177830 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E60
+[ 48.185209 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E60 got result1, cycle true, len 0
+[ 48.196145 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e60
+[ 48.204045 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [3, 77, 48, 0, 0]
+[ 48.212811 0:2 driver_usb::host::xhci::ring:66] enqueued 11 @0x901B8E70
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.226785 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E70
+[ 48.234164 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E70 got result1, cycle true, len 0
+[ 48.245100 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e70
+[ 48.253000 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [3, 168, 239, 254, 0]
+[ 48.262113 0:2 driver_usb::host::xhci::ring:66] enqueued 12 @0x901B8E80
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.276088 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E80
+[ 48.283467 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E80 got result1, cycle true, len 0
+[ 48.294402 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e80
+[ 48.302303 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [3, 109, 127, 253, 0]
+[ 48.311416 0:2 driver_usb::host::xhci::ring:66] enqueued 13 @0x901B8E90
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.325390 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E90
+[ 48.332769 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E90 got result1, cycle true, len 0
+[ 48.343705 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e90
+[ 48.351605 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 34, 128, 254, 0]
+[ 48.360631 0:2 driver_usb::host::xhci::ring:66] enqueued 14 @0x901B8EA0
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.374606 0:2 driver_usb::host::xhci:603] Wait result @0x901B8EA0
+[ 48.381985 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8EA0 got result1, cycle true, len 0
+[ 48.392920 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8ea0
+[ 48.400821 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 79, 144, 255, 0]
+[ 48.409847 0:2 driver_usb::host::xhci::ring:66] enqueued 15 @0x901B8EB0
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.423821 0:2 driver_usb::host::xhci:603] Wait result @0x901B8EB0
+[ 48.431200 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8EB0 got result1, cycle true, len 0
+[ 48.442136 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8eb0
+[ 48.450036 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [3, 219, 223, 0, 0]
+[ 48.458976 0:2 driver_usb::host::xhci::ring:66] enqueued 16 @0x901B8EC0
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.472950 0:2 driver_usb::host::xhci:603] Wait result @0x901B8EC0
+[ 48.480329 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8EC0 got result1, cycle true, len 0
+[ 48.491265 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8ec0
+[ 48.499165 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [3, 119, 111, 255, 0]
+[ 48.508278 0:2 driver_usb::host::xhci::ring:66] enqueued 17 @0x901B8ED0
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.522253 0:2 driver_usb::host::xhci:603] Wait result @0x901B8ED0
+[ 48.529632 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8ED0 got result1, cycle true, len 0
+[ 48.540567 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8ed0
+[ 48.548467 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 240, 31, 255, 0]
+[ 48.557494 0:2 driver_usb::host::xhci::ring:66] enqueued 18 @0x901B8EE0
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.571468 0:2 driver_usb::host::xhci:603] Wait result @0x901B8EE0
+[ 48.578847 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8EE0 got result1, cycle true, len 0
+[ 48.589782 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8ee0
+[ 48.597683 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 83, 144, 255, 0]
+[ 48.606709 0:2 driver_usb::host::xhci::ring:66] enqueued 19 @0x901B8EF0
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.620684 0:2 driver_usb::host::xhci:603] Wait result @0x901B8EF0
+[ 48.628063 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8EF0 got result1, cycle true, len 0
+[ 48.638998 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8ef0
+[ 48.646899 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [3, 15, 160, 0, 0]
+[ 48.655751 0:2 driver_usb::host::xhci::ring:66] enqueued 20 @0x901B8F00
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.669726 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F00
+[ 48.677105 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F00 got result1, cycle true, len 0
+[ 48.688040 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f00
+[ 48.695941 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [3, 158, 223, 255, 0]
+[ 48.705054 0:2 driver_usb::host::xhci::ring:66] enqueued 21 @0x901B8F10
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.719028 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F10
+[ 48.726407 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F10 got result1, cycle true, len 0
+[ 48.737343 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f10
+[ 48.745243 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 203, 15, 255, 0]
+[ 48.754269 0:2 driver_usb::host::xhci::ring:66] enqueued 22 @0x901B8F20
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.768244 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F20
+[ 48.775623 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F20 got result1, cycle true, len 0
+[ 48.786558 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f20
+[ 48.794459 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 97, 128, 255, 0]
+[ 48.803485 0:2 driver_usb::host::xhci::ring:66] enqueued 23 @0x901B8F30
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.817459 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F30
+[ 48.824838 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F30 got result1, cycle true, len 0
+[ 48.835774 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f30
+[ 48.843674 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 45, 240, 255, 0]
+[ 48.852701 0:2 driver_usb::host::xhci::ring:66] enqueued 24 @0x901B8F40
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.866675 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F40
+[ 48.874054 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F40 got result1, cycle true, len 0
+[ 48.884989 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f40
+[ 48.892890 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [3, 157, 47, 0, 0]
+[ 48.901743 0:2 driver_usb::host::xhci::ring:66] enqueued 25 @0x901B8F50
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.915717 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F50
+[ 48.923096 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F50 got result1, cycle true, len 0
+[ 48.934031 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f50
+[ 48.941932 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [3, 113, 111, 255, 0]
+[ 48.951045 0:2 driver_usb::host::xhci::ring:66] enqueued 26 @0x901B8F60
+901be000
+0
+5
+424
+------------------------------------------------
+[ 48.965019 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F60
+[ 48.972398 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F60 got result1, cycle true, len 0
+[ 48.983334 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f60
+[ 48.991234 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 11, 128, 255, 0]
+[ 49.000261 0:2 driver_usb::host::xhci::ring:66] enqueued 27 @0x901B8F70
+901be000
+0
+5
+424
+------------------------------------------------
+[ 49.014235 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F70
+[ 49.021614 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F70 got result1, cycle true, len 0
+[ 49.032549 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f70
+[ 49.040450 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 64, 208, 255, 0]
+[ 49.049476 0:2 driver_usb::host::xhci::ring:66] enqueued 28 @0x901B8F80
+901be000
+0
+5
+424
+------------------------------------------------
+[ 49.063451 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F80
+[ 49.070830 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F80 got result1, cycle true, len 0
+[ 49.081765 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f80
+[ 49.089665 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [3, 228, 175, 1, 0]
+[ 49.098605 0:2 driver_usb::host::xhci::ring:66] enqueued 29 @0x901B8F90
+901be000
+0
+5
+424
+------------------------------------------------
+[ 49.112579 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F90
+[ 49.119958 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F90 got result1, cycle true, len 0
+[ 49.130894 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f90
+[ 49.138794 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [3, 173, 239, 0, 0]
+[ 49.147734 0:2 driver_usb::host::xhci::ring:66] enqueued 30 @0x901B8FA0
+901be000
+0
+5
+424
+------------------------------------------------
+[ 49.161708 0:2 driver_usb::host::xhci::ring:89] flip and link!
+[ 49.168739 0:2 driver_usb::host::xhci::ring:95] link!
+[ 49.174989 0:2 driver_usb::host::xhci:603] Wait result @0x901B8FA0
+[ 49.182367 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8FA0 got result1, cycle true, len 0
+[ 49.193303 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8fa0
+[ 49.201203 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 104, 96, 255, 0]
+[ 49.210230 0:2 driver_usb::host::xhci::ring:66] enqueued 0 @0x901B8DC0
+901be000
+0
+5
+425
+------------------------------------------------
+[ 49.224117 0:2 driver_usb::host::xhci:603] Wait result @0x901B8DC0
+[ 49.231496 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8DC0 got result1, cycle true, len 0
+[ 49.242432 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8dc0
+[ 49.250332 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [3, 83, 160, 0, 0]
+[ 49.259185 0:2 driver_usb::host::xhci::ring:66] enqueued 1 @0x901B8DD0
+901be000
+0
+5
+425
+------------------------------------------------
+[ 49.273073 0:2 driver_usb::host::xhci:603] Wait result @0x901B8DD0
+[ 49.280452 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8DD0 got result1, cycle true, len 0
+[ 49.291387 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8dd0
+[ 49.299287 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [3, 208, 159, 0, 0]
+[ 49.308227 0:2 driver_usb::host::xhci::ring:66] enqueued 2 @0x901B8DE0
+901be000
+0
+5
+425
+------------------------------------------------
+[ 49.322115 0:2 driver_usb::host::xhci:603] Wait result @0x901B8DE0
+[ 49.329494 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8DE0 got result1, cycle true, len 0
+[ 49.340429 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8de0
+[ 49.348329 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 38, 80, 255, 0]
+[ 49.357269 0:2 driver_usb::host::xhci::ring:66] enqueued 3 @0x901B8DF0
+901be000
+0
+5
+425
+------------------------------------------------
+[ 49.371157 0:2 driver_usb::host::xhci:603] Wait result @0x901B8DF0
+[ 49.378536 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8DF0 got result1, cycle true, len 0
+[ 49.389471 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8df0
+[ 49.397371 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 63, 80, 255, 0]
+[ 49.406311 0:2 driver_usb::host::xhci::ring:66] enqueued 4 @0x901B8E00
+901be000
+0
+5
+425
+------------------------------------------------
+[ 49.420199 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E00
+[ 49.427578 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E00 got result1, cycle true, len 0
+[ 49.438513 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e00
+[ 49.446414 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 30, 64, 255, 0]
+[ 49.455353 0:2 driver_usb::host::xhci::ring:66] enqueued 5 @0x901B8E10
+901be000
+0
+5
+425
+------------------------------------------------
+[ 49.469241 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E10
+[ 49.476620 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E10 got result1, cycle true, len 0
+[ 49.487555 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e10
+[ 49.495455 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 15, 160, 255, 0]
+[ 49.504482 0:2 driver_usb::host::xhci::ring:66] enqueued 6 @0x901B8E20
+901be000
+0
+5
+425
+------------------------------------------------
+[ 49.518369 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E20
+[ 49.525748 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E20 got result1, cycle true, len 0
+[ 49.536684 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e20
+[ 49.544584 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 8, 208, 255, 0]
+[ 49.553524 0:2 driver_usb::host::xhci::ring:66] enqueued 7 @0x901B8E30
+901be000
+0
+5
+425
+------------------------------------------------
+[ 49.567411 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E30
+[ 49.574790 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E30 got result1, cycle true, len 0
+[ 49.585726 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e30
+[ 49.593626 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 4, 240, 255, 0]
+[ 49.602566 0:2 driver_usb::host::xhci::ring:66] enqueued 8 @0x901B8E40
+901be000
+0
+5
+425
+------------------------------------------------
+[ 49.616453 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E40
+[ 49.623832 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E40 got result1, cycle true, len 0
+[ 49.634768 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e40
+[ 49.642668 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 2, 240, 255, 0]
+[ 49.651608 0:2 driver_usb::host::xhci::ring:66] enqueued 9 @0x901B8E50
+901be000
+0
+5
+425
+------------------------------------------------
+[ 49.665495 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E50
+[ 50.224909 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x0 got result1, cycle true, len 0
+[ 50.232366 0:2 driver_usb::host::xhci:625] code:Success,pointer:0
+[ 50.239659 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 1, 240, 255, 0]
+[ 50.248599 0:2 driver_usb::host::xhci::ring:66] enqueued 10 @0x901B8E60
+901be000
+0
+5
+425
+------------------------------------------------
+[ 50.262573 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E60
+[ 50.269952 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E60 got result1, cycle true, len 0
+[ 50.280887 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e60
+[ 50.288788 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 252, 47, 252, 0]
+[ 50.297814 0:2 driver_usb::host::xhci::ring:66] enqueued 11 @0x901B8E70
+901be000
+0
+5
+425
+------------------------------------------------
+[ 50.311789 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E70
+[ 50.319168 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E70 got result1, cycle true, len 0
+[ 50.330103 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e70
+[ 50.338003 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 9, 0, 253, 0]
+[ 50.346770 0:2 driver_usb::host::xhci::ring:66] enqueued 12 @0x901B8E80
+901be000
+0
+5
+425
+------------------------------------------------
+[ 50.360744 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E80
+[ 50.368123 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E80 got result1, cycle true, len 0
+[ 50.379058 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e80
+[ 50.386959 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 7, 112, 254, 0]
+[ 50.395898 0:2 driver_usb::host::xhci::ring:66] enqueued 13 @0x901B8E90
+901be000
+0
+5
+425
+------------------------------------------------
+[ 50.409873 0:2 driver_usb::host::xhci:603] Wait result @0x901B8E90
+[ 50.417252 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8E90 got result1, cycle true, len 0
+[ 50.428187 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8e90
+[ 50.436088 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 3, 64, 255, 0]
+[ 50.444940 0:2 driver_usb::host::xhci::ring:66] enqueued 14 @0x901B8EA0
+901be000
+0
+5
+425
+------------------------------------------------
+[ 50.458915 0:2 driver_usb::host::xhci:603] Wait result @0x901B8EA0
+[ 50.466294 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8EA0 got result1, cycle true, len 0
+[ 50.477229 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8ea0
+[ 50.485129 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 2, 160, 255, 0]
+[ 50.494069 0:2 driver_usb::host::xhci::ring:66] enqueued 15 @0x901B8EB0
+901be000
+0
+5
+425
+------------------------------------------------
+[ 50.508044 0:2 driver_usb::host::xhci:603] Wait result @0x901B8EB0
+[ 50.515422 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8EB0 got result1, cycle true, len 0
+[ 50.526358 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8eb0
+[ 50.534258 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 1, 208, 255, 0]
+[ 50.543198 0:2 driver_usb::host::xhci::ring:66] enqueued 16 @0x901B8EC0
+901be000
+0
+5
+425
+------------------------------------------------
+[ 50.557172 0:2 driver_usb::host::xhci:603] Wait result @0x901B8EC0
+[ 50.564551 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8EC0 got result1, cycle true, len 0
+[ 50.575487 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8ec0
+[ 50.583387 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 255, 31, 255, 0]
+[ 50.592413 0:2 driver_usb::host::xhci::ring:66] enqueued 17 @0x901B8ED0
+901be000
+0
+5
+425
+------------------------------------------------
+[ 50.606388 0:2 driver_usb::host::xhci:603] Wait result @0x901B8ED0
+[ 50.613767 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8ED0 got result1, cycle true, len 0
+[ 50.624702 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8ed0
+[ 50.632603 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 246, 191, 254, 0]
+[ 50.641716 0:2 driver_usb::host::xhci::ring:66] enqueued 18 @0x901B8EE0
+901be000
+0
+5
+425
+------------------------------------------------
+[ 50.655690 0:2 driver_usb::host::xhci:603] Wait result @0x901B8EE0
+[ 50.663069 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8EE0 got result1, cycle true, len 0
+[ 50.674005 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8ee0
+[ 50.681905 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 251, 95, 255, 0]
+[ 50.690931 0:2 driver_usb::host::xhci::ring:66] enqueued 19 @0x901B8EF0
+901be000
+0
+5
+425
+------------------------------------------------
+[ 50.704906 0:2 driver_usb::host::xhci:603] Wait result @0x901B8EF0
+[ 50.712285 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8EF0 got result1, cycle true, len 0
+[ 50.723220 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8ef0
+[ 50.731121 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 253, 191, 255, 0]
+[ 50.740234 0:2 driver_usb::host::xhci::ring:66] enqueued 20 @0x901B8F00
+901be000
+0
+5
+425
+------------------------------------------------
+[ 50.754208 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F00
+[ 50.761587 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F00 got result1, cycle true, len 0
+[ 50.772523 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f00
+[ 50.780423 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 255, 223, 255, 0]
+[ 50.789536 0:2 driver_usb::host::xhci::ring:66] enqueued 21 @0x901B8F10
+901be000
+0
+5
+425
+------------------------------------------------
+[ 50.803511 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F10
+[ 50.810890 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F10 got result1, cycle true, len 0
+[ 50.821825 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f10
+[ 50.829726 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 255, 255, 255, 0]
+[ 50.838839 0:2 driver_usb::host::xhci::ring:66] enqueued 22 @0x901B8F20
+901be000
+0
+5
+425
+------------------------------------------------
+[ 50.852813 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F20
+[ 51.478909 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F20 got result1, cycle true, len 0
+[ 51.486974 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f20
+[ 51.494875 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 0, 240, 255, 0]
+[ 51.503815 0:2 driver_usb::host::xhci::ring:66] enqueued 23 @0x901B8F30
+901be000
+0
+5
+425
+------------------------------------------------
+[ 51.517789 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F30
+[ 51.525168 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F30 got result1, cycle true, len 0
+[ 51.536103 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f30
+[ 51.544004 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 253, 95, 255, 0]
+[ 51.553030 0:2 driver_usb::host::xhci::ring:66] enqueued 24 @0x901B8F40
+901be000
+0
+5
+425
+------------------------------------------------
+[ 51.567005 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F40
+[ 51.574383 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F40 got result1, cycle true, len 0
+[ 51.585319 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f40
+[ 51.593220 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 3, 32, 0, 0]
+[ 51.601899 0:2 driver_usb::host::xhci::ring:66] enqueued 25 @0x901B8F50
+901be000
+0
+5
+425
+------------------------------------------------
+[ 51.615873 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F50
+[ 51.623252 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F50 got result1, cycle true, len 0
+[ 51.634187 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f50
+[ 51.642088 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 29, 192, 0, 0]
+[ 51.650941 0:2 driver_usb::host::xhci::ring:66] enqueued 26 @0x901B8F60
+901be000
+0
+5
+425
+------------------------------------------------
+[ 51.664915 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F60
+[ 51.672294 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F60 got result1, cycle true, len 0
+[ 51.683229 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f60
+[ 51.691130 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 39, 176, 0, 0]
+[ 51.699983 0:2 driver_usb::host::xhci::ring:66] enqueued 27 @0x901B8F70
+901be000
+0
+5
+425
+------------------------------------------------
+[ 51.713957 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F70
+[ 51.721336 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F70 got result1, cycle true, len 0
+[ 51.732271 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f70
+[ 51.740172 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 33, 112, 0, 0]
+[ 51.749025 0:2 driver_usb::host::xhci::ring:66] enqueued 28 @0x901B8F80
+901be000
+0
+5
+425
+------------------------------------------------
+[ 51.762999 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F80
+[ 51.770378 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F80 got result1, cycle true, len 0
+[ 51.781313 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f80
+[ 51.789214 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [1, 18, 64, 0, 0]
+[ 51.797980 0:2 driver_usb::host::xhci::ring:66] enqueued 29 @0x901B8F90
+901be000
+0
+5
+425
+------------------------------------------------
+[ 51.811954 0:2 driver_usb::host::xhci:603] Wait result @0x901B8F90
+[ 51.819333 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8F90 got result1, cycle true, len 0
+[ 51.830269 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8f90
+[ 51.838169 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 8, 224, 255, 0]
+[ 51.847109 0:2 driver_usb::host::xhci::ring:66] enqueued 30 @0x901B8FA0
+901be000
+0
+5
+425
+------------------------------------------------
+[ 51.861083 0:2 driver_usb::host::xhci::ring:89] flip and link!
+[ 51.868113 0:2 driver_usb::host::xhci::ring:95] link!
+[ 51.874363 0:2 driver_usb::host::xhci:603] Wait result @0x901B8FA0
+[ 51.881742 0:2 driver_usb::host::xhci:612] [Transfer] << Success @0x901B8FA0 got result1, cycle true, len 0
+[ 51.892678 0:2 driver_usb::host::xhci:625] code:Success,pointer:901b8fa0
+[ 51.900578 0:2 driver_usb::host::xhci::xhci_device:447] rcv data [0, 2, 240, 255, 0]
+[ 51.909518 0:2 driver_usb::host::xhci::ring:66] enqueued 0 @0x901B8DC0
+901be000
+0
+5
+424
+------------------------------------------------
+[ 51.923405 0:2 driver_usb::host::xhci:603] Wait result @0x901B8DC0
+[ 52.494907 0:2 driver_usb::host::xhci:612] [Transfer] << Invalid @0x0 got result0, cycle true, len 0
+[ 52.502365 0:2 driver_usb::host::xhci:625] code:Invalid,pointer:0
+[ 52.509656 0:2 driver_usb::host::xhci:629] error!
+[ 52.515561 0:2 axruntime::lang_items:5] panicked at apps/usb/src/main.rs:55:20:
+called `Result::unwrap()` on an `Err` value: CMD(Invalid)
+[ 52.529186 0:2 axhal::platform::aarch64_phytium_pi::misc:22] Shutting down...

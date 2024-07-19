@@ -14,7 +14,7 @@ use alloc::{
     sync::Arc,
     vec::{self, *},
 };
-use axhal::time::busy_wait_until;
+use axhal::time::{busy_wait, busy_wait_until};
 use axtask::sleep;
 use log::{debug, error};
 use num_derive::FromPrimitive;
@@ -249,7 +249,7 @@ where
 
         let dci = ep_num_to_dci(endpoint);
 
-        debug!("Itr ep {endpoint:#X}, dci {}", dci);
+        // debug!("Itr ep {endpoint:#X}, dci {}", dci);
         let mut data = Vec::with_capacity(len);
         data.resize_with(len, || 0);
 
@@ -373,6 +373,17 @@ where
             )?;
         }
 
+        debug!("set idle");
+        self.control_transfer_out(
+            0,
+            ENDPOINT_OUT | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
+            0x0A,
+            0x00,
+            self.current_interface().data.interface_number as _,
+            &[],
+        )?;
+
+        debug!("request feature report");
         let data = self.control_transfer_in(
             0,
             ENDPOINT_IN | REQUEST_TYPE_STANDARD | RECIPIENT_INTERFACE,
@@ -417,13 +428,26 @@ where
 
             // Attempt a bulk read from endpoint 0 (this should just return a raw input report)
             debug!(
-                "Testing interrupt read using endpoint {:#X}...",
+                "==============================================\nTesting interrupt read using endpoint {:#X}...",
                 endpoint_in
             );
 
+            // self.controller.lock().debug_dump_output_ctx(self.slot_id);
+            self.controller
+                .lock()
+                .prepare_transfer_normal(self, ep_num_to_dci(endpoint_in));
+
             loop {
+                // for _ in 0..1 {
+                // self.controller
+                //     .lock()
+                //     .debug_dump_eventring_before_after(-4, 8);
                 let report_buffer = self.interrupt_in(endpoint_in, size as _)?;
+                // self.controller.lock().debug_dump_output_ctx(self.slot_id);
                 debug!("rcv data {:?}", report_buffer);
+                // self.controller
+                //     .lock()
+                //     .debug_dump_eventring_before_after(-4, 8);
             }
         }
 
