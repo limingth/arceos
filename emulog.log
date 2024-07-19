@@ -1,802 +1,783 @@
-c[?7l[2J[0mSeaBIOS (version Arch Linux 1.16.3-1-1)
+c[?7l[2J[0mSeaBIOS (version rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org)
 
 
-iPXE (http://ipxe.org) 00:03.0 C900 PCI2.10 PnP PMM+7EFD3160+7EF33160 C900
+iPXE (http://ipxe.org) 00:03.0 CA00 PCI2.10 PnP PMM+7EFD0D70+7EF30D70 CA00
 Press Ctrl-B to configure iPXE (PCI 00:03.0)...
                                                                                
 
 
-Booting from ROM..c[?7l[2J[    0.000000] Linux version 6.10.0-rc5-gafcd48134c58-dirty (dbydd@dbyddlaptop) (gcc (GCC) 13.2.1 20230801, GNU ld (GNU Binutils) 2.42.0) #10 SMP PREEMPT_DYNAMIC Sat Jul  6 21:26:37 CST 2024
-[    0.000000] Command line: root=/dev/root ro rootfstype=9p rootflags=trans=virtio console=ttyS0 init=/bin/sh
-[    0.000000] BIOS-provided physical RAM map:
-[    0.000000] BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
-[    0.000000] BIOS-e820: [mem 0x000000000009fc00-0x000000000009ffff] reserved
-[    0.000000] BIOS-e820: [mem 0x00000000000f0000-0x00000000000fffff] reserved
-[    0.000000] BIOS-e820: [mem 0x0000000000100000-0x000000007ffdffff] usable
-[    0.000000] BIOS-e820: [mem 0x000000007ffe0000-0x000000007fffffff] reserved
-[    0.000000] BIOS-e820: [mem 0x00000000fffc0000-0x00000000ffffffff] reserved
-[    0.000000] BIOS-e820: [mem 0x000000fd00000000-0x000000ffffffffff] reserved
-[    0.000000] NX (Execute Disable) protection: active
-[    0.000000] APIC: Static calls initialized
-[    0.000000] SMBIOS 3.0.0 present.
-[    0.000000] DMI: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Arch Linux 1.16.3-1-1 04/01/2014
-[    0.000000] DMI: Memory slots populated: 1/1
-[    0.000000] tsc: Fast TSC calibration using PIT
-[    0.000000] tsc: Detected 2419.234 MHz processor
-[    0.003990] last_pfn = 0x7ffe0 max_arch_pfn = 0x400000000
-[    0.004394] MTRR map: 4 entries (3 fixed + 1 variable; max 19), built from 8 variable MTRRs
-[    0.004494] x86/PAT: Configuration [0-7]: WB  WC  UC- UC  WB  WP  UC- WT  
-[    0.014543] found SMP MP-table at [mem 0x000f66f0-0x000f66ff]
-[    0.018435] ACPI: Early table checksum verification disabled
-[    0.018655] ACPI: RSDP 0x00000000000F6520 000014 (v00 BOCHS )
-[    0.018850] ACPI: RSDT 0x000000007FFE1C4C 000034 (v01 BOCHS  BXPC     00000001 BXPC 00000001)
-[    0.019179] ACPI: FACP 0x000000007FFE1B00 000074 (v01 BOCHS  BXPC     00000001 BXPC 00000001)
-[    0.019581] ACPI: DSDT 0x000000007FFE0040 001AC0 (v01 BOCHS  BXPC     00000001 BXPC 00000001)
-[    0.019637] ACPI: FACS 0x000000007FFE0000 000040
-[    0.019678] ACPI: APIC 0x000000007FFE1B74 000078 (v03 BOCHS  BXPC     00000001 BXPC 00000001)
-[    0.019692] ACPI: HPET 0x000000007FFE1BEC 000038 (v01 BOCHS  BXPC     00000001 BXPC 00000001)
-[    0.019706] ACPI: WAET 0x000000007FFE1C24 000028 (v01 BOCHS  BXPC     00000001 BXPC 00000001)
-[    0.019768] ACPI: Reserving FACP table memory at [mem 0x7ffe1b00-0x7ffe1b73]
-[    0.019800] ACPI: Reserving DSDT table memory at [mem 0x7ffe0040-0x7ffe1aff]
-[    0.019805] ACPI: Reserving FACS table memory at [mem 0x7ffe0000-0x7ffe003f]
-[    0.019809] ACPI: Reserving APIC table memory at [mem 0x7ffe1b74-0x7ffe1beb]
-[    0.019812] ACPI: Reserving HPET table memory at [mem 0x7ffe1bec-0x7ffe1c23]
-[    0.019815] ACPI: Reserving WAET table memory at [mem 0x7ffe1c24-0x7ffe1c4b]
-[    0.021009] No NUMA configuration found
-[    0.021027] Faking a node at [mem 0x0000000000000000-0x000000007ffdffff]
-[    0.021403] NODE_DATA(0) allocated [mem 0x7ffdc000-0x7ffdffff]
-[    0.022627] Zone ranges:
-[    0.022641]   DMA      [mem 0x0000000000001000-0x0000000000ffffff]
-[    0.022684]   DMA32    [mem 0x0000000001000000-0x000000007ffdffff]
-[    0.022690]   Normal   empty
-[    0.022703] Movable zone start for each node
-[    0.022717] Early memory node ranges
-[    0.022735]   node   0: [mem 0x0000000000001000-0x000000000009efff]
-[    0.022832]   node   0: [mem 0x0000000000100000-0x000000007ffdffff]
-[    0.022945] Initmem setup node 0 [mem 0x0000000000001000-0x000000007ffdffff]
-[    0.023772] On node 0, zone DMA: 1 pages in unavailable ranges
-[    0.023998] On node 0, zone DMA: 97 pages in unavailable ranges
-[    0.046942] On node 0, zone DMA32: 32 pages in unavailable ranges
-[    0.047283] ACPI: PM-Timer IO Port: 0x608
-[    0.047490] ACPI: LAPIC_NMI (acpi_id[0xff] dfl dfl lint[0x1])
-[    0.047728] IOAPIC[0]: apic_id 0, version 32, address 0xfec00000, GSI 0-23
-[    0.047794] ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
-[    0.047934] ACPI: INT_SRC_OVR (bus 0 bus_irq 5 global_irq 5 high level)
-[    0.047963] ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
-[    0.048011] ACPI: INT_SRC_OVR (bus 0 bus_irq 10 global_irq 10 high level)
-[    0.048016] ACPI: INT_SRC_OVR (bus 0 bus_irq 11 global_irq 11 high level)
-[    0.048124] ACPI: Using ACPI (MADT) for SMP configuration information
-[    0.048146] ACPI: HPET id: 0x8086a201 base: 0xfed00000
-[    0.048349] CPU topo: Max. logical packages:   1
-[    0.048357] CPU topo: Max. logical dies:       1
-[    0.048362] CPU topo: Max. dies per package:   1
-[    0.048389] CPU topo: Max. threads per core:   1
-[    0.048488] CPU topo: Num. cores per package:     1
-[    0.048506] CPU topo: Num. threads per package:   1
-[    0.048511] CPU topo: Allowing 1 present CPUs plus 0 hotplug CPUs
-[    0.049068] PM: hibernation: Registered nosave memory: [mem 0x00000000-0x00000fff]
-[    0.049089] PM: hibernation: Registered nosave memory: [mem 0x0009f000-0x0009ffff]
-[    0.049103] PM: hibernation: Registered nosave memory: [mem 0x000a0000-0x000effff]
-[    0.049106] PM: hibernation: Registered nosave memory: [mem 0x000f0000-0x000fffff]
-[    0.049169] [mem 0x80000000-0xfffbffff] available for PCI devices
-[    0.049194] Booting paravirtualized kernel on bare hardware
-[    0.049346] clocksource: refined-jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 1910969940391419 ns
-[    0.056637] setup_percpu: NR_CPUS:64 nr_cpumask_bits:1 nr_cpu_ids:1 nr_node_ids:1
-[    0.057642] percpu: Embedded 58 pages/cpu s199592 r8192 d29784 u2097152
-[    0.058761] Kernel command line: root=/dev/root ro rootfstype=9p rootflags=trans=virtio console=ttyS0 init=/bin/sh
-[    0.060272] Dentry cache hash table entries: 262144 (order: 9, 2097152 bytes, linear)
-[    0.060442] Inode-cache hash table entries: 131072 (order: 8, 1048576 bytes, linear)
-[    0.062181] Fallback order for Node 0: 0 
-[    0.062413] Built 1 zonelists, mobility grouping on.  Total pages: 524158
-[    0.062425] Policy zone: DMA32
-[    0.062565] mem auto-init: stack:all(zero), heap alloc:off, heap free:off
-[    0.068922] Memory: 2016528K/2096632K available (20480K kernel code, 3048K rwdata, 7528K rodata, 2820K init, 2656K bss, 79844K reserved, 0K cma-reserved)
-[    0.070901] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
-[    0.078969] Dynamic Preempt: voluntary
-[    0.081511] rcu: Preemptible hierarchical RCU implementation.
-[    0.081521] rcu: 	RCU event tracing is enabled.
-[    0.081538] rcu: 	RCU restricting CPUs from NR_CPUS=64 to nr_cpu_ids=1.
-[    0.081621] 	Trampoline variant of Tasks RCU enabled.
-[    0.081626] 	Tracing variant of Tasks RCU enabled.
-[    0.081688] rcu: RCU calculated value of scheduler-enlistment delay is 100 jiffies.
-[    0.081705] rcu: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=1
-[    0.082593] RCU Tasks: Setting shift to 0 and lim to 1 rcu_task_cb_adjust=1.
-[    0.082607] RCU Tasks Trace: Setting shift to 0 and lim to 1 rcu_task_cb_adjust=1.
-[    0.089235] NR_IRQS: 4352, nr_irqs: 256, preallocated irqs: 16
-[    0.095839] rcu: srcu_init: Setting srcu_struct sizes based on contention.
-[    0.099212] Console: colour VGA+ 80x25
-[    0.100316] printk: legacy console [ttyS0] enabled
-[    0.110669] ACPI: Core revision 20240322
-[    0.117533] clocksource: hpet: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604467 ns
-[    0.125004] APIC: Switch to symmetric I/O mode setup
-[    0.131511] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
-[    0.137704] clocksource: tsc-early: mask: 0xffffffffffffffff max_cycles: 0x22df310dc55, max_idle_ns: 440795226575 ns
-[    0.138751] Calibrating delay loop (skipped), value calculated using timer frequency.. 4838.46 BogoMIPS (lpj=2419234)
-[    0.145590] Last level iTLB entries: 4KB 512, 2MB 255, 4MB 127
-[    0.145748] Last level dTLB entries: 4KB 512, 2MB 255, 4MB 127, 1GB 0
-[    0.146377] Spectre V1 : Mitigation: usercopy/swapgs barriers and __user pointer sanitization
-[    0.146699] Spectre V2 : Mitigation: Retpolines
-[    0.146815] Spectre V2 : Spectre v2 / SpectreRSB mitigation: Filling RSB on context switch
-[    0.147120] Spectre V2 : Spectre v2 / SpectreRSB : Filling RSB on VMEXIT
-[    0.150450] x86/fpu: x87 FPU will use FXSAVE
-[    0.461363] Freeing SMP alternatives memory: 48K
-[    0.461977] pid_max: default: 32768 minimum: 301
-[    0.465704] LSM: initializing lsm=capability,selinux,bpf
-[    0.466360] SELinux:  Initializing.
-[    0.467176] LSM support for eBPF active
-[    0.471031] Mount-cache hash table entries: 4096 (order: 3, 32768 bytes, linear)
-[    0.471053] Mountpoint-cache hash table entries: 4096 (order: 3, 32768 bytes, linear)
-[    0.600053] smpboot: CPU0: AMD QEMU Virtual CPU version 2.5+ (family: 0xf, model: 0x6b, stepping: 0x1)
-[    0.608134] Performance Events: PMU not available due to virtualization, using software events only.
-[    0.609288] signal: max sigframe size: 1440
-[    0.610842] rcu: Hierarchical SRCU implementation.
-[    0.610979] rcu: 	Max phase no-delay instances is 400.
-[    0.617682] smp: Bringing up secondary CPUs ...
-[    0.619632] smp: Brought up 1 node, 1 CPU
-[    0.620400] smpboot: Total of 1 processors activated (4838.46 BogoMIPS)
-[    0.633207] devtmpfs: initialized
-[    0.642201] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 1911260446275000 ns
-[    0.642803] futex hash table entries: 256 (order: 2, 16384 bytes, linear)
-[    0.647121] PM: RTC time: 11:28:32, date: 2024-07-07
-[    0.656796] NET: Registered PF_NETLINK/PF_ROUTE protocol family
-[    0.660043] audit: initializing netlink subsys (disabled)
-[    0.662687] audit: type=2000 audit(1720351711.537:1): state=initialized audit_enabled=0 res=1
-[    0.665971] thermal_sys: Registered thermal governor 'step_wise'
-[    0.666006] thermal_sys: Registered thermal governor 'user_space'
-[    0.666551] cpuidle: using governor menu
-[    0.669548] PCI: Using configuration type 1 for base access
-[    0.671671] kprobes: kprobe jump-optimization is enabled. All kprobes are optimized if possible.
-[    0.677591] HugeTLB: registered 2.00 MiB page size, pre-allocated 0 pages
-[    0.677848] HugeTLB: 28 KiB vmemmap can be freed for a 2.00 MiB page
-[    0.684343] Demotion targets for Node 0: null
-[    0.694359] ACPI: Added _OSI(Module Device)
-[    0.694473] ACPI: Added _OSI(Processor Device)
-[    0.694513] ACPI: Added _OSI(3.0 _SCP Extensions)
-[    0.694548] ACPI: Added _OSI(Processor Aggregator Device)
-[    0.716178] ACPI: 1 ACPI AML tables successfully acquired and loaded
-[    0.743537] ACPI: _OSC evaluation for CPUs failed, trying _PDC
-[    0.748034] ACPI: Interpreter enabled
-[    0.749066] ACPI: PM: (supports S0 S3 S4 S5)
-[    0.750129] ACPI: Using IOAPIC for interrupt routing
-[    0.750548] PCI: Using host bridge windows from ACPI; if necessary, use "pci=nocrs" and report a bug
-[    0.750676] PCI: Using E820 reservations for host bridge windows
-[    0.752922] ACPI: Enabled 2 GPEs in block 00 to 0F
-[    0.802942] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
-[    0.803437] acpi PNP0A03:00: _OSC: OS supports [ASPM ClockPM Segments MSI HPX-Type3]
-[    0.803699] acpi PNP0A03:00: _OSC: not requesting OS control; OS requires [ExtendedConfig ASPM ClockPM MSI]
-[    0.804479] acpi PNP0A03:00: fail to add MMCONFIG information, can't access extended configuration space under this bridge
-[    0.814768] PCI host bridge to bus 0000:00
-[    0.815053] pci_bus 0000:00: root bus resource [io  0x0000-0x0cf7 window]
-[    0.815203] pci_bus 0000:00: root bus resource [io  0x0d00-0xffff window]
-[    0.815293] pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000bffff window]
-[    0.816200] pci_bus 0000:00: root bus resource [mem 0x80000000-0xfebfffff window]
-[    0.816281] pci_bus 0000:00: root bus resource [mem 0x100000000-0x17fffffff window]
-[    0.816590] pci_bus 0000:00: root bus resource [bus 00-ff]
-[    0.824453] pci 0000:00:00.0: [8086:1237] type 00 class 0x060000 conventional PCI endpoint
-[    0.828105] pci 0000:00:01.0: [8086:7000] type 00 class 0x060100 conventional PCI endpoint
-[    0.828790] pci 0000:00:01.1: [8086:7010] type 00 class 0x010180 conventional PCI endpoint
-[    0.829244] pci 0000:00:01.1: BAR 4 [io  0xc080-0xc08f]
-[    0.830592] pci 0000:00:01.1: BAR 0 [io  0x01f0-0x01f7]: legacy IDE quirk
-[    0.830714] pci 0000:00:01.1: BAR 1 [io  0x03f6]: legacy IDE quirk
-[    0.830813] pci 0000:00:01.1: BAR 2 [io  0x0170-0x0177]: legacy IDE quirk
-[    0.830906] pci 0000:00:01.1: BAR 3 [io  0x0376]: legacy IDE quirk
-[    0.839437] pci 0000:00:01.3: [8086:7113] type 00 class 0x068000 conventional PCI endpoint
-[    0.840033] pci 0000:00:01.3: quirk: [io  0x0600-0x063f] claimed by PIIX4 ACPI
-[    0.840105] pci 0000:00:01.3: quirk: [io  0x0700-0x070f] claimed by PIIX4 SMB
-[    0.841403] pci 0000:00:02.0: [1234:1111] type 00 class 0x030000 conventional PCI endpoint
-[    0.842325] pci 0000:00:02.0: BAR 0 [mem 0xfd000000-0xfdffffff pref]
-[    0.843523] pci 0000:00:02.0: BAR 2 [mem 0xfebf4000-0xfebf4fff]
-[    0.846396] pci 0000:00:02.0: ROM [mem 0xfebe0000-0xfebeffff pref]
-[    0.853171] pci 0000:00:02.0: Video device with shadowed ROM at [mem 0x000c0000-0x000dffff]
-[    0.854564] pci 0000:00:03.0: [8086:100e] type 00 class 0x020000 conventional PCI endpoint
-[    0.855053] pci 0000:00:03.0: BAR 0 [mem 0xfebc0000-0xfebdffff]
-[    0.855733] pci 0000:00:03.0: BAR 1 [io  0xc000-0xc03f]
-[    0.859074] pci 0000:00:03.0: ROM [mem 0xfeb80000-0xfebbffff pref]
-[    0.876488] pci 0000:00:04.0: [1b36:000d] type 00 class 0x0c0330 conventional PCI endpoint
-[    0.877081] pci 0000:00:04.0: BAR 0 [mem 0xfebf0000-0xfebf3fff 64bit]
-[    0.881136] pci 0000:00:05.0: [1af4:1009] type 00 class 0x000200 conventional PCI endpoint
-[    0.882073] pci 0000:00:05.0: BAR 0 [io  0xc040-0xc07f]
-[    0.883070] pci 0000:00:05.0: BAR 1 [mem 0xfebf5000-0xfebf5fff]
-[    0.885965] pci 0000:00:05.0: BAR 4 [mem 0xfe000000-0xfe003fff 64bit pref]
-[    0.904502] ACPI: PCI: Interrupt link LNKA configured for IRQ 10
-[    0.905310] ACPI: PCI: Interrupt link LNKB configured for IRQ 10
-[    0.905737] ACPI: PCI: Interrupt link LNKC configured for IRQ 11
-[    0.906053] ACPI: PCI: Interrupt link LNKD configured for IRQ 11
-[    0.913053] ACPI: PCI: Interrupt link LNKS configured for IRQ 9
-[    0.915802] iommu: Default domain type: Translated
-[    0.915919] iommu: DMA domain TLB invalidation policy: lazy mode
-[    0.917053] SCSI subsystem initialized
-[    0.918856] ACPI: bus type USB registered
-[    0.920715] usbcore: registered new interface driver usbfs
-[    0.921198] usbcore: registered new interface driver hub
-[    0.921467] usbcore: registered new device driver usb
-[    0.930383] pps_core: LinuxPPS API ver. 1 registered
-[    0.930500] pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
-[    0.930657] PTP clock support registered
-[    0.932617] Advanced Linux Sound Architecture Driver Initialized.
-[    0.948453] NetLabel: Initializing
-[    0.948604] NetLabel:  domain hash size = 128
-[    0.948681] NetLabel:  protocols = UNLABELED CIPSOv4 CALIPSO
-[    0.956335] NetLabel:  unlabeled traffic allowed by default
-[    0.966884] PCI: Using ACPI for IRQ routing
-[    0.969739] pci 0000:00:02.0: vgaarb: setting as boot VGA device
-[    0.969926] pci 0000:00:02.0: vgaarb: bridge control possible
-[    0.970048] pci 0000:00:02.0: vgaarb: VGA device added: decodes=io+mem,owns=io+mem,locks=none
-[    0.970106] vgaarb: loaded
-[    0.976800] hpet: 3 channels of 0 reserved for per-cpu timers
-[    0.977239] hpet0: at MMIO 0xfed00000, IRQs 2, 8, 0
-[    0.977444] hpet0: 3 comparators, 64-bit 100.000000 MHz counter
-[    0.988924] clocksource: Switched to clocksource tsc-early
-[    0.991393] VFS: Disk quotas dquot_6.6.0
-[    0.991640] VFS: Dquot-cache hash table entries: 512 (order 0, 4096 bytes)
-[    0.994651] pnp: PnP ACPI init
-[    1.003735] pnp: PnP ACPI: found 6 devices
-[    1.062427] clocksource: acpi_pm: mask: 0xffffff max_cycles: 0xffffff, max_idle_ns: 2085701024 ns
-[    1.068528] NET: Registered PF_INET protocol family
-[    1.069649] IP idents hash table entries: 32768 (order: 6, 262144 bytes, linear)
-[    1.081963] tcp_listen_portaddr_hash hash table entries: 1024 (order: 2, 16384 bytes, linear)
-[    1.082172] Table-perturb hash table entries: 65536 (order: 6, 262144 bytes, linear)
-[    1.083432] TCP established hash table entries: 16384 (order: 5, 131072 bytes, linear)
-[    1.083781] TCP bind hash table entries: 16384 (order: 7, 524288 bytes, linear)
-[    1.084169] TCP: Hash tables configured (established 16384 bind 16384)
-[    1.085112] UDP hash table entries: 1024 (order: 3, 32768 bytes, linear)
-[    1.089696] UDP-Lite hash table entries: 1024 (order: 3, 32768 bytes, linear)
-[    1.091262] NET: Registered PF_UNIX/PF_LOCAL protocol family
-[    1.093489] RPC: Registered named UNIX socket transport module.
-[    1.093610] RPC: Registered udp transport module.
-[    1.093687] RPC: Registered tcp transport module.
-[    1.093760] RPC: Registered tcp-with-tls transport module.
-[    1.093828] RPC: Registered tcp NFSv4.1 backchannel transport module.
-[    1.104089] pci_bus 0000:00: resource 4 [io  0x0000-0x0cf7 window]
-[    1.104679] pci_bus 0000:00: resource 5 [io  0x0d00-0xffff window]
-[    1.104782] pci_bus 0000:00: resource 6 [mem 0x000a0000-0x000bffff window]
-[    1.104886] pci_bus 0000:00: resource 7 [mem 0x80000000-0xfebfffff window]
-[    1.105017] pci_bus 0000:00: resource 8 [mem 0x100000000-0x17fffffff window]
-[    1.106024] pci 0000:00:01.0: PIIX3: Enabling Passive Release
-[    1.106229] pci 0000:00:00.0: Limiting direct PCI/PCI transfers
-[    1.248398] ACPI: \_SB_.LNKD: Enabled at IRQ 11
-[    1.376358] pci 0000:00:04.0: quirk_usb_early_handoff+0x0/0x7d0 took 263558 usecs
-[    1.376742] PCI: CLS 0 bytes, default 64
-[    1.413784] Initialise system trusted keyrings
-[    1.417229] workingset: timestamp_bits=56 max_order=19 bucket_order=0
-[    1.420698] NFS: Registering the id_resolver key type
-[    1.421098] Key type id_resolver registered
-[    1.421207] Key type id_legacy registered
-[    1.421883] 9p: Installing v9fs 9p2000 file system support
-[    1.478848] Key type asymmetric registered
-[    1.478967] Asymmetric key parser 'x509' registered
-[    1.479530] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 251)
-[    1.479994] io scheduler mq-deadline registered
-[    1.480203] io scheduler kyber registered
-[    1.483635] input: Power Button as /devices/LNXSYSTM:00/LNXPWRBN:00/input/input0
-[    1.489483] ACPI: button: Power Button [PWRF]
-[    1.567124] ACPI: \_SB_.LNKA: Enabled at IRQ 10
-[    1.570727] Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
-[    1.574686] 00:04: ttyS0 at I/O 0x3f8 (irq = 4, base_baud = 115200) is a 16550A
-[    1.579954] Non-volatile memory driver v1.3
-[    1.580099] Linux agpgart interface v0.103
-[    1.581822] ACPI: bus type drm_connector registered
-[    1.598737] loop: module loaded
-[    1.608291] scsi host0: ata_piix
-[    1.610114] scsi host1: ata_piix
-[    1.610516] ata1: PATA max MWDMA2 cmd 0x1f0 ctl 0x3f6 bmdma 0xc080 irq 14 lpm-pol 0
-[    1.610672] ata2: PATA max MWDMA2 cmd 0x170 ctl 0x376 bmdma 0xc088 irq 15 lpm-pol 0
-[    1.616827] e100: Intel(R) PRO/100 Network Driver
-[    1.616899] e100: Copyright(c) 1999-2006 Intel Corporation
-[    1.616997] e1000: Intel(R) PRO/1000 Network Driver
-[    1.617019] e1000: Copyright (c) 1999-2006 Intel Corporation.
-[    1.682511] ACPI: \_SB_.LNKC: Enabled at IRQ 11
-[    1.773519] ata2: found unknown device (class 0)
-[    1.781112] ata2.00: ATAPI: QEMU DVD-ROM, 2.5+, max UDMA/100
-[    1.799968] scsi 1:0:0:0: CD-ROM            QEMU     QEMU DVD-ROM     2.5+ PQ: 0 ANSI: 5
-[    1.833178] sr 1:0:0:0: [sr0] scsi3-mmc drive: 4x/4x cd/rw xa/form2 tray
-[    1.833408] cdrom: Uniform CD-ROM driver Revision: 3.20
-[    1.850453] sr 1:0:0:0: Attached scsi generic sg0 type 5
-[    2.017128] e1000 0000:00:03.0 eth0: (PCI:33MHz:32-bit) 52:54:00:12:34:56
-[    2.017629] e1000 0000:00:03.0 eth0: Intel(R) PRO/1000 Network Connection
-[    2.018313] e1000e: Intel(R) PRO/1000 Network Driver
-[    2.018394] e1000e: Copyright(c) 1999 - 2015 Intel Corporation.
-[    2.018550] sky2: driver version 1.30
-[    2.097922] xhci_hcd 0000:00:04.0: xHCI Host Controller
-[    2.099526] xhci_hcd 0000:00:04.0: new USB bus registered, assigned bus number 1
-[    2.103432] xhci_hcd 0000:00:04.0: hcc params 0x00087001 hci version 0x100 quirks 0x0000000000000010
-[    2.112336] xhci_hcd 0000:00:04.0: xHCI Host Controller
-[    2.112801] xhci_hcd 0000:00:04.0: new USB bus registered, assigned bus number 2
-[    2.113060] xhci_hcd 0000:00:04.0: Host supports USB 3.0 SuperSpeed
-[    2.116976] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 6.10
-[    2.116984] usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
-[    2.117370] usb usb1: Product: xHCI Host Controller
-[    2.117478] usb usb1: Manufacturer: Linux 6.10.0-rc5-gafcd48134c58-dirty xhci-hcd
-[    2.117614] usb usb1: SerialNumber: 0000:00:04.0
-[    2.121513] hub 1-0:1.0: USB hub found
-[    2.122415] hub 1-0:1.0: 4 ports detected
-[    2.128377] usb usb2: We don't know the algorithms for LPM for this host, disabling LPM.
-[    2.129156] usb usb2: New USB device found, idVendor=1d6b, idProduct=0003, bcdDevice= 6.10
-[    2.129311] usb usb2: New USB device strings: Mfr=3, Product=2, SerialNumber=1
-[    2.129397] usb usb2: Product: xHCI Host Controller
-[    2.129469] usb usb2: Manufacturer: Linux 6.10.0-rc5-gafcd48134c58-dirty xhci-hcd
-[    2.129567] usb usb2: SerialNumber: 0000:00:04.0
-[    2.130621] hub 2-0:1.0: USB hub found
-[    2.130873] hub 2-0:1.0: 4 ports detected
-[    2.132690] usbcore: registered new interface driver usblp
-[    2.132822] usbcore: registered new interface driver cdc_wdm
-[    2.133301] usbcore: registered new interface driver usbtmc
-[    2.133532] usbcore: registered new interface driver usb-storage
-[    2.133880] usbcore: registered new interface driver usbtest
-[    2.134809] i8042: PNP: PS/2 Controller [PNP0303:KBD,PNP0f13:MOU] at 0x60,0x64 irq 1,12
-[    2.138116] serio: i8042 KBD port at 0x60,0x64 irq 1
-[    2.138826] serio: i8042 AUX port at 0x60,0x64 irq 12
-[    2.141754] mousedev: PS/2 mouse device common for all mice
-[    2.145315] rtc_cmos 00:05: RTC can wake from S4
-[    2.147474] input: AT Translated Set 2 keyboard as /devices/platform/i8042/serio0/input/input1
-[    2.149917] rtc_cmos 00:05: registered as rtc0
-[    2.151142] rtc_cmos 00:05: alarms up to one day, y3k, 242 bytes nvram, hpet irqs
-[    2.154313] fail to initialize ptp_kvm
-[    2.155839] device-mapper: ioctl: 4.48.0-ioctl (2023-03-01) initialised: dm-devel@lists.linux.dev
-[    2.156855] amd_pstate: the _CPC object is not present in SBIOS or ACPI disabled
-[    2.158892] hid: raw HID events driver (C) Jiri Kosina
-[    2.159931] usbcore: registered new interface driver usbhid
-[    2.160084] usbhid: USB HID core driver
-[    2.168670] Initializing XFRM netlink socket
-[    2.169175] NET: Registered PF_INET6 protocol family
-[    2.175475] Segment Routing with IPv6
-[    2.175745] In-situ OAM (IOAM) with IPv6
-[    2.176882] sit: IPv6, IPv4 and MPLS over IPv4 tunneling driver
-[    2.179623] NET: Registered PF_PACKET protocol family
-[    2.181103] 9pnet: Installing 9P2000 support
-[    2.185058] Key type dns_resolver registered
-[    2.187652] IPI shorthand broadcast: enabled
-[    2.215862] sched_clock: Marking stable (2187121489, 27881775)->(2222878988, -7875724)
-[    2.219282] registered taskstats version 1
-[    2.220467] Loading compiled-in X.509 certificates
-[    2.232304] Demotion targets for Node 0: null
-[    2.238070] PM:   Magic number: 0:623:478
-[    2.238376] rtc rtc0: hash matches
-[    2.239054] printk: legacy console [netcon0] enabled
-[    2.239316] netconsole: network logging started
-[    2.240737] cfg80211: Loading compiled-in X.509 certificates for regulatory database
-[    2.250320] kworker/u4:0 (49) used greatest stack depth: 14496 bytes left
-[    2.263036] Loaded X.509 cert 'sforshee: 00b28ddf47aef9cea7'
-[    2.263613] Loaded X.509 cert 'wens: 61c038651aabdcf94bd0ac7ff06c7248db18c600'
-[    2.267090] ALSA device list:
-[    2.267578]   No soundcards found.
-[    2.270843] platform regulatory.0: Direct firmware load for regulatory.db failed with error -2
-[    2.271278] cfg80211: failed to load regulatory.db
-[    2.397872] tsc: Refined TSC clocksource calibration: 2419.199 MHz
-[    2.398431] clocksource: tsc: mask: 0xffffffffffffffff max_cycles: 0x22df101993e, max_idle_ns: 440795226575 ns
-[    2.398689] clocksource: Switched to clocksource tsc
-[    2.784017] input: ImExPS/2 Generic Explorer Mouse as /devices/platform/i8042/serio1/input/input3
-[    2.786524] md: Waiting for all devices to be available before autodetect
-[    2.786661] md: If you don't use raid, use raid=noautodetect
-[    2.786798] md: Autodetecting RAID arrays.
-[    2.786894] md: autorun ...
-[    2.786961] md: ... autorun DONE.
-[    2.797410] VFS: Mounted root (9p filesystem) readonly on device 0:19.
-[    2.800947] devtmpfs: mounted
-[    2.854756] Freeing unused kernel image (initmem) memory: 2820K
-[    2.855221] Write protecting the kernel read-only data: 28672k
-[    2.856461] Freeing unused kernel image (rodata/data gap) memory: 664K
-[    2.939990] x86/mm: Checked W+X mappings: passed, no W+X pages found.
-[    2.940457] Run /bin/sh as init process
-sh: cannot set terminal process group (-1): Inappropriate ioctl for device
-sh: no job control in this shell
-[?2004hsh-5.2# [   60.895610] xhci_hcd 0000:00:04.0: dump trb:
-[   60.895933] xhci_hcd 0000:00:04.0: 0
-[   60.896098] xhci_hcd 0000:00:04.0: 0
-[   60.896293] xhci_hcd 0000:00:04.0: 0
-[   60.896441] xhci_hcd 0000:00:04.0: 2401
-[   61.015418] usb 1-1: new low-speed USB device number 2 using xhci_hcd
-[   61.016925] xhci_hcd 0000:00:04.0: dump trb:
-[   61.017058] xhci_hcd 0000:00:04.0: 1ffd000
-[   61.017281] xhci_hcd 0000:00:04.0: 0
-[   61.017397] xhci_hcd 0000:00:04.0: 0
-[   61.017472] xhci_hcd 0000:00:04.0: 1002e01
-[   61.019638] xhci_hcd 0000:00:04.0: dump trb:
-[   61.019739] xhci_hcd 0000:00:04.0: 1000680
-[   61.019785] xhci_hcd 0000:00:04.0: 400000
-[   61.019824] xhci_hcd 0000:00:04.0: 8
-[   61.019863] xhci_hcd 0000:00:04.0: 30840
-[   61.020029] xhci_hcd 0000:00:04.0: dump trb:
-[   61.020076] xhci_hcd 0000:00:04.0: 1fe7a40
-[   61.020115] xhci_hcd 0000:00:04.0: 0
-[   61.020171] xhci_hcd 0000:00:04.0: 40
-[   61.020211] xhci_hcd 0000:00:04.0: 10c05
-[   61.020279] xhci_hcd 0000:00:04.0: dump trb:
-[   61.020353] xhci_hcd 0000:00:04.0: 0
-[   61.020417] xhci_hcd 0000:00:04.0: 0
-[   61.020460] xhci_hcd 0000:00:04.0: 0
-[   61.020506] xhci_hcd 0000:00:04.0: 1021
-[   61.137817] xhci_hcd 0000:00:04.0: dump trb:
-[   61.138031] xhci_hcd 0000:00:04.0: 0
-[   61.138116] xhci_hcd 0000:00:04.0: 0
-[   61.138182] xhci_hcd 0000:00:04.0: 0
-[   61.138478] xhci_hcd 0000:00:04.0: 1004401
-[   61.139973] xhci_hcd 0000:00:04.0: dump trb:
-[   61.140275] xhci_hcd 0000:00:04.0: 1ffd000
-[   61.140390] xhci_hcd 0000:00:04.0: 0
-[   61.140453] xhci_hcd 0000:00:04.0: 0
-[   61.140505] xhci_hcd 0000:00:04.0: 1002c01
-[   61.156387] xhci_hcd 0000:00:04.0: dump trb:
-[   61.156488] xhci_hcd 0000:00:04.0: 1000680
-[   61.156541] xhci_hcd 0000:00:04.0: 120000
-[   61.156596] xhci_hcd 0000:00:04.0: 8
-[   61.156650] xhci_hcd 0000:00:04.0: 30840
-[   61.156690] xhci_hcd 0000:00:04.0: dump trb:
-[   61.156726] xhci_hcd 0000:00:04.0: 1f168e0
-[   61.156759] xhci_hcd 0000:00:04.0: 0
-[   61.156794] xhci_hcd 0000:00:04.0: 12
-[   61.156828] xhci_hcd 0000:00:04.0: 10c05
-[   61.156879] xhci_hcd 0000:00:04.0: dump trb:
-[   61.156945] xhci_hcd 0000:00:04.0: 0
-[   61.157010] xhci_hcd 0000:00:04.0: 0
-[   61.157057] xhci_hcd 0000:00:04.0: 0
-[   61.157145] xhci_hcd 0000:00:04.0: 1021
-[   61.160381] xhci_hcd 0000:00:04.0: dump trb:
-[   61.160447] xhci_hcd 0000:00:04.0: 2000680
-[   61.160477] xhci_hcd 0000:00:04.0: 90000
-[   61.160504] xhci_hcd 0000:00:04.0: 8
-[   61.160546] xhci_hcd 0000:00:04.0: 30840
-[   61.160597] xhci_hcd 0000:00:04.0: dump trb:
-[   61.160651] xhci_hcd 0000:00:04.0: 1f3d9a0
-[   61.160708] xhci_hcd 0000:00:04.0: 0
-[   61.160760] xhci_hcd 0000:00:04.0: 9
-[   61.160858] xhci_hcd 0000:00:04.0: 10c05
-[   61.160903] xhci_hcd 0000:00:04.0: dump trb:
-[   61.161061] xhci_hcd 0000:00:04.0: 0
-[   61.161124] xhci_hcd 0000:00:04.0: 0
-[   61.161169] xhci_hcd 0000:00:04.0: 0
-[   61.161206] xhci_hcd 0000:00:04.0: 1021
-[   61.162600] xhci_hcd 0000:00:04.0: dump trb:
-[   61.162674] xhci_hcd 0000:00:04.0: 2000680
-[   61.162731] xhci_hcd 0000:00:04.0: 220000
-[   61.162780] xhci_hcd 0000:00:04.0: 8
-[   61.162840] xhci_hcd 0000:00:04.0: 30840
-[   61.162874] xhci_hcd 0000:00:04.0: dump trb:
-[   61.162983] xhci_hcd 0000:00:04.0: 1fe7a40
-[   61.163040] xhci_hcd 0000:00:04.0: 0
-[   61.163073] xhci_hcd 0000:00:04.0: 22
-[   61.163110] xhci_hcd 0000:00:04.0: 10c05
-[   61.163177] xhci_hcd 0000:00:04.0: dump trb:
-[   61.163251] xhci_hcd 0000:00:04.0: 0
-[   61.163312] xhci_hcd 0000:00:04.0: 0
-[   61.163349] xhci_hcd 0000:00:04.0: 0
-[   61.163380] xhci_hcd 0000:00:04.0: 1021
-[   61.166210] xhci_hcd 0000:00:04.0: dump trb:
-[   61.166272] xhci_hcd 0000:00:04.0: 3000680
-[   61.166319] xhci_hcd 0000:00:04.0: ff0000
-[   61.166365] xhci_hcd 0000:00:04.0: 8
-[   61.166429] xhci_hcd 0000:00:04.0: 30840
-[   61.166495] xhci_hcd 0000:00:04.0: dump trb:
-[   61.166535] xhci_hcd 0000:00:04.0: 1ff7400
-[   61.166571] xhci_hcd 0000:00:04.0: 0
-[   61.166599] xhci_hcd 0000:00:04.0: ff
-[   61.166634] xhci_hcd 0000:00:04.0: 10c05
-[   61.166673] xhci_hcd 0000:00:04.0: dump trb:
-[   61.166717] xhci_hcd 0000:00:04.0: 0
-[   61.166750] xhci_hcd 0000:00:04.0: 0
-[   61.166785] xhci_hcd 0000:00:04.0: 0
-[   61.166817] xhci_hcd 0000:00:04.0: 1021
-[   61.168426] xhci_hcd 0000:00:04.0: dump trb:
-[   61.168503] xhci_hcd 0000:00:04.0: 3020680
-[   61.168558] xhci_hcd 0000:00:04.0: ff0409
-[   61.168593] xhci_hcd 0000:00:04.0: 8
-[   61.168625] xhci_hcd 0000:00:04.0: 30840
-[   61.168675] xhci_hcd 0000:00:04.0: dump trb:
-[   61.168730] xhci_hcd 0000:00:04.0: 1ff7400
-[   61.168805] xhci_hcd 0000:00:04.0: 0
-[   61.168892] xhci_hcd 0000:00:04.0: ff
-[   61.168963] xhci_hcd 0000:00:04.0: 10c05
-[   61.169114] xhci_hcd 0000:00:04.0: dump trb:
-[   61.169180] xhci_hcd 0000:00:04.0: 0
-[   61.169245] xhci_hcd 0000:00:04.0: 0
-[   61.169290] xhci_hcd 0000:00:04.0: 0
-[   61.169328] xhci_hcd 0000:00:04.0: 1021
-[   61.172115] xhci_hcd 0000:00:04.0: dump trb:
-[   61.172169] xhci_hcd 0000:00:04.0: 3010680
-[   61.172218] xhci_hcd 0000:00:04.0: ff0409
-[   61.172268] xhci_hcd 0000:00:04.0: 8
-[   61.172309] xhci_hcd 0000:00:04.0: 30840
-[   61.172335] xhci_hcd 0000:00:04.0: dump trb:
-[   61.172372] xhci_hcd 0000:00:04.0: 1ff7400
-[   61.172401] xhci_hcd 0000:00:04.0: 0
-[   61.172427] xhci_hcd 0000:00:04.0: ff
-[   61.172455] xhci_hcd 0000:00:04.0: 10c05
-[   61.172485] xhci_hcd 0000:00:04.0: dump trb:
-[   61.172516] xhci_hcd 0000:00:04.0: 0
-[   61.172548] xhci_hcd 0000:00:04.0: 0
-[   61.172595] xhci_hcd 0000:00:04.0: 0
-[   61.172646] xhci_hcd 0000:00:04.0: 1021
-[   61.174263] usb 1-1: New USB device found, idVendor=17ef, idProduct=608d, bcdDevice=24.58
-[   61.174346] usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-[   61.174417] usb 1-1: Product: Lenovo USB Optical Mouse
-[   61.174470] usb 1-1: Manufacturer: Elan
-[   61.176158] xhci_hcd 0000:00:04.0: slot ctx=================================================================
-[   61.176268] xhci_hcd 0000:00:04.0: slot_ctx:devinfo: 18200000
-[   61.176334] xhci_hcd 0000:00:04.0: slot_ctx:devinfo2: 50000
-[   61.176381] xhci_hcd 0000:00:04.0: slot_ctx:ttinfo: 0
-[   61.176438] xhci_hcd 0000:00:04.0: slot_ctx:dev_state: 0
-[   61.176482] xhci_hcd 0000:00:04.0: ctrl ctx=================================================================
-[   61.176553] xhci_hcd 0000:00:04.0: ctrl_ctx:add_flags: 9
-[   61.176616] xhci_hcd 0000:00:04.0: ctrl_ctx:drop_flags: 0
-[   61.176688] xhci_hcd 0000:00:04.0: ctrl_ctx:rsvd 0: 0
-[   61.176736] xhci_hcd 0000:00:04.0: ctrl_ctx:rsvd 1: 0
-[   61.176776] xhci_hcd 0000:00:04.0: ctrl_ctx:rsvd 2: 0
-[   61.176815] xhci_hcd 0000:00:04.0: ctrl_ctx:rsvd 3: 0
-[   61.176854] xhci_hcd 0000:00:04.0: ctrl_ctx:rsvd 4: 0
-[   61.176898] xhci_hcd 0000:00:04.0: ctrl_ctx:rsvd 5: 0
-[   61.176979] xhci_hcd 0000:00:04.0: endpoint 0=================================================================
-[   61.177189] xhci_hcd 0000:00:04.0: deque_32: 1ffe031
-[   61.177307] xhci_hcd 0000:00:04.0: ep_info2_32: 80026
-[   61.177424] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.177528] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.177638] xhci_hcd 0000:00:04.0: deque_ptr_64: 1ffe031
-[   61.177751] xhci_hcd 0000:00:04.0: endpoint 1=================================================================
-[   61.177841] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.177887] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.177930] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.178003] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.178090] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.178185] xhci_hcd 0000:00:04.0: endpoint 2=================================================================
-[   61.178338] xhci_hcd 0000:00:04.0: deque_32: 2001001
-[   61.178408] xhci_hcd 0000:00:04.0: ep_info2_32: 4003e
-[   61.178463] xhci_hcd 0000:00:04.0: ep_info1_32: 60000
-[   61.178546] xhci_hcd 0000:00:04.0: tx_info_32: 40004
-[   61.178639] xhci_hcd 0000:00:04.0: deque_ptr_64: 2001001
-[   61.178727] xhci_hcd 0000:00:04.0: endpoint 3=================================================================
-[   61.178844] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.178919] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.178992] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.179064] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.179112] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.179155] xhci_hcd 0000:00:04.0: endpoint 4=================================================================
-[   61.179231] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.179275] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.179326] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.179400] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.179474] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.179526] xhci_hcd 0000:00:04.0: endpoint 5=================================================================
-[   61.179607] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.179647] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.179690] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.179737] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.179783] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.179857] xhci_hcd 0000:00:04.0: endpoint 6=================================================================
-[   61.179948] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.179991] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.180034] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.180083] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.180165] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.180243] xhci_hcd 0000:00:04.0: endpoint 7=================================================================
-[   61.180330] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.180371] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.180418] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.180463] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.180513] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.180565] xhci_hcd 0000:00:04.0: endpoint 8=================================================================
-[   61.180701] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.180799] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.180889] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.180993] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.181076] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.181157] xhci_hcd 0000:00:04.0: endpoint 9=================================================================
-[   61.181262] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.181342] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.181422] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.181471] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.181521] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.181579] xhci_hcd 0000:00:04.0: endpoint 10=================================================================
-[   61.181678] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.181735] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.181789] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.181864] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.181951] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.182039] xhci_hcd 0000:00:04.0: endpoint 11=================================================================
-[   61.182141] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.182198] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.182286] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.182344] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.182396] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.182448] xhci_hcd 0000:00:04.0: endpoint 12=================================================================
-[   61.182589] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.182676] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.182739] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.182822] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.182917] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.182980] xhci_hcd 0000:00:04.0: endpoint 13=================================================================
-[   61.183085] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.183172] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.183273] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.183339] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.183397] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.183454] xhci_hcd 0000:00:04.0: endpoint 14=================================================================
-[   61.183567] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.183619] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.183673] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.183728] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.183780] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.183834] xhci_hcd 0000:00:04.0: endpoint 15=================================================================
-[   61.183936] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.183993] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.184085] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.184182] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.184277] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.184374] xhci_hcd 0000:00:04.0: endpoint 16=================================================================
-[   61.184481] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.184535] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.184591] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.184704] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.184799] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.184895] xhci_hcd 0000:00:04.0: endpoint 17=================================================================
-[   61.185037] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.185143] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.185208] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.185267] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.185318] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.185381] xhci_hcd 0000:00:04.0: endpoint 18=================================================================
-[   61.185528] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.185631] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.185702] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.185757] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.185842] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.185937] xhci_hcd 0000:00:04.0: endpoint 19=================================================================
-[   61.186075] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.186134] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.186190] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.186239] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.186290] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.186341] xhci_hcd 0000:00:04.0: endpoint 20=================================================================
-[   61.186438] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.186518] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.186618] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.186705] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.186794] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.186854] xhci_hcd 0000:00:04.0: endpoint 21=================================================================
-[   61.186982] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.187061] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.187112] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.187155] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.187223] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.187277] xhci_hcd 0000:00:04.0: endpoint 22=================================================================
-[   61.187388] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.187467] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.187549] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.187629] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.187680] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.187724] xhci_hcd 0000:00:04.0: endpoint 23=================================================================
-[   61.187808] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.187849] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.187920] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.187974] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.188045] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.188122] xhci_hcd 0000:00:04.0: endpoint 24=================================================================
-[   61.188253] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.188337] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.188397] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.188482] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.188565] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.188652] xhci_hcd 0000:00:04.0: endpoint 25=================================================================
-[   61.188776] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.188862] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.188946] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.189002] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.189052] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.189129] xhci_hcd 0000:00:04.0: endpoint 26=================================================================
-[   61.189244] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.189325] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.189379] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.189426] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.189473] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.189525] xhci_hcd 0000:00:04.0: endpoint 27=================================================================
-[   61.189616] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.189667] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.189742] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.189823] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.189901] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.189981] xhci_hcd 0000:00:04.0: endpoint 28=================================================================
-[   61.190076] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.190150] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.190248] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.190337] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.190397] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.190479] xhci_hcd 0000:00:04.0: endpoint 29=================================================================
-[   61.190621] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.190709] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.190798] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.190888] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.190975] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.191036] xhci_hcd 0000:00:04.0: endpoint 30=================================================================
-[   61.191164] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.191224] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.191279] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.191333] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.191386] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.191443] xhci_hcd 0000:00:04.0: endpoint 31=================================================================
-[   61.191581] xhci_hcd 0000:00:04.0: deque_32: 0
-[   61.191678] xhci_hcd 0000:00:04.0: ep_info2_32: 0
-[   61.191774] xhci_hcd 0000:00:04.0: ep_info1_32: 0
-[   61.191869] xhci_hcd 0000:00:04.0: tx_info_32: 0
-[   61.191971] xhci_hcd 0000:00:04.0: deque_ptr_64: 0
-[   61.192133] xhci_hcd 0000:00:04.0: dump trb:
-[   61.192218] xhci_hcd 0000:00:04.0: 1ffd000
-[   61.192305] xhci_hcd 0000:00:04.0: 0
-[   61.192383] xhci_hcd 0000:00:04.0: 0
-[   61.192462] xhci_hcd 0000:00:04.0: 1003001
-[   61.194066] xhci_hcd 0000:00:04.0: dump trb:
-[   61.194166] xhci_hcd 0000:00:04.0: 0
-[   61.194229] xhci_hcd 0000:00:04.0: 0
-[   61.194285] xhci_hcd 0000:00:04.0: 0
-[   61.194342] xhci_hcd 0000:00:04.0: 1033c01
-[   61.194735] xhci_hcd 0000:00:04.0: dump trb:
-[   61.194812] xhci_hcd 0000:00:04.0: 2003000
-[   61.194872] xhci_hcd 0000:00:04.0: 0
-[   61.194906] xhci_hcd 0000:00:04.0: 0
-[   61.194935] xhci_hcd 0000:00:04.0: 1003001
-[   61.196345] xhci_hcd 0000:00:04.0: dump trb:
-[   61.196413] xhci_hcd 0000:00:04.0: 10900
-[   61.196464] xhci_hcd 0000:00:04.0: 0
-[   61.196496] xhci_hcd 0000:00:04.0: 8
-[   61.196543] xhci_hcd 0000:00:04.0: 840
-[   61.196643] xhci_hcd 0000:00:04.0: dump trb:
-[   61.196712] xhci_hcd 0000:00:04.0: 0
-[   61.196775] xhci_hcd 0000:00:04.0: 0
-[   61.196846] xhci_hcd 0000:00:04.0: 0
-[   61.196915] xhci_hcd 0000:00:04.0: 11021
-[   61.198939] xhci_hcd 0000:00:04.0: dump trb:
-[   61.199036] xhci_hcd 0000:00:04.0: a21
-[   61.199099] xhci_hcd 0000:00:04.0: 0
-[   61.199162] xhci_hcd 0000:00:04.0: 8
-[   61.199225] xhci_hcd 0000:00:04.0: 840
-[   61.199297] xhci_hcd 0000:00:04.0: dump trb:
-[   61.199374] xhci_hcd 0000:00:04.0: 0
-[   61.199452] xhci_hcd 0000:00:04.0: 0
-[   61.199531] xhci_hcd 0000:00:04.0: 0
-[   61.199609] xhci_hcd 0000:00:04.0: 11021
-[   61.201556] xhci_hcd 0000:00:04.0: dump trb: //curios
-[   61.201633] xhci_hcd 0000:00:04.0: 22000681
-[   61.201693] xhci_hcd 0000:00:04.0: 3e0000
-[   61.201754] xhci_hcd 0000:00:04.0: 8
-[   61.201822] xhci_hcd 0000:00:04.0: 30840
-[   61.201924] xhci_hcd 0000:00:04.0: dump trb: //curios!
-[   61.201984] xhci_hcd 0000:00:04.0: 1fe7b80
-[   61.202140] xhci_hcd 0000:00:04.0: 0
-[   61.202228] xhci_hcd 0000:00:04.0: 3e
-[   61.202311] xhci_hcd 0000:00:04.0: 10c05
-[   61.202393] xhci_hcd 0000:00:04.0: dump trb:
-[   61.202473] xhci_hcd 0000:00:04.0: 0
-[   61.202553] xhci_hcd 0000:00:04.0: 0
-[   61.202630] xhci_hcd 0000:00:04.0: 0
-[   61.202707] xhci_hcd 0000:00:04.0: 1021
-[   61.210506] xhci_hcd 0000:00:04.0: submit interrupt in urb
-[   61.210846] xhci_hcd 0000:00:04.0: dump trb:
-[   61.210918] xhci_hcd 0000:00:04.0: 2005000
-[   61.211175] xhci_hcd 0000:00:04.0: 0
-[   61.211223] xhci_hcd 0000:00:04.0: 4
-[   61.211264] xhci_hcd 0000:00:04.0: 424
-[   61.212978] input: Elan Lenovo USB Optical Mouse as /devices/pci0000:00/0000:00:04.0/usb1/1-1/1-1:1.0/0003:17EF:608D.0001/input/input4
-[   61.214555] hid-generic 0003:17EF:608D.0001: input,hidraw0: USB HID v1.11 Mouse [Elan Lenovo USB Optical Mouse] on usb-0000:00:04.0-1/input0
-
-[?2004l
-[?2004hsh-5.2# [   70.958232] xhci_hcd 0000:00:04.0: submit interrupt in urb
-[   70.958551] xhci_hcd 0000:00:04.0: dump trb:
-[   70.958637] xhci_hcd 0000:00:04.0: 2005000
-[   70.958752] xhci_hcd 0000:00:04.0: 0
-[   70.958860] xhci_hcd 0000:00:04.0: 4
-[   70.958932] xhci_hcd 0000:00:04.0: 424
-[   71.053515] xhci_hcd 0000:00:04.0: submit interrupt in urb
-[   71.053718] xhci_hcd 0000:00:04.0: dump trb:
-[   71.053795] xhci_hcd 0000:00:04.0: 2005000
-[   71.053863] xhci_hcd 0000:00:04.0: 0
-[   71.053955] xhci_hcd 0000:00:04.0: 4
-[   71.054057] xhci_hcd 0000:00:04.0: 424
-[   72.165517] xhci_hcd 0000:00:04.0: submit interrupt in urb
-[   72.165616] xhci_hcd 0000:00:04.0: dump trb:
-[   72.165671] xhci_hcd 0000:00:04.0: 2005000
-[   72.165719] xhci_hcd 0000:00:04.0: 0
-[   72.165764] xhci_hcd 0000:00:04.0: 4
-[   72.165810] xhci_hcd 0000:00:04.0: 424
-[   72.269847] xhci_hcd 0000:00:04.0: submit interrupt in urb
-[   72.270161] xhci_hcd 0000:00:04.0: dump trb:
-[   72.270312] xhci_hcd 0000:00:04.0: 2005000
-[   72.270460] xhci_hcd 0000:00:04.0: 0
-[   72.270592] xhci_hcd 0000:00:04.0: 4
-[   72.270731] xhci_hcd 0000:00:04.0: 424
+Booting from ROM..c[?7l[2J[    0.000000] Linux version 6.10.0 (dbydd@dbyddlaptop) (gcc (Ubuntu 13.2.0-23ubuntu4) 13.2.0, GNU ld (GNU Binutils for Ubuntu) 2.42) #6 SMP PREEMPT_DYNAMIC Fri Jul 19 10:59:53 HKT 2024
+|| Command line: root=/dev/root ro rootfstype=9p rootflags=trans=virtio console=ttyS0 init=/bin/sh
+|| BIOS-provided physical RAM map:
+|| BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
+|| BIOS-e820: [mem 0x000000000009fc00-0x000000000009ffff] reserved
+|| BIOS-e820: [mem 0x00000000000f0000-0x00000000000fffff] reserved
+|| BIOS-e820: [mem 0x0000000000100000-0x000000007ffdffff] usable
+|| BIOS-e820: [mem 0x000000007ffe0000-0x000000007fffffff] reserved
+|| BIOS-e820: [mem 0x00000000fffc0000-0x00000000ffffffff] reserved
+|| BIOS-e820: [mem 0x000000fd00000000-0x000000ffffffffff] reserved
+|| NX (Execute Disable) protection: active
+|| APIC: Static calls initialized
+|| SMBIOS 2.8 present.
+|| DMI: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org 04/01/2014
+|| DMI: Memory slots populated: 1/1
+|| tsc: Fast TSC calibration using PIT
+|| tsc: Detected 2419.221 MHz processor
+|| last_pfn = 0x7ffe0 max_arch_pfn = 0x400000000
+|| MTRR map: 4 entries (3 fixed + 1 variable; max 19), built from 8 variable MTRRs
+|| x86/PAT: Configuration [0-7]: WB  WC  UC- UC  WB  WP  UC- WT  
+|| found SMP MP-table at [mem 0x000f5460-0x000f546f]
+|| ACPI: Early table checksum verification disabled
+|| ACPI: RSDP 0x00000000000F5280 000014 (v00 BOCHS )
+|| ACPI: RSDT 0x000000007FFE1CBA 000034 (v01 BOCHS  BXPC     00000001 BXPC 00000001)
+|| ACPI: FACP 0x000000007FFE1B6E 000074 (v01 BOCHS  BXPC     00000001 BXPC 00000001)
+|| ACPI: DSDT 0x000000007FFE0040 001B2E (v01 BOCHS  BXPC     00000001 BXPC 00000001)
+|| ACPI: FACS 0x000000007FFE0000 000040
+|| ACPI: APIC 0x000000007FFE1BE2 000078 (v03 BOCHS  BXPC     00000001 BXPC 00000001)
+|| ACPI: HPET 0x000000007FFE1C5A 000038 (v01 BOCHS  BXPC     00000001 BXPC 00000001)
+|| ACPI: WAET 0x000000007FFE1C92 000028 (v01 BOCHS  BXPC     00000001 BXPC 00000001)
+|| ACPI: Reserving FACP table memory at [mem 0x7ffe1b6e-0x7ffe1be1]
+|| ACPI: Reserving DSDT table memory at [mem 0x7ffe0040-0x7ffe1b6d]
+|| ACPI: Reserving FACS table memory at [mem 0x7ffe0000-0x7ffe003f]
+|| ACPI: Reserving APIC table memory at [mem 0x7ffe1be2-0x7ffe1c59]
+|| ACPI: Reserving HPET table memory at [mem 0x7ffe1c5a-0x7ffe1c91]
+|| ACPI: Reserving WAET table memory at [mem 0x7ffe1c92-0x7ffe1cb9]
+|| No NUMA configuration found
+|| Faking a node at [mem 0x0000000000000000-0x000000007ffdffff]
+|| NODE_DATA(0) allocated [mem 0x7ffdc000-0x7ffdffff]
+|| Zone ranges:
+||   DMA      [mem 0x0000000000001000-0x0000000000ffffff]
+||   DMA32    [mem 0x0000000001000000-0x000000007ffdffff]
+||   Normal   empty
+|| Movable zone start for each node
+|| Early memory node ranges
+||   node   0: [mem 0x0000000000001000-0x000000000009efff]
+||   node   0: [mem 0x0000000000100000-0x000000007ffdffff]
+|| Initmem setup node 0 [mem 0x0000000000001000-0x000000007ffdffff]
+|| On node 0, zone DMA: 1 pages in unavailable ranges
+|| On node 0, zone DMA: 97 pages in unavailable ranges
+|| On node 0, zone DMA32: 32 pages in unavailable ranges
+|| ACPI: PM-Timer IO Port: 0x608
+|| ACPI: LAPIC_NMI (acpi_id[0xff] dfl dfl lint[0x1])
+|| IOAPIC[0]: apic_id 0, version 32, address 0xfec00000, GSI 0-23
+|| ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+|| ACPI: INT_SRC_OVR (bus 0 bus_irq 5 global_irq 5 high level)
+|| ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
+|| ACPI: INT_SRC_OVR (bus 0 bus_irq 10 global_irq 10 high level)
+|| ACPI: INT_SRC_OVR (bus 0 bus_irq 11 global_irq 11 high level)
+|| ACPI: Using ACPI (MADT) for SMP configuration information
+|| ACPI: HPET id: 0x8086a201 base: 0xfed00000
+|| CPU topo: Max. logical packages:   1
+|| CPU topo: Max. logical dies:       1
+|| CPU topo: Max. dies per package:   1
+|| CPU topo: Max. threads per core:   1
+|| CPU topo: Num. cores per package:     1
+|| CPU topo: Num. threads per package:   1
+|| CPU topo: Allowing 1 present CPUs plus 0 hotplug CPUs
+|| PM: hibernation: Registered nosave memory: [mem 0x00000000-0x00000fff]
+|| PM: hibernation: Registered nosave memory: [mem 0x0009f000-0x0009ffff]
+|| PM: hibernation: Registered nosave memory: [mem 0x000a0000-0x000effff]
+|| PM: hibernation: Registered nosave memory: [mem 0x000f0000-0x000fffff]
+|| [mem 0x80000000-0xfffbffff] available for PCI devices
+|| Booting paravirtualized kernel on bare hardware
+|| clocksource: refined-jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 1910969940391419 ns
+|| setup_percpu: NR_CPUS:64 nr_cpumask_bits:1 nr_cpu_ids:1 nr_node_ids:1
+|| percpu: Embedded 58 pages/cpu s199384 r8192 d29992 u2097152
+|| Kernel command line: root=/dev/root ro rootfstype=9p rootflags=trans=virtio console=ttyS0 init=/bin/sh
+|| Dentry cache hash table entries: 262144 (order: 9, 2097152 bytes, linear)
+|| Inode-cache hash table entries: 131072 (order: 8, 1048576 bytes, linear)
+|| Fallback order for Node 0: 0 
+|| Built 1 zonelists, mobility grouping on.  Total pages: 524158
+|| Policy zone: DMA32
+|| mem auto-init: stack:off, heap alloc:off, heap free:off
+|| Memory: 2018576K/2096632K available (18432K kernel code, 3068K rwdata, 7568K rodata, 2828K init, 2660K bss, 77796K reserved, 0K cma-reserved)
+|| SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+|| Dynamic Preempt: voluntary
+|| rcu: Preemptible hierarchical RCU implementation.
+|| rcu: 	RCU event tracing is enabled.
+|| rcu: 	RCU restricting CPUs from NR_CPUS=64 to nr_cpu_ids=1.
+|| 	Trampoline variant of Tasks RCU enabled.
+|| 	Tracing variant of Tasks RCU enabled.
+|| rcu: RCU calculated value of scheduler-enlistment delay is 100 jiffies.
+|| rcu: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=1
+|| RCU Tasks: Setting shift to 0 and lim to 1 rcu_task_cb_adjust=1.
+|| RCU Tasks Trace: Setting shift to 0 and lim to 1 rcu_task_cb_adjust=1.
+|| NR_IRQS: 4352, nr_irqs: 256, preallocated irqs: 16
+|| rcu: srcu_init: Setting srcu_struct sizes based on contention.
+|| Console: colour VGA+ 80x25
+|| printk: legacy console [ttyS0] enabled
+|| ACPI: Core revision 20240322
+|| clocksource: hpet: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604467 ns
+|| APIC: Switch to symmetric I/O mode setup
+|| ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
+|| clocksource: tsc-early: mask: 0xffffffffffffffff max_cycles: 0x22df24e1abd, max_idle_ns: 440795235582 ns
+|| Calibrating delay loop (skipped), value calculated using timer frequency.. 4838.44 BogoMIPS (lpj=2419221)
+|| Last level iTLB entries: 4KB 512, 2MB 255, 4MB 127
+|| Last level dTLB entries: 4KB 512, 2MB 255, 4MB 127, 1GB 0
+|| Spectre V1 : Mitigation: usercopy/swapgs barriers and __user pointer sanitization
+|| Spectre V2 : Mitigation: Retpolines
+|| Spectre V2 : Spectre v2 / SpectreRSB mitigation: Filling RSB on context switch
+|| Spectre V2 : Spectre v2 / SpectreRSB : Filling RSB on VMEXIT
+|| x86/fpu: x87 FPU will use FXSAVE
+|| Freeing SMP alternatives memory: 52K
+|| pid_max: default: 32768 minimum: 301
+|| LSM: initializing lsm=capability,selinux,bpf
+|| SELinux:  Initializing.
+|| LSM support for eBPF active
+|| Mount-cache hash table entries: 4096 (order: 3, 32768 bytes, linear)
+|| Mountpoint-cache hash table entries: 4096 (order: 3, 32768 bytes, linear)
+|| smpboot: CPU0: AMD QEMU Virtual CPU version 2.5+ (family: 0xf, model: 0x6b, stepping: 0x1)
+|| Performance Events: PMU not available due to virtualization, using software events only.
+|| signal: max sigframe size: 1440
+|| rcu: Hierarchical SRCU implementation.
+|| rcu: 	Max phase no-delay instances is 400.
+|| smp: Bringing up secondary CPUs ...
+|| smp: Brought up 1 node, 1 CPU
+|| smpboot: Total of 1 processors activated (4838.44 BogoMIPS)
+|| devtmpfs: initialized
+|| clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 1911260446275000 ns
+|| futex hash table entries: 256 (order: 2, 16384 bytes, linear)
+|| PM: RTC time: 05:47:20, date: 2024-07-19
+|| NET: Registered PF_NETLINK/PF_ROUTE protocol family
+|| audit: initializing netlink subsys (disabled)
+|| audit: type=2000 audit(1721368039.515:1): state=initialized audit_enabled=0 res=1
+|| thermal_sys: Registered thermal governor 'step_wise'
+|| thermal_sys: Registered thermal governor 'user_space'
+|| cpuidle: using governor menu
+|| PCI: Using configuration type 1 for base access
+|| kprobes: kprobe jump-optimization is enabled. All kprobes are optimized if possible.
+|| HugeTLB: registered 2.00 MiB page size, pre-allocated 0 pages
+|| HugeTLB: 28 KiB vmemmap can be freed for a 2.00 MiB page
+|| Demotion targets for Node 0: null
+|| ACPI: Added _OSI(Module Device)
+|| ACPI: Added _OSI(Processor Device)
+|| ACPI: Added _OSI(3.0 _SCP Extensions)
+|| ACPI: Added _OSI(Processor Aggregator Device)
+|| ACPI: 1 ACPI AML tables successfully acquired and loaded
+|| ACPI: Interpreter enabled
+|| ACPI: PM: (supports S0 S3 S4 S5)
+|| ACPI: Using IOAPIC for interrupt routing
+|| PCI: Using host bridge windows from ACPI; if necessary, use "pci=nocrs" and report a bug
+|| PCI: Using E820 reservations for host bridge windows
+|| ACPI: Enabled 2 GPEs in block 00 to 0F
+|| ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+|| acpi PNP0A03:00: _OSC: OS supports [ASPM ClockPM Segments MSI HPX-Type3]
+|| acpi PNP0A03:00: _OSC: not requesting OS control; OS requires [ExtendedConfig ASPM ClockPM MSI]
+|| acpi PNP0A03:00: fail to add MMCONFIG information, can't access extended configuration space under this bridge
+|| PCI host bridge to bus 0000:00
+|| pci_bus 0000:00: root bus resource [io  0x0000-0x0cf7 window]
+|| pci_bus 0000:00: root bus resource [io  0x0d00-0xffff window]
+|| pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000bffff window]
+|| pci_bus 0000:00: root bus resource [mem 0x80000000-0xfebfffff window]
+|| pci_bus 0000:00: root bus resource [mem 0x100000000-0x17fffffff window]
+|| pci_bus 0000:00: root bus resource [bus 00-ff]
+|| pci 0000:00:00.0: [8086:1237] type 00 class 0x060000 conventional PCI endpoint
+|| pci 0000:00:01.0: [8086:7000] type 00 class 0x060100 conventional PCI endpoint
+|| pci 0000:00:01.1: [8086:7010] type 00 class 0x010180 conventional PCI endpoint
+|| pci 0000:00:01.1: BAR 4 [io  0xc0a0-0xc0af]
+|| pci 0000:00:01.1: BAR 0 [io  0x01f0-0x01f7]: legacy IDE quirk
+|| pci 0000:00:01.1: BAR 1 [io  0x03f6]: legacy IDE quirk
+|| pci 0000:00:01.1: BAR 2 [io  0x0170-0x0177]: legacy IDE quirk
+|| pci 0000:00:01.1: BAR 3 [io  0x0376]: legacy IDE quirk
+|| pci 0000:00:01.2: [8086:7020] type 00 class 0x0c0300 conventional PCI endpoint
+|| pci 0000:00:01.2: BAR 4 [io  0xc080-0xc09f]
+|| pci 0000:00:01.3: [8086:7113] type 00 class 0x068000 conventional PCI endpoint
+|| pci 0000:00:01.3: quirk: [io  0x0600-0x063f] claimed by PIIX4 ACPI
+|| pci 0000:00:01.3: quirk: [io  0x0700-0x070f] claimed by PIIX4 SMB
+|| pci 0000:00:02.0: [1234:1111] type 00 class 0x030000 conventional PCI endpoint
+|| pci 0000:00:02.0: BAR 0 [mem 0xfd000000-0xfdffffff pref]
+|| pci 0000:00:02.0: BAR 2 [mem 0xfebf4000-0xfebf4fff]
+|| pci 0000:00:02.0: ROM [mem 0xfebe0000-0xfebeffff pref]
+|| pci 0000:00:02.0: Video device with shadowed ROM at [mem 0x000c0000-0x000dffff]
+|| pci 0000:00:03.0: [8086:100e] type 00 class 0x020000 conventional PCI endpoint
+|| pci 0000:00:03.0: BAR 0 [mem 0xfebc0000-0xfebdffff]
+|| pci 0000:00:03.0: BAR 1 [io  0xc000-0xc03f]
+|| pci 0000:00:03.0: ROM [mem 0xfeb80000-0xfebbffff pref]
+|| pci 0000:00:04.0: [1b36:000d] type 00 class 0x0c0330 conventional PCI endpoint
+|| pci 0000:00:04.0: BAR 0 [mem 0xfebf0000-0xfebf3fff 64bit]
+|| pci 0000:00:05.0: [1af4:1009] type 00 class 0x000200 conventional PCI endpoint
+|| pci 0000:00:05.0: BAR 0 [io  0xc040-0xc07f]
+|| pci 0000:00:05.0: BAR 1 [mem 0xfebf5000-0xfebf5fff]
+|| pci 0000:00:05.0: BAR 4 [mem 0xfe000000-0xfe003fff 64bit pref]
+|| ACPI: PCI: Interrupt link LNKA configured for IRQ 10
+|| ACPI: PCI: Interrupt link LNKB configured for IRQ 10
+|| ACPI: PCI: Interrupt link LNKC configured for IRQ 11
+|| ACPI: PCI: Interrupt link LNKD configured for IRQ 11
+|| ACPI: PCI: Interrupt link LNKS configured for IRQ 9
+|| iommu: Default domain type: Translated
+|| iommu: DMA domain TLB invalidation policy: lazy mode
+|| SCSI subsystem initialized
+|| ACPI: bus type USB registered
+|| usbcore: registered new interface driver usbfs
+|| usbcore: registered new interface driver hub
+|| usbcore: registered new device driver usb
+|| pps_core: LinuxPPS API ver. 1 registered
+|| pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
+|| PTP clock support registered
+|| Advanced Linux Sound Architecture Driver Initialized.
+|| NetLabel: Initializing
+|| NetLabel:  domain hash size = 128
+|| NetLabel:  protocols = UNLABELED CIPSOv4 CALIPSO
+|| NetLabel:  unlabeled traffic allowed by default
+|| PCI: Using ACPI for IRQ routing
+|| pci 0000:00:02.0: vgaarb: setting as boot VGA device
+|| pci 0000:00:02.0: vgaarb: bridge control possible
+|| pci 0000:00:02.0: vgaarb: VGA device added: decodes=io+mem,owns=io+mem,locks=none
+|| vgaarb: loaded
+|| hpet: 3 channels of 0 reserved for per-cpu timers
+|| hpet0: at MMIO 0xfed00000, IRQs 2, 8, 0
+|| hpet0: 3 comparators, 64-bit 100.000000 MHz counter
+|| clocksource: Switched to clocksource tsc-early
+|| VFS: Disk quotas dquot_6.6.0
+|| VFS: Dquot-cache hash table entries: 512 (order 0, 4096 bytes)
+|| pnp: PnP ACPI init
+|| pnp: PnP ACPI: found 6 devices
+|| clocksource: acpi_pm: mask: 0xffffff max_cycles: 0xffffff, max_idle_ns: 2085701024 ns
+|| NET: Registered PF_INET protocol family
+|| IP idents hash table entries: 32768 (order: 6, 262144 bytes, linear)
+|| tcp_listen_portaddr_hash hash table entries: 1024 (order: 2, 16384 bytes, linear)
+|| Table-perturb hash table entries: 65536 (order: 6, 262144 bytes, linear)
+|| TCP established hash table entries: 16384 (order: 5, 131072 bytes, linear)
+|| TCP bind hash table entries: 16384 (order: 7, 524288 bytes, linear)
+|| TCP: Hash tables configured (established 16384 bind 16384)
+|| UDP hash table entries: 1024 (order: 3, 32768 bytes, linear)
+|| UDP-Lite hash table entries: 1024 (order: 3, 32768 bytes, linear)
+|| NET: Registered PF_UNIX/PF_LOCAL protocol family
+|| RPC: Registered named UNIX socket transport module.
+|| RPC: Registered udp transport module.
+|| RPC: Registered tcp transport module.
+|| RPC: Registered tcp-with-tls transport module.
+|| RPC: Registered tcp NFSv4.1 backchannel transport module.
+|| pci_bus 0000:00: resource 4 [io  0x0000-0x0cf7 window]
+|| pci_bus 0000:00: resource 5 [io  0x0d00-0xffff window]
+|| pci_bus 0000:00: resource 6 [mem 0x000a0000-0x000bffff window]
+|| pci_bus 0000:00: resource 7 [mem 0x80000000-0xfebfffff window]
+|| pci_bus 0000:00: resource 8 [mem 0x100000000-0x17fffffff window]
+|| pci 0000:00:01.0: PIIX3: Enabling Passive Release
+|| pci 0000:00:00.0: Limiting direct PCI/PCI transfers
+|| ACPI: \_SB_.LNKD: Enabled at IRQ 11
+|| pci 0000:00:01.2: quirk_usb_early_handoff+0x0/0x7a0 took 145331 usecs
+|| pci 0000:00:04.0: quirk_usb_early_handoff+0x0/0x7a0 took 138125 usecs
+|| PCI: CLS 0 bytes, default 64
+|| Initialise system trusted keyrings
+|| workingset: timestamp_bits=56 max_order=19 bucket_order=0
+|| NFS: Registering the id_resolver key type
+|| Key type id_resolver registered
+|| Key type id_legacy registered
+|| 9p: Installing v9fs 9p2000 file system support
+|| Key type asymmetric registered
+|| Asymmetric key parser 'x509' registered
+|| Block layer SCSI generic (bsg) driver version 0.4 loaded (major 251)
+|| io scheduler mq-deadline registered
+|| io scheduler kyber registered
+|| input: Power Button as /devices/LNXSYSTM:00/LNXPWRBN:00/input/input0
+|| ACPI: button: Power Button [PWRF]
+|| ACPI: \_SB_.LNKA: Enabled at IRQ 10
+|| Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
+|| 00:04: ttyS0 at I/O 0x3f8 (irq = 4, base_baud = 115200) is a 16550A
+|| Non-volatile memory driver v1.3
+|| Linux agpgart interface v0.103
+|| ACPI: bus type drm_connector registered
+|| loop: module loaded
+|| scsi host0: ata_piix
+|| scsi host1: ata_piix
+|| ata1: PATA max MWDMA2 cmd 0x1f0 ctl 0x3f6 bmdma 0xc0a0 irq 14 lpm-pol 0
+|| ata2: PATA max MWDMA2 cmd 0x170 ctl 0x376 bmdma 0xc0a8 irq 15 lpm-pol 0
+|| e100: Intel(R) PRO/100 Network Driver
+|| e100: Copyright(c) 1999-2006 Intel Corporation
+|| e1000: Intel(R) PRO/1000 Network Driver
+|| e1000: Copyright (c) 1999-2006 Intel Corporation.
+|| ACPI: \_SB_.LNKC: Enabled at IRQ 11
+|| ata2: found unknown device (class 0)
+|| ata2.00: ATAPI: QEMU DVD-ROM, 2.5+, max UDMA/100
+|| scsi 1:0:0:0: CD-ROM            QEMU     QEMU DVD-ROM     2.5+ PQ: 0 ANSI: 5
+|| sr 1:0:0:0: [sr0] scsi3-mmc drive: 4x/4x cd/rw xa/form2 tray
+|| cdrom: Uniform CD-ROM driver Revision: 3.20
+|| sr 1:0:0:0: Attached scsi generic sg0 type 5
+|| e1000 0000:00:03.0 eth0: (PCI:33MHz:32-bit) 52:54:00:12:34:56
+|| e1000 0000:00:03.0 eth0: Intel(R) PRO/1000 Network Connection
+|| e1000e: Intel(R) PRO/1000 Network Driver
+|| e1000e: Copyright(c) 1999 - 2015 Intel Corporation.
+|| sky2: driver version 1.30
+|| uhci_hcd 0000:00:01.2: UHCI Host Controller
+|| uhci_hcd 0000:00:01.2: new USB bus registered, assigned bus number 1
+|| uhci_hcd 0000:00:01.2: detected 2 ports
+|| uhci_hcd 0000:00:01.2: irq 11, io port 0x0000c080
+|| usb usb1: New USB device found, idVendor=1d6b, idProduct=0001, bcdDevice= 6.10
+|| usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+|| usb usb1: Product: UHCI Host Controller
+|| usb usb1: Manufacturer: Linux 6.10.0 uhci_hcd
+|| usb usb1: SerialNumber: 0000:00:01.2
+|| hub 1-0:1.0: USB hub found
+|| hub 1-0:1.0: 2 ports detected
+|| xhci_hcd 0000:00:04.0: xHCI Host Controller
+|| xhci_hcd 0000:00:04.0: new USB bus registered, assigned bus number 2
+|| xhci_hcd 0000:00:04.0: hcc params 0x00087001 hci version 0x100 quirks 0x0000000000000010
+|| xhci_hcd 0000:00:04.0: xHCI Host Controller
+|| xhci_hcd 0000:00:04.0: new USB bus registered, assigned bus number 3
+|| xhci_hcd 0000:00:04.0: Host supports USB 3.0 SuperSpeed
+|| usb usb2: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 6.10
+|| usb usb2: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+|| usb usb2: Product: xHCI Host Controller
+|| usb usb2: Manufacturer: Linux 6.10.0 xhci-hcd
+|| usb usb2: SerialNumber: 0000:00:04.0
+|| hub 2-0:1.0: USB hub found
+|| hub 2-0:1.0: 4 ports detected
+|| usb usb3: We don't know the algorithms for LPM for this host, disabling LPM.
+|| usb usb3: New USB device found, idVendor=1d6b, idProduct=0003, bcdDevice= 6.10
+|| usb usb3: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+|| usb usb3: Product: xHCI Host Controller
+|| usb usb3: Manufacturer: Linux 6.10.0 xhci-hcd
+|| usb usb3: SerialNumber: 0000:00:04.0
+|| hub 3-0:1.0: USB hub found
+|| hub 3-0:1.0: 4 ports detected
+|| usbcore: registered new interface driver usblp
+|| usbcore: registered new interface driver cdc_wdm
+|| usbcore: registered new interface driver usbtmc
+|| usbcore: registered new interface driver usb-storage
+|| usbcore: registered new interface driver usbtest
+|| i8042: PNP: PS/2 Controller [PNP0303:KBD,PNP0f13:MOU] at 0x60,0x64 irq 1,12
+|| serio: i8042 KBD port at 0x60,0x64 irq 1
+|| serio: i8042 AUX port at 0x60,0x64 irq 12
+|| mousedev: PS/2 mouse device common for all mice
+|| usbcore: registered new interface driver synaptics_usb
+|| rtc_cmos 00:05: RTC can wake from S4
+|| input: AT Translated Set 2 keyboard as /devices/platform/i8042/serio0/input/input1
+|| rtc_cmos 00:05: registered as rtc0
+|| rtc_cmos 00:05: alarms up to one day, y3k, 242 bytes nvram, hpet irqs
+|| fail to initialize ptp_kvm
+|| device-mapper: ioctl: 4.48.0-ioctl (2023-03-01) initialised: dm-devel@lists.linux.dev
+|| amd_pstate: the _CPC object is not present in SBIOS or ACPI disabled
+|| hid: raw HID events driver (C) Jiri Kosina
+|| usbcore: registered new interface driver usbhid
+|| usbhid: USB HID core driver
+|| Initializing XFRM netlink socket
+|| NET: Registered PF_INET6 protocol family
+|| Segment Routing with IPv6
+|| In-situ OAM (IOAM) with IPv6
+|| sit: IPv6, IPv4 and MPLS over IPv4 tunneling driver
+|| NET: Registered PF_PACKET protocol family
+|| 9pnet: Installing 9P2000 support
+|| Key type dns_resolver registered
+|| IPI shorthand broadcast: enabled
+|| sched_clock: Marking stable (2426063149, 24582588)->(2456204727, -5558971)
+|| registered taskstats version 1
+|| Loading compiled-in X.509 certificates
+|| Demotion targets for Node 0: null
+|| PM:   Magic number: 0:199:770
+|| PM:   hash matches drivers/base/power/main.c:1210
+|| printk: legacy console [netcon0] enabled
+|| netconsole: network logging started
+|| cfg80211: Loading compiled-in X.509 certificates for regulatory database
+|| kworker/u4:1 (48) used greatest stack depth: 14512 bytes left
+|| Loaded X.509 cert 'sforshee: 00b28ddf47aef9cea7'
+|| Loaded X.509 cert 'wens: 61c038651aabdcf94bd0ac7ff06c7248db18c600'
+|| ALSA device list:
+||   No soundcards found.
+|| platform regulatory.0: Direct firmware load for regulatory.db failed with error -2
+|| cfg80211: failed to load regulatory.db
+|| tsc: Refined TSC clocksource calibration: 2419.198 MHz
+|| clocksource: tsc: mask: 0xffffffffffffffff max_cycles: 0x22df0f35937, max_idle_ns: 440795269039 ns
+|| clocksource: Switched to clocksource tsc
+|| input: ImExPS/2 Generic Explorer Mouse as /devices/platform/i8042/serio1/input/input3
+|| md: Waiting for all devices to be available before autodetect
+|| md: If you don't use raid, use raid=noautodetect
+|| md: Autodetecting RAID arrays.
+|| md: autorun ...
+|| md: ... autorun DONE.
+|| VFS: Mounted root (9p filesystem) readonly on device 0:19.
+|| devtmpfs: mounted
+|| Freeing unused kernel image (initmem) memory: 2828K
+|| Write protecting the kernel read-only data: 26624k
+|| Freeing unused kernel image (rodata/data gap) memory: 624K
+|| x86/mm: Checked W+X mappings: passed, no W+X pages found.
+|| Run /bin/sh as init process
+/bin/sh: 0: can't access tty; job control turned off
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 2401
+|| usb 2-1: new low-speed USB device number 2 using xhci_hcd
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 1fc8000
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 1002e01
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 1000680
+|| xhci_hcd 0000:00:04.0: 400000
+|| xhci_hcd 0000:00:04.0: 8
+|| xhci_hcd 0000:00:04.0: 30840
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 1f9ee00
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 40
+|| xhci_hcd 0000:00:04.0: 10c05
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 1021 
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 1004401
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 1fc8000
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 1002c01
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 1000680
+|| xhci_hcd 0000:00:04.0: 120000
+|| xhci_hcd 0000:00:04.0: 8
+|| xhci_hcd 0000:00:04.0: 30840
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 1f20a00
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 12
+|| xhci_hcd 0000:00:04.0: 10c05
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 1021
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 2000680
+|| xhci_hcd 0000:00:04.0: 90000
+|| xhci_hcd 0000:00:04.0: 8
+|| xhci_hcd 0000:00:04.0: 30840
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 1f2db20
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 9
+|| xhci_hcd 0000:00:04.0: 10c05
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 1021
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 2000680
+|| xhci_hcd 0000:00:04.0: 220000
+|| xhci_hcd 0000:00:04.0: 8
+|| xhci_hcd 0000:00:04.0: 30840
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 1f9ee00
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 22
+|| xhci_hcd 0000:00:04.0: 10c05
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 1021
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 3000680
+|| xhci_hcd 0000:00:04.0: ff0000
+|| xhci_hcd 0000:00:04.0: 8
+|| xhci_hcd 0000:00:04.0: 30840
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 1fba400
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: ff
+|| xhci_hcd 0000:00:04.0: 10c05
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 1021
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 3020680
+|| xhci_hcd 0000:00:04.0: ff0409
+|| xhci_hcd 0000:00:04.0: 8
+|| xhci_hcd 0000:00:04.0: 30840
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 1fba400
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: ff
+|| xhci_hcd 0000:00:04.0: 10c05
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 1021
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 3010680
+|| xhci_hcd 0000:00:04.0: ff0409
+|| xhci_hcd 0000:00:04.0: 8
+|| xhci_hcd 0000:00:04.0: 30840
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 1fba400
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: ff
+|| xhci_hcd 0000:00:04.0: 10c05
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 1021
+|| usb 2-1: New USB device found, idVendor=30fa, idProduct=0302, bcdDevice= 1.00
+|| usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+|| usb 2-1: Product: USB Optical Mouse
+|| usb 2-1: Manufacturer: Instant
+|| xhci_hcd 0000:00:04.0: slot ctx=================================================================
+|| xhci_hcd 0000:00:04.0: slot_ctx:devinfo: 18200000
+|| xhci_hcd 0000:00:04.0: slot_ctx:devinfo2: 50000
+|| xhci_hcd 0000:00:04.0: slot_ctx:ttinfo: 0
+|| xhci_hcd 0000:00:04.0: slot_ctx:dev_state: 0
+|| xhci_hcd 0000:00:04.0: ctrl ctx=================================================================
+|| xhci_hcd 0000:00:04.0: ctrl_ctx:add_flags: 9
+|| xhci_hcd 0000:00:04.0: ctrl_ctx:drop_flags: 0
+|| xhci_hcd 0000:00:04.0: ctrl_ctx:rsvd 0: 0
+|| xhci_hcd 0000:00:04.0: ctrl_ctx:rsvd 1: 0
+|| xhci_hcd 0000:00:04.0: ctrl_ctx:rsvd 2: 0
+|| xhci_hcd 0000:00:04.0: ctrl_ctx:rsvd 3: 0
+|| xhci_hcd 0000:00:04.0: ctrl_ctx:rsvd 4: 0
+|| xhci_hcd 0000:00:04.0: ctrl_ctx:rsvd 5: 0
+|| xhci_hcd 0000:00:04.0: endpoint 0=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 1fc9031
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 80026
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 1fc9031
+|| xhci_hcd 0000:00:04.0: endpoint 1=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 2=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 1fcd001
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 5003e
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 60000
+|| xhci_hcd 0000:00:04.0: tx_info_32: 50005
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 1fcd001
+|| xhci_hcd 0000:00:04.0: endpoint 3=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 4=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 5=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 6=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 7=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 8=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 9=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 10=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 11=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 12=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 13=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 14=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 15=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 16=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 17=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 18=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 19=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 20=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 21=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 22=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 23=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 24=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 25=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 26=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 27=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 28=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 29=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 30=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: endpoint 31=================================================================
+|| xhci_hcd 0000:00:04.0: deque_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info2_32: 0
+|| xhci_hcd 0000:00:04.0: ep_info1_32: 0
+|| xhci_hcd 0000:00:04.0: tx_info_32: 0
+|| xhci_hcd 0000:00:04.0: deque_ptr_64: 0
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 1fc8000
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 1003001
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 1033c01
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 1fd0000
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 1003001
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 10900
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 8
+|| xhci_hcd 0000:00:04.0: 840
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 11021
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: a21
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 8
+|| xhci_hcd 0000:00:04.0: 840
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 11021
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 22000681
+|| xhci_hcd 0000:00:04.0: 400000
+|| xhci_hcd 0000:00:04.0: 8
+|| xhci_hcd 0000:00:04.0: 30840
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 1fcf000
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 40
+|| xhci_hcd 0000:00:04.0: 10c05
+|| xhci_hcd 0000:00:04.0: dump trb:
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 0
+|| xhci_hcd 0000:00:04.0: 1021
+|| input: Instant USB Optical Mouse as /devices/pci0000:00/0000:00:04.0/usb2/2-1/2-1:1.0/0003:30FA:0302.0001/input/input4
+|| hid-generic 0003:30FA:0302.0001: input,hidraw0: USB HID v1.11 Mouse [Instant USB Optical Mouse] on usb-0000:00:04.0-1/input0

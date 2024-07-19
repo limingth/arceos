@@ -1,5 +1,5 @@
  
-## Total Size      = 0x0002d040 = 184384 Bytes
+## Total Size      = 0x0002e040 = 188480 Bytes
 ## Start Addr      = 0x90100000
 Phytium-Pi#go 0x90100000
 ## Starting application at 0x90100000 ...
@@ -10,128 +10,128 @@ smp = 1
 build_mode = release
 log_level = debug
 
-[ 51.933133 0 axruntime:141] Logging is enabled.
-[ 51.938861 0 axruntime:142] Primary CPU 512 started, dtb = 0x1.
-[ 51.945978 0 axruntime:144] Found physcial memory regions:
-[ 51.952663 0 axruntime:147]   [PA:0x90100000, PA:0x90123000) .text (READ | EXECUTE | RESERVED)
-[ 51.962470 0 axruntime:147]   [PA:0x90123000, PA:0x9012a000) .rodata (READ | RESERVED)
-[ 51.971584 0 axruntime:147]   [PA:0x9012a000, PA:0x9012e000) .data .tdata .tbss .percpu (READ | WRITE | RESERVED)
-[ 51.983042 0 axruntime:147]   [PA:0x9012e000, PA:0x9016e000) boot stack (READ | WRITE | RESERVED)
-[ 51.993111 0 axruntime:147]   [PA:0x9016e000, PA:0x90194000) .bss (READ | WRITE | RESERVED)
-[ 52.002659 0 axruntime:147]   [PA:0x0, PA:0x1000) spintable (READ | WRITE | RESERVED)
-[ 52.011686 0 axruntime:147]   [PA:0x90194000, PA:0x90894000) nocache memory (READ | WRITE | DEVICE)
-[ 52.021928 0 axruntime:147]   [PA:0x90894000, PA:0xff900000) free memory (READ | WRITE | FREE)
-[ 52.031737 0 axruntime:147]   [PA:0x2800c000, PA:0x2800d000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 52.042066 0 axruntime:147]   [PA:0x2800d000, PA:0x2800e000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 52.052395 0 axruntime:147]   [PA:0x2800e000, PA:0x2800f000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 52.062724 0 axruntime:147]   [PA:0x2800f000, PA:0x28010000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 52.073054 0 axruntime:147]   [PA:0x30000000, PA:0x38000000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 52.083383 0 axruntime:147]   [PA:0x40000000, PA:0x80000000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 52.093712 0 axruntime:147]   [PA:0x1000000000, PA:0x3000000000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 52.104388 0 axruntime:226] Initialize global memory allocator...
-[ 52.111680 0 axruntime:227]   use TLSF allocator.
-[ 52.117584 0 axalloc:284] initialize global allocator at: free-[0xffff000090894000, 0xffff0000ff900000)
-[ 52.128495 0 axruntime:161] Initialize kernel page table...
-[ 52.135037 0 axruntime:261] Initialize global no cache memory allocator...
-[ 52.143016 0 axalloc:300] initialize global allocator at: nocache-[0x90194000,0x90894000)
-[ 52.152391 0 axruntime:168] Initialize platform devices...
-[ 52.159072 0 axhal::platform::aarch64_common::gic:51] Initialize GICv2...
-[ 52.167059 0 axtask::api:66] Initialize scheduling...
-[ 52.173311 0 axtask::task:146] new task: Task(1, "idle")
-[ 52.179822 0 axtask::task:146] new task: Task(3, "gc")
-[ 52.186158 0 axalloc:126] expand heap memory: [0xffff0000908a6000, 0xffff0000908e6000)
-[ 52.195275 0 axalloc:126] expand heap memory: [0xffff0000908e6000, 0xffff000090966000)
-[ 52.204384 0 axtask::api:72]   use Round-robin scheduler.
-[ 52.210979 0 axdriver:160] Initialize device drivers...
-[ 52.217402 0 axdriver:161]   device model: static
-[ 52.223304 0 axdriver:192] number of usb host controller: 0
-[ 52.230075 0 axruntime:194] Initialize interrupt handlers...
-[ 52.236932 0 axruntime:204] Primary CPU 512 init OK.
-[ 52.243096 0:2 driver_usb::host::xhci:85] [XHCI] Base addr: VA:0xffff000031a08000
-[ 52.251778 0:2 driver_usb::host::xhci:96] [XHCI] Max_slots: 16, max_ports: 2, max_irqs: 1, page size: 1
-[ 52.263144 0:2 driver_usb::host::xhci:109] [XHCI] ring size 256
-[ 52.269483 0:2 driver_usb::host::xhci:685] [XHCI] Reset begin
-[ 52.276426 0:2 driver_usb::host::xhci:686] [XHCI] Stop
-[ 52.282763 0:2 driver_usb::host::xhci:691] [XHCI] Until halt
-[ 52.289620 0:2 driver_usb::host::xhci:693] [XHCI] Halted
-[ 52.296130 0:2 driver_usb::host::xhci:698] [XHCI] Wait for ready...
-[ 52.303595 0:2 driver_usb::host::xhci:700] [XHCI] Ready
-[ 52.310019 0:2 driver_usb::host::xhci:708] [XHCI] Reset HC
-[ 52.316702 0:2 driver_usb::host::xhci:724] [XHCI] XCHI reset ok
-[ 52.323819 0:2 driver_usb::host::xhci:730] [XHCI] Setting enabled slots to 16.
-[ 52.332239 0:2 driver_usb::host::xhci:739] [XHCI] Writing DCBAAP: 90195000
-[ 52.340312 0:2 driver_usb::host::xhci:752] [XHCI] Writing CRCR: 901B5880
-[ 52.348210 0:2 driver_usb::host::xhci:785] [XHCI] Disable interrupts
-[ 52.355762 0:2 driver_usb::host::xhci:794] [XHCI] Writing ERSTZ
-[ 52.362879 0:2 driver_usb::host::xhci:798] [XHCI] Writing ERDP: 901B6900
-[ 52.370778 0:2 driver_usb::host::xhci:805] [XHCI] Writing ERSTBA: 901B68C0
-[ 52.378852 0:2 driver_usb::host::xhci:815] [XHCI] Enabling primary interrupter.
-[ 52.387357 0:2 driver_usb::host::xhci:521] [XHCI] Scratch buf count: 0
-[ 52.395082 0:2 driver_usb::host::xhci:767] [XHCI] Start run
-[ 52.401853 0:2 driver_usb::host::xhci:774] [XHCI] Is running
-[ 52.408710 0:2 driver_usb::host::xhci:373] [XHCI] Test command ring
-[ 52.416175 0:2 driver_usb::host::xhci::ring:66] enqueued 0 @0x901B5880
+[ 36.607970 0 axruntime:141] Logging is enabled.
+[ 36.613698 0 axruntime:142] Primary CPU 512 started, dtb = 0x1.
+[ 36.620816 0 axruntime:144] Found physcial memory regions:
+[ 36.627500 0 axruntime:147]   [PA:0x90100000, PA:0x90124000) .text (READ | EXECUTE | RESERVED)
+[ 36.637308 0 axruntime:147]   [PA:0x90124000, PA:0x9012b000) .rodata (READ | RESERVED)
+[ 36.646422 0 axruntime:147]   [PA:0x9012b000, PA:0x9012f000) .data .tdata .tbss .percpu (READ | WRITE | RESERVED)
+[ 36.657879 0 axruntime:147]   [PA:0x9012f000, PA:0x9016f000) boot stack (READ | WRITE | RESERVED)
+[ 36.667948 0 axruntime:147]   [PA:0x9016f000, PA:0x90195000) .bss (READ | WRITE | RESERVED)
+[ 36.677496 0 axruntime:147]   [PA:0x0, PA:0x1000) spintable (READ | WRITE | RESERVED)
+[ 36.686523 0 axruntime:147]   [PA:0x90195000, PA:0x90895000) nocache memory (READ | WRITE | DEVICE)
+[ 36.696766 0 axruntime:147]   [PA:0x90895000, PA:0xff900000) free memory (READ | WRITE | FREE)
+[ 36.706574 0 axruntime:147]   [PA:0x2800c000, PA:0x2800d000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 36.716903 0 axruntime:147]   [PA:0x2800d000, PA:0x2800e000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 36.727232 0 axruntime:147]   [PA:0x2800e000, PA:0x2800f000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 36.737562 0 axruntime:147]   [PA:0x2800f000, PA:0x28010000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 36.747891 0 axruntime:147]   [PA:0x30000000, PA:0x38000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 36.758220 0 axruntime:147]   [PA:0x40000000, PA:0x80000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 36.768549 0 axruntime:147]   [PA:0x1000000000, PA:0x3000000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 36.779226 0 axruntime:226] Initialize global memory allocator...
+[ 36.786517 0 axruntime:227]   use TLSF allocator.
+[ 36.792422 0 axalloc:284] initialize global allocator at: free-[0xffff000090895000, 0xffff0000ff900000)
+[ 36.803332 0 axruntime:161] Initialize kernel page table...
+[ 36.809875 0 axruntime:261] Initialize global no cache memory allocator...
+[ 36.817853 0 axalloc:300] initialize global allocator at: nocache-[0x90195000,0x90895000)
+[ 36.827228 0 axruntime:168] Initialize platform devices...
+[ 36.833910 0 axhal::platform::aarch64_common::gic:51] Initialize GICv2...
+[ 36.841896 0 axtask::api:66] Initialize scheduling...
+[ 36.848148 0 axtask::task:146] new task: Task(1, "idle")
+[ 36.854659 0 axtask::task:146] new task: Task(3, "gc")
+[ 36.860996 0 axalloc:126] expand heap memory: [0xffff0000908a7000, 0xffff0000908e7000)
+[ 36.870112 0 axalloc:126] expand heap memory: [0xffff0000908e7000, 0xffff000090967000)
+[ 36.879222 0 axtask::api:72]   use Round-robin scheduler.
+[ 36.885816 0 axdriver:160] Initialize device drivers...
+[ 36.892239 0 axdriver:161]   device model: static
+[ 36.898142 0 axdriver:192] number of usb host controller: 0
+[ 36.904912 0 axruntime:194] Initialize interrupt handlers...
+[ 36.911770 0 axruntime:204] Primary CPU 512 init OK.
+[ 36.917933 0:2 driver_usb::host::xhci:85] [XHCI] Base addr: VA:0xffff000031a08000
+[ 36.926615 0:2 driver_usb::host::xhci:96] [XHCI] Max_slots: 16, max_ports: 2, max_irqs: 1, page size: 1
+[ 36.937991 0:2 driver_usb::host::xhci:109] [XHCI] ring size 256
+[ 36.944321 0:2 driver_usb::host::xhci:688] [XHCI] Reset begin
+[ 36.951263 0:2 driver_usb::host::xhci:689] [XHCI] Stop
+[ 36.957600 0:2 driver_usb::host::xhci:694] [XHCI] Until halt
+[ 36.964457 0:2 driver_usb::host::xhci:696] [XHCI] Halted
+[ 36.970967 0:2 driver_usb::host::xhci:701] [XHCI] Wait for ready...
+[ 36.978432 0:2 driver_usb::host::xhci:703] [XHCI] Ready
+[ 36.984856 0:2 driver_usb::host::xhci:711] [XHCI] Reset HC
+[ 36.991539 0:2 driver_usb::host::xhci:727] [XHCI] XCHI reset ok
+[ 36.998656 0:2 driver_usb::host::xhci:733] [XHCI] Setting enabled slots to 16.
+[ 37.007076 0:2 driver_usb::host::xhci:742] [XHCI] Writing DCBAAP: 90196000
+[ 37.015149 0:2 driver_usb::host::xhci:755] [XHCI] Writing CRCR: 901B6880
+[ 37.023048 0:2 driver_usb::host::xhci:788] [XHCI] Disable interrupts
+[ 37.030599 0:2 driver_usb::host::xhci:797] [XHCI] Writing ERSTZ
+[ 37.037717 0:2 driver_usb::host::xhci:801] [XHCI] Writing ERDP: 901B7900
+[ 37.045616 0:2 driver_usb::host::xhci:808] [XHCI] Writing ERSTBA: 901B78C0
+[ 37.053689 0:2 driver_usb::host::xhci:818] [XHCI] Enabling primary interrupter.
+[ 37.062195 0:2 driver_usb::host::xhci:524] [XHCI] Scratch buf count: 0
+[ 37.069919 0:2 driver_usb::host::xhci:770] [XHCI] Start run
+[ 37.076690 0:2 driver_usb::host::xhci:777] [XHCI] Is running
+[ 37.083547 0:2 driver_usb::host::xhci:376] [XHCI] Test command ring
+[ 37.091012 0:2 driver_usb::host::xhci::ring:66] enqueued 0 @0x901B6880
 0
 0
 0
 5c01
 ------------------------------------------------
-[ 52.429542 0:2 driver_usb::host::xhci::ring:59] [CMD] >> Noop(Noop { cycle_bit: true }) @901B5880
-[ 52.439611 0:2 driver_usb::host::xhci:645] Wait result
-[ 52.445948 0:2 driver_usb::host::xhci:656] [CMD] << Success @901B5880 got result, cycle true
-[ 52.455582 0:2 driver_usb::host::xhci::ring:66] enqueued 1 @0x901B5890
+[ 37.104379 0:2 driver_usb::host::xhci::ring:59] [CMD] >> Noop(Noop { cycle_bit: true }) @901B6880
+[ 37.114448 0:2 driver_usb::host::xhci:648] Wait result
+[ 37.120786 0:2 driver_usb::host::xhci:673] event: PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 1, cycle_bit: true })
+[ 37.135107 0:2 driver_usb::host::xhci:659] [CMD] << Success @901B6880 got result, cycle true
+[ 37.144741 0:2 driver_usb::host::xhci::ring:66] enqueued 1 @0x901B6890
 0
 0
 0
 5c01
 ------------------------------------------------
-[ 52.468948 0:2 driver_usb::host::xhci::ring:59] [CMD] >> Noop(Noop { cycle_bit: true }) @901B5890
-[ 52.479018 0:2 driver_usb::host::xhci:645] Wait result
-[ 52.485354 0:2 driver_usb::host::xhci:656] [CMD] << Success @901B5890 got result, cycle true
-[ 52.494989 0:2 driver_usb::host::xhci::ring:66] enqueued 2 @0x901B58A0
+[ 37.158108 0:2 driver_usb::host::xhci::ring:59] [CMD] >> Noop(Noop { cycle_bit: true }) @901B6890
+[ 37.168177 0:2 driver_usb::host::xhci:648] Wait result
+[ 37.174513 0:2 driver_usb::host::xhci:659] [CMD] << Success @901B6890 got result, cycle true
+[ 37.184149 0:2 driver_usb::host::xhci::ring:66] enqueued 2 @0x901B68A0
 0
 0
 0
 5c01
 ------------------------------------------------
-[ 52.508356 0:2 driver_usb::host::xhci::ring:59] [CMD] >> Noop(Noop { cycle_bit: true }) @901B58A0
-[ 52.518425 0:2 driver_usb::host::xhci:645] Wait result
-[ 52.524762 0:2 driver_usb::host::xhci:670] event: PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 1, cycle_bit: true })
-[ 52.539083 0:2 driver_usb::host::xhci:656] [CMD] << Success @901B58A0 got result, cycle true
-[ 52.548719 0:2 driver_usb::host::xhci:377] [XHCI] Command ring ok
-[ 52.556009 0:2 driver_usb::host::xhci:866] [XHCI] Port 0 start reset
-[ 52.621403 0:2 driver_usb::host::xhci:879] [XHCI] Port 0 reset ok
-[ 52.625822 0:2 driver_usb::host::xhci:866] [XHCI] Port 1 start reset
-[ 52.633379 0:2 driver_usb::host::xhci:879] [XHCI] Port 1 reset ok
-[ 52.640665 0:2 driver_usb::host::xhci:123] [XHCI] Init success
-[ 52.947699 0:2 driver_usb::host::xhci:135] [XHCI] Port 0: Enabled: true, Connected: true, Speed 1, Power true
-[ 52.955940 0:2 driver_usb::host::xhci:135] [XHCI] Port 1: Enabled: false, Connected: false, Speed 0, Power true
-[ 52.967222 0:2 driver_usb::host::xhci::ring:66] enqueued 3 @0x901B58B0
+[ 37.197515 0:2 driver_usb::host::xhci::ring:59] [CMD] >> Noop(Noop { cycle_bit: true }) @901B68A0
+[ 37.207584 0:2 driver_usb::host::xhci:648] Wait result
+[ 37.213921 0:2 driver_usb::host::xhci:659] [CMD] << Success @901B68A0 got result, cycle true
+[ 37.223556 0:2 driver_usb::host::xhci:380] [XHCI] Command ring ok
+[ 37.230846 0:2 driver_usb::host::xhci:869] [XHCI] Port 0 start reset
+[ 37.296240 0:2 driver_usb::host::xhci:882] [XHCI] Port 0 reset ok
+[ 37.300659 0:2 driver_usb::host::xhci:869] [XHCI] Port 1 start reset
+[ 37.308217 0:2 driver_usb::host::xhci:882] [XHCI] Port 1 reset ok
+[ 37.315502 0:2 driver_usb::host::xhci:123] [XHCI] Init success
+[ 37.622536 0:2 driver_usb::host::xhci:135] [XHCI] Port 0: Enabled: true, Connected: true, Speed 1, Power true
+[ 37.630777 0:2 driver_usb::host::xhci:135] [XHCI] Port 1: Enabled: false, Connected: false, Speed 0, Power true
+[ 37.642059 0:2 driver_usb::host::xhci::ring:66] enqueued 3 @0x901B68B0
 0
 0
 0
 2401
 ------------------------------------------------
-[ 52.980589 0:2 driver_usb::host::xhci::ring:59] [CMD] >> EnableSlot(EnableSlot { slot_type: 0, cycle_bit: true }) @901B58B0
-[ 52.992915 0:2 driver_usb::host::xhci:645] Wait result
-[ 52.999252 0:2 driver_usb::host::xhci:670] event: PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 1, cycle_bit: true })
-[ 53.013573 0:2 driver_usb::host::xhci:656] [CMD] << Success @901B58B0 got result, cycle true
-[ 53.023209 0:2 driver_usb::host::xhci:425] new slot id: 1
-[ 53.029953 0:2 driver_usb::host::xhci::context:84] new rings!
-[ 53.036749 0:2 driver_usb::host::xhci:162] assign complete!
-[ 53.043524 0:2 driver_usb::host::xhci::ring:66] enqueued 4 @0x901B58C0
-90199000
+[ 37.655426 0:2 driver_usb::host::xhci::ring:59] [CMD] >> EnableSlot(EnableSlot { slot_type: 0, cycle_bit: true }) @901B68B0
+[ 37.667752 0:2 driver_usb::host::xhci:648] Wait result
+[ 37.674089 0:2 driver_usb::host::xhci:673] event: PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 1, cycle_bit: true })
+[ 37.688411 0:2 driver_usb::host::xhci:659] [CMD] << Success @901B68B0 got result, cycle true
+[ 37.698046 0:2 driver_usb::host::xhci:428] new slot id: 1
+[ 37.704793 0:2 driver_usb::host::xhci::context:84] new rings!
+[ 37.711586 0:2 driver_usb::host::xhci:162] assign complete!
+[ 37.718362 0:2 driver_usb::host::xhci::ring:66] enqueued 4 @0x901B68C0
+9019a000
 0
 0
 1002c01
 ------------------------------------------------
-[ 53.057754 0:2 driver_usb::host::xhci::ring:59] [CMD] >> AddressDevice(AddressDevice { input_context_pointer: 2417594368, block_set_address_request: false, slot_id: 1, cycle_bit: true }) @901B58C0
-[ 53.076417 0:2 driver_usb::host::xhci:645] Wait result
-[ 53.082753 0:2 driver_usb::host::xhci:656] [CMD] << Success @901B58C0 got result, cycle true
-[ 53.092388 0:2 driver_usb::host::xhci:508] address slot [1] ok
-[ 53.099419 0:2 driver_usb::host::xhci:392] slot 1 Addressed
-[ 53.106189 0:2 driver_usb::host::xhci:397]   ep dci 1: Running
-[ 53.113225 0:2 driver_usb::host::xhci:588] SetupStage {
+[ 37.732591 0:2 driver_usb::host::xhci::ring:59] [CMD] >> AddressDevice(AddressDevice { input_context_pointer: 2417598464, block_set_address_request: false, slot_id: 1, cycle_bit: true }) @901B68C0
+[ 37.751254 0:2 driver_usb::host::xhci:648] Wait result
+[ 37.757590 0:2 driver_usb::host::xhci:659] [CMD] << Success @901B68C0 got result, cycle true
+[ 37.767225 0:2 driver_usb::host::xhci:511] address slot [1] ok
+[ 37.774256 0:2 driver_usb::host::xhci:395] slot 1 Addressed
+[ 37.781026 0:2 driver_usb::host::xhci:400]   ep dci 1: Running
+[ 37.788062 0:2 driver_usb::host::xhci:591] SetupStage {
     interrupt_on_completion: false,
     request_type: 128,
     request: 6,
@@ -142,36 +142,36 @@ log_level = debug
     transfer_type: In,
     cycle_bit: false,
 }
-[ 53.138132 0:2 driver_usb::host::xhci::ring:66] enqueued 0 @0x901B7940
+[ 37.812970 0:2 driver_usb::host::xhci::ring:66] enqueued 0 @0x901B8940
 1000680
 80000
 8
 30841
 ------------------------------------------------
-[ 53.152454 0:2 driver_usb::host::xhci::ring:66] enqueued 1 @0x901B7950
-901bc140
+[ 37.827291 0:2 driver_usb::host::xhci::ring:66] enqueued 1 @0x901B8950
+901bd140
 0
 8
 10c01
 ------------------------------------------------
-[ 53.166515 0:2 driver_usb::host::xhci::ring:66] enqueued 2 @0x901B7960
+[ 37.841352 0:2 driver_usb::host::xhci::ring:66] enqueued 2 @0x901B8960
 0
 0
 0
 1021
 ------------------------------------------------
-[ 53.179882 0:2 driver_usb::host::xhci:257] [Transfer] >> setup@0x901B7940, data@0x901B7950, status@0x901B7960
-[ 53.190993 0:2 driver_usb::host::xhci:610] Wait result @0x901B7960
-[ 53.198372 0:2 driver_usb::host::xhci:619] [Transfer] << Success @0x901B7960 got result1, cycle true, len 0
-[ 53.209307 0:2 driver_usb::host::xhci:632] code:Success,pointer:901b7960
-[ 53.217208 0:2 driver_usb::host::xhci:921] device desc:Device {
+[ 37.854719 0:2 driver_usb::host::xhci:260] [Transfer] >> setup@0x901B8940, data@0x901B8950, status@0x901B8960
+[ 37.865830 0:2 driver_usb::host::xhci:613] Wait result @0x901B8960
+[ 37.873209 0:2 driver_usb::host::xhci:622] [Transfer] << Success @0x901B8960 got result1, cycle true, len 0
+[ 37.884144 0:2 driver_usb::host::xhci:635] code:Success,pointer:901b8960
+[ 37.892046 0:2 driver_usb::host::xhci:924] device desc:Device {
     len: 18,
     descriptor_type: 1,
     cd_usb: 512,
     class: 0,
     subclass: 0,
     protocol: 0,
-    max_packet_size0: 64,
+    max_packet_size0: 8,
     vendor: 0,
     product_id: 0,
     device: 0,
@@ -180,18 +180,18 @@ log_level = debug
     serial_number: 0,
     num_configurations: 0,
 }
-[ 53.248542 0:2 driver_usb::host::xhci:169] packet_size0: 64
-[ 53.255311 0:2 driver_usb::host::xhci:1006] CMD: evaluating context for set endpoint0 packet size 64
-[ 53.265640 0:2 driver_usb::host::xhci::ring:66] enqueued 5 @0x901B58D0
-90199000
+[ 37.923292 0:2 driver_usb::host::xhci:169] packet_size0: 8
+[ 37.929975 0:2 driver_usb::host::xhci:1009] CMD: evaluating context for set endpoint0 packet size 8
+[ 37.940217 0:2 driver_usb::host::xhci::ring:66] enqueued 5 @0x901B68D0
+9019a000
 0
 0
 1003401
 ------------------------------------------------
-[ 53.279875 0:2 driver_usb::host::xhci::ring:59] [CMD] >> EvaluateContext(EvaluateContext { input_context_pointer: 2417594368, slot_id: 1, cycle_bit: true }) @901B58D0
-[ 53.295934 0:2 driver_usb::host::xhci:645] Wait result
-[ 53.302270 0:2 driver_usb::host::xhci:656] [CMD] << Success @901B58D0 got result, cycle true
-[ 53.311907 0:2 driver_usb::host::xhci:588] SetupStage {
+[ 37.954452 0:2 driver_usb::host::xhci::ring:59] [CMD] >> EvaluateContext(EvaluateContext { input_context_pointer: 2417598464, slot_id: 1, cycle_bit: true }) @901B68D0
+[ 37.970511 0:2 driver_usb::host::xhci:648] Wait result
+[ 37.976847 0:2 driver_usb::host::xhci:659] [CMD] << Success @901B68D0 got result, cycle true
+[ 37.986484 0:2 driver_usb::host::xhci:591] SetupStage {
     interrupt_on_completion: false,
     request_type: 128,
     request: 6,
@@ -202,36 +202,175 @@ log_level = debug
     transfer_type: In,
     cycle_bit: false,
 }
-[ 53.336903 0:2 driver_usb::host::xhci::ring:66] enqueued 3 @0x901B7970
+[ 38.011480 0:2 driver_usb::host::xhci::ring:66] enqueued 3 @0x901B8970
 1000680
 120000
 8
 30841
 ------------------------------------------------
-[ 53.351312 0:2 driver_usb::host::xhci::ring:66] enqueued 4 @0x901B7980
-901bd000
+[ 38.025889 0:2 driver_usb::host::xhci::ring:66] enqueued 4 @0x901B8980
+901be000
 0
 12
 10c01
 ------------------------------------------------
-[ 53.365460 0:2 driver_usb::host::xhci::ring:66] enqueued 5 @0x901B7990
+[ 38.040037 0:2 driver_usb::host::xhci::ring:66] enqueued 5 @0x901B8990
 0
 0
 0
 1021
 ------------------------------------------------
-[ 53.378827 0:2 driver_usb::host::xhci:257] [Transfer] >> setup@0x901B7970, data@0x901B7980, status@0x901B7990
-[ 53.389938 0:2 driver_usb::host::xhci:610] Wait result @0x901B7990
-[ 53.397317 0:2 driver_usb::host::xhci:619] [Transfer] << Success @0x901B7990 got result1, cycle true, len 0
-[ 53.408252 0:2 driver_usb::host::xhci:632] code:Success,pointer:901b7990
-[ 53.416155 0:2 driver_usb::host::xhci:176] current state:
-[ 53.422748 0:2 driver_usb::host::xhci:335] Device {
+[ 38.053404 0:2 driver_usb::host::xhci:260] [Transfer] >> setup@0x901B8970, data@0x901B8980, status@0x901B8990
+[ 38.064515 0:2 driver_usb::host::xhci:613] Wait result @0x901B8990
+[ 38.071894 0:2 driver_usb::host::xhci:622] [Transfer] << Success @0x901B8990 got result1, cycle true, len 0
+[ 38.082829 0:2 driver_usb::host::xhci:635] code:Success,pointer:901b8990
+[ 38.090732 0:2 driver_usb::host::xhci:179] device found, pid: 0xC52F, vid: 0x46D
+[ 38.099321 0:2 driver_usb::host::xhci:183] fetching device configurations, num:1
+[ 38.108188 0:2 driver_usb::host::xhci:591] SetupStage {
+    interrupt_on_completion: false,
+    request_type: 128,
+    request: 6,
+    value: 512,
+    index: 0,
+    length: 4096,
+    interrupt_on_completion: false,
+    transfer_type: In,
+    cycle_bit: false,
+}
+[ 38.133087 0:2 driver_usb::host::xhci::ring:66] enqueued 6 @0x901B89A0
+2000680
+10000000
+8
+30841
+------------------------------------------------
+[ 38.147669 0:2 driver_usb::host::xhci::ring:66] enqueued 7 @0x901B89B0
+901be000
+0
+1000
+10c01
+------------------------------------------------
+[ 38.161991 0:2 driver_usb::host::xhci::ring:66] enqueued 8 @0x901B89C0
+0
+0
+0
+1021
+------------------------------------------------
+[ 38.175358 0:2 driver_usb::host::xhci:260] [Transfer] >> setup@0x901B89A0, data@0x901B89B0, status@0x901B89C0
+[ 38.186469 0:2 driver_usb::host::xhci:613] Wait result @0x901B89C0
+[ 38.193848 0:2 driver_usb::host::xhci:622] [Transfer] << Success @0x901B89C0 got result1, cycle true, len 0
+[ 38.204783 0:2 driver_usb::host::xhci:635] code:Success,pointer:901b89c0
+[ 38.212688 0:2 driver_usb::host::xhci:988] Hid(
+    Hid {
+        len: 9,
+        descriptor_type: 33,
+        hid_bcd: 273,
+        country_code: 0,
+        num_descriptions: 1,
+        report_descriptor_type: 34,
+        report_descriptor_len: 67,
+    },
+)
+[ 38.237600 0:2 driver_usb::host::xhci:988] Hid(
+    Hid {
+        len: 9,
+        descriptor_type: 33,
+        hid_bcd: 273,
+        country_code: 0,
+        num_descriptions: 1,
+        report_descriptor_type: 34,
+        report_descriptor_len: 79,
+    },
+)
+[ 38.262509 0:2 driver_usb::host::xhci:189] DescriptorConfiguration {
+    data: Configuration {
+        length: 9,
+        ty: 2,
+        total_length: 59,
+        num_interfaces: 2,
+        config_val: 1,
+        config_string: 4,
+        attributes: 160,
+        max_power: 49,
+    },
+    interfaces: [
+        DescriptorInterface {
+            data: Interface {
+                len: 9,
+                descriptor_type: 4,
+                interface_number: 0,
+                alternate_setting: 0,
+                num_endpoints: 1,
+                interface_class: 3,
+                interface_subclass: 1,
+                interface_protocol: 2,
+                interface: 0,
+            },
+            endpoints: [
+                Endpoint {
+                    len: 7,
+                    descriptor_type: 5,
+                    endpoint_address: 129,
+                    attributes: 3,
+                    max_packet_size: 8,
+                    interval: 2,
+                    ssc: Some(
+                        SuperSpeedCmp {
+                            kind: 4,
+                            max_burst: 1,
+                            attributes: 0,
+                            bytes_per_interval: 769,
+                        },
+                    ),
+                },
+            ],
+        },
+        DescriptorInterface {
+            data: Interface {
+                len: 9,
+                descriptor_type: 4,
+                interface_number: 1,
+                alternate_setting: 0,
+                num_endpoints: 1,
+                interface_class: 3,
+                interface_subclass: 0,
+                interface_protocol: 0,
+                interface: 0,
+            },
+            endpoints: [
+                Endpoint {
+                    len: 7,
+                    descriptor_type: 5,
+                    endpoint_address: 130,
+                    attributes: 3,
+                    max_packet_size: 20,
+                    interval: 2,
+                    ssc: None,
+                },
+            ],
+        },
+    ],
+}
+[ 38.447825 0:2 driver_usb::host::xhci:1064] init ep 5 InterruptIn
+[ 38.455117 0:2 driver_usb::host::xhci::ring:66] enqueued 6 @0x901B68E0
+9019a000
+0
+0
+1003001
+------------------------------------------------
+[ 38.469350 0:2 driver_usb::host::xhci::ring:59] [CMD] >> ConfigureEndpoint(ConfigureEndpoint { input_context_pointer: 2417598464, deconfigure: false, slot_id: 1, cycle_bit: true }) @901B68E0
+[ 38.487492 0:2 driver_usb::host::xhci:648] Wait result
+[ 38.493828 0:2 driver_usb::host::xhci:659] [CMD] << Success @901B68E0 got result, cycle true
+[ 38.503463 0:2 driver_usb::host::xhci:395] slot 1 Configured
+[ 38.510320 0:2 driver_usb::host::xhci:400]   ep dci 1: Running
+[ 38.517351 0:2 driver_usb::host::xhci:400]   ep dci 5: Running
+[ 38.524390 0:2 driver_usb::host::xhci::xhci_device:354] test hid
+[ 38.531585 0:2 driver_usb::host::xhci:338] Device {
     slot: Slot {
         route_string: 1,
         speed: 1,
         multi_tt: false,
         hub: false,
-        context_entries: 1,
+        context_entries: 5,
         max_exit_latency: 0,
         root_hub_port_number: 1,
         number_of_ports: 0,
@@ -240,7 +379,7 @@ log_level = debug
         tt_think_time: 0,
         interrupter_target: 0,
         usb_device_address: 1,
-        slot_state: Addressed,
+        slot_state: Configured,
     },
     endpoints: [
         Endpoint {
@@ -254,9 +393,9 @@ log_level = debug
             endpoint_type: Control,
             host_initiate_disable: false,
             max_burst_size: 0,
-            max_packet_size: 64,
+            max_packet_size: 8,
             dequeue_cycle_state: true,
-            tr_dequeue_pointer: 2417719713,
+            tr_dequeue_pointer: 2417723857,
             average_trb_length: 0,
             max_endpoint_service_time_interval_payload_low: 0,
         },
@@ -312,21 +451,21 @@ log_level = debug
             max_endpoint_service_time_interval_payload_low: 0,
         },
         Endpoint {
-            endpoint_state: Disabled,
+            endpoint_state: Running,
             mult: 0,
             max_primary_streams: 0,
             linear_stream_array: false,
-            interval: 0,
+            interval: 3,
             max_endpoint_service_time_interval_payload_high: 0,
-            error_count: 0,
-            endpoint_type: NotValid,
+            error_count: 3,
+            endpoint_type: InterruptIn,
             host_initiate_disable: false,
             max_burst_size: 0,
-            max_packet_size: 0,
+            max_packet_size: 20,
             dequeue_cycle_state: false,
-            tr_dequeue_pointer: 0,
+            tr_dequeue_pointer: 2417726016,
             average_trb_length: 0,
-            max_endpoint_service_time_interval_payload_low: 0,
+            max_endpoint_service_time_interval_payload_low: 4,
         },
         Endpoint {
             endpoint_state: Disabled,
@@ -772,36 +911,95 @@ log_level = debug
         },
     ],
 }
-[ 55.121164 0:2 driver_usb::host::xhci:179] device found, pid: 0x3020, vid: 0x3151
-[ 55.129844 0:2 driver_usb::host::xhci:183] fetching device configurations, num:1
-[ 55.138708 0:2 driver_usb::host::xhci:588] SetupStage {
+[ 40.231043 0:2 driver_usb::host::xhci::xhci_device:291] set configuration 1
+[ 40.239202 0:2 driver_usb::host::xhci::xhci_device:203] CTL ep 0x0, dci 1
+[ 40.247188 0:2 driver_usb::host::xhci::xhci_device:237] SetupStage {
     interrupt_on_completion: false,
-    request_type: 128,
-    request: 6,
-    value: 512,
+    request_type: 0,
+    request: 9,
+    value: 1,
     index: 0,
-    length: 4096,
+    length: 0,
     interrupt_on_completion: false,
-    transfer_type: In,
+    transfer_type: No,
     cycle_bit: false,
 }
-[ 55.163609 0:2 driver_usb::host::xhci::ring:66] enqueued 6 @0x901B79A0
-2000680
-10000000
+[ 40.272881 0:2 driver_usb::host::xhci::ring:66] enqueued 9 @0x901B89D0
+10900
+0
 8
-30841
+841
 ------------------------------------------------
-[ 55.178191 0:2 driver_usb::host::xhci::ring:66] enqueued 7 @0x901B79B0
-901bd000
+[ 40.286508 0:2 driver_usb::host::xhci::ring:66] enqueued 10 @0x901B89E0
 0
-1000
-10c01
+0
+0
+11021
 ------------------------------------------------
-[ 55.192513 0:2 driver_usb::host::xhci::ring:66] enqueued 8 @0x901B79C0
-0
-0
-0
-1021
+[ 40.300049 0:2 driver_usb::host::xhci:255] [Transfer] >> setup@0x901B89D0, status@0x901B89E0
+[ 40.309684 0:2 driver_usb::host::xhci:613] Wait result @0x901B89E0
+[ 40.317063 0:2 driver_usb::host::xhci:622] [Transfer] << Success @0x901B89E0 got result1, cycle true, len 0
+[ 40.327998 0:2 driver_usb::host::xhci:635] code:Success,pointer:901b89e0
+[ 40.335898 0:2 driver_usb::host::xhci::xhci_device:309] set interface 1
+[ 40.343709 0:2 driver_usb::host::xhci::xhci_device:203] CTL ep 0x0, dci 1
+[ 40.351694 0:2 driver_usb::host::xhci::xhci_device:237] SetupStage {
+    interrupt_on_completion: false,
+    request_type: 1,
+    request: 11,
+    value: 0,
+    index: 1,
+    length: 0,
+    interrupt_on_completion: false,
+    transfer_type: No,
+    cycle_bit: false,
+}
+[ 40.377474 0:2 driver_usb::host::xhci::ring:66] enqueued 11 @0x901B89F0
+b01
+1
+8
+841
 ------------------------------------------------
-[ 55.205880 0:2 driver_usb::host::xhci:257] [Transfer] >> setup@0x901B79A0, data@0x901B79B0, status@0x901B79C0
-[ 55.216991 0:2 driver_usb::host::xhci:610] Wait result @0x901B79C0
+[ 40.391015 0:2 driver_usb::host::xhci::ring:66] enqueued 12 @0x901B8A00
+0
+0
+0
+11021
+------------------------------------------------
+[ 40.404556 0:2 driver_usb::host::xhci:255] [Transfer] >> setup@0x901B89F0, status@0x901B8A00
+[ 40.414191 0:2 driver_usb::host::xhci:613] Wait result @0x901B8A00
+[ 40.421570 0:2 driver_usb::host::xhci:622] [Transfer] << Success @0x901B8A00 got result1, cycle true, len 0
+[ 40.432505 0:2 driver_usb::host::xhci:635] code:Success,pointer:901b8a00
+[ 40.440404 0:2 driver_usb::host::xhci::xhci_device:364] reading HID report descriptors
+[ 40.449518 0:2 driver_usb::host::xhci::xhci_device:384] set idle
+[ 40.456722 0:2 driver_usb::host::xhci::xhci_device:203] CTL ep 0x0, dci 1
+[ 40.464708 0:2 driver_usb::host::xhci::xhci_device:237] SetupStage {
+    interrupt_on_completion: false,
+    request_type: 33,
+    request: 10,
+    value: 0,
+    index: 1,
+    length: 0,
+    interrupt_on_completion: false,
+    transfer_type: No,
+    cycle_bit: false,
+}
+[ 40.490575 0:2 driver_usb::host::xhci::ring:66] enqueued 13 @0x901B8A10
+a21
+1
+8
+841
+------------------------------------------------
+[ 40.504115 0:2 driver_usb::host::xhci::ring:66] enqueued 14 @0x901B8A20
+0
+0
+0
+11021
+------------------------------------------------
+[ 40.517656 0:2 driver_usb::host::xhci:255] [Transfer] >> setup@0x901B8A10, status@0x901B8A20
+[ 40.527291 0:2 driver_usb::host::xhci:613] Wait result @0x901B8A20
+[ 40.534670 0:2 driver_usb::host::xhci:622] [Transfer] << StallError @0x901B8A20 got result6, cycle true, len 0
+[ 40.545866 0:2 driver_usb::host::xhci:635] code:StallError,pointer:901b8a20
+[ 40.554025 0:2 driver_usb::host::xhci:639] error!
+[ 40.559929 0:2 axruntime::lang_items:5] panicked at apps/usb/src/main.rs:55:26:
+called `Result::unwrap()` on an `Err` value: CMD(StallError)
+[ 40.573816 0:2 axhal::platform::aarch64_phytium_pi::misc:22] Shutting down...

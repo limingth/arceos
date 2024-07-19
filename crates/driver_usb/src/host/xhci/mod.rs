@@ -173,8 +173,8 @@ where
             let vid = desc.vendor;
             let pid = desc.product_id;
 
-            debug!("current state:");
-            self.debug_dump_output_ctx(slot.into());
+            // debug!("current state:");
+            // self.debug_dump_output_ctx(slot.into());
 
             info!("device found, pid: {pid:#X}, vid: {vid:#X}");
 
@@ -190,6 +190,9 @@ where
                 device.configs.push(config)
             }
 
+            //TODO: set interface 1?
+
+            device.set_current_interface(1); //just change this line to switch interface
             self.set_configuration(&device, 0)?;
 
             device_list.push(device);
@@ -1034,6 +1037,7 @@ where
                     control_mut.set_alternate_setting(interface.data.alternate_setting);
                 }
                 let mut entries = 1;
+
                 if let Some(config) = device.configs.last() {
                     if let Some(interface) = config.interfaces.last() {
                         if let Some(ep) = interface.endpoints.last() {
@@ -1047,6 +1051,9 @@ where
                     .slot_mut()
                     .set_context_entries(entries as u8);
             }
+
+            // debug!("endpoints:{:#?}", interface.endpoints);
+
             for ep in &interface.endpoints {
                 let dci = ep.doorbell_value_aka_dci() as usize;
                 let max_packet_size = ep.max_packet_size;
