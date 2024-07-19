@@ -52,7 +52,7 @@ fn main() {
 
     let hid = device_list.pop().unwrap();
 
-    hid.test_hid().unwrap();
+    hid.test_hid_mouse().unwrap();
     println!("test done!");
     // hid.test_mass_storage().unwrap();
 }

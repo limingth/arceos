@@ -8,6 +8,7 @@ use tock_registers::interfaces::Writeable;
 use tock_registers::register_structs;
 use tock_registers::registers::{ReadOnly, ReadWrite, WriteOnly};
 use xhci::extended_capabilities::hci_extended_power_management::Data;
+use xhci::ring::trb::event::{CompletionCode, TransferEvent};
 use xhci::ring::trb::{self, event::Allowed};
 
 register_structs! {
@@ -62,6 +63,11 @@ where
         let mut allowed = Allowed::try_from(data).ok()?;
 
         if flag != allowed.cycle_bit() {
+            return None;
+        }
+        if let Allowed::TransferEvent(c) = allowed
+            && let Ok(CompletionCode::Invalid) = c.completion_code()
+        {
             return None;
         }
 

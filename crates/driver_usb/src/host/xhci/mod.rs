@@ -173,10 +173,17 @@ where
             let vid = desc.vendor;
             let pid = desc.product_id;
 
+            debug!("current state:");
+            self.debug_dump_output_ctx(slot.into());
+
             info!("device found, pid: {pid:#X}, vid: {vid:#X}");
 
             device.device_desc = desc;
 
+            debug!(
+                "fetching device configurations, num:{}",
+                device.device_desc.num_configurations
+            );
             for i in 0..device.device_desc.num_configurations {
                 let config = self.fetch_config_desc(&device, i)?;
                 debug!("{:#?}", config);
@@ -911,6 +918,7 @@ where
 
         if let Ok(descriptors::Descriptor::Device(dev)) = descriptors::Descriptor::from_slice(&data)
         {
+            debug!("device desc:{:#?}", dev);
             return Ok(dev.max_packet_size());
         }
         Ok(8)
