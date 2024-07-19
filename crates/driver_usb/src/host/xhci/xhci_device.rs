@@ -355,108 +355,120 @@ where
 
         self.controller.lock().debug_dump_output_ctx(self.slot_id);
 
-        {
-            let endpoint_in = 0x81;
+        let endpoint_in = self
+            .configs
+            .get(self.current_config)
+            .unwrap()
+            .interfaces
+            .get(self.current_interface)
+            .unwrap()
+            .endpoints
+            .last()
+            .unwrap()
+            .endpoint_address as usize;
 
-            self.set_configuration()?;
-            self.set_interface()?;
+        debug!("current testing endpoint address:{endpoint_in}");
 
-            debug!("reading HID report descriptors");
+        self.set_configuration()?;
+        self.set_interface()?;
 
-            if self.current_interface().data.interface_class != 3 {
-                debug!("not hid");
-                return Ok(());
-            }
-            let protocol = self.current_interface().data.interface_protocol;
-            if self.current_interface().data.interface_subclass == 1 && protocol > 0 {
-                debug!("set protocol");
+        debug!("reading HID report descriptors");
 
-                self.control_transfer_out(
-                    0,
-                    ENDPOINT_OUT | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
-                    0x0B,
-                    if protocol == 2 { 1 } else { 0 },
-                    self.current_interface().data.interface_number as _,
-                    &[],
-                )?;
-            }
+        if self.current_interface().data.interface_class != 3 {
+            debug!("not hid");
+            return Ok(());
+        }
+        let protocol = self.current_interface().data.interface_protocol;
+        if self.current_interface().data.interface_subclass == 1 && protocol > 0 {
+            debug!("set protocol");
 
-            debug!("set idle");
             self.control_transfer_out(
                 0,
                 ENDPOINT_OUT | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
-                0x0A,
-                0x00,
+                0x0B,
+                if protocol == 2 { 1 } else { 0 },
                 self.current_interface().data.interface_number as _,
                 &[],
             )?;
+        }
 
-            debug!("request feature report");
-            let data = self.control_transfer_in(
+        // debug!("set idle");
+        // self.control_transfer_out(
+        //     0,
+        //     ENDPOINT_OUT | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
+        //     0x0A,
+        //     0x00,
+        //     self.current_interface().data.interface_number as _,
+        //     &[],
+        // )?;
+
+        debug!("request feature report");
+        let data = self.control_transfer_in(
+            0,
+            ENDPOINT_IN | REQUEST_TYPE_STANDARD | RECIPIENT_INTERFACE,
+            REQUEST_GET_DESCRIPTOR,
+            DescriptorType::HIDReport.forLowBit(0).bits(),
+            0,
+            256,
+        )?;
+        let descriptor_size = 256;
+        debug!("descriptor_size {}", descriptor_size);
+
+        let size = get_hid_record_size(&data, HID_REPORT_TYPE_FEATURE);
+        if size <= 0 {
+            debug!("Skipping Feature Report readout (None detected)");
+        } else {
+            debug!("Reading Feature Report (length {})...", size);
+
+            let report_buffer = self.control_transfer_in(
                 0,
-                ENDPOINT_IN | REQUEST_TYPE_STANDARD | RECIPIENT_INTERFACE,
-                REQUEST_GET_DESCRIPTOR,
-                DescriptorType::HIDReport.forLowBit(0).bits(),
+                ENDPOINT_IN | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
+                HID_GET_REPORT,
+                (HID_REPORT_TYPE_FEATURE << 8) | 0,
                 0,
-                256,
+                size as _,
             )?;
-            let descriptor_size = 256;
-            debug!("descriptor_size {}", descriptor_size);
+        }
 
-            let size = get_hid_record_size(&data, HID_REPORT_TYPE_FEATURE);
-            if size <= 0 {
-                debug!("Skipping Feature Report readout (None detected)");
-            } else {
-                debug!("Reading Feature Report (length {})...", size);
+        let size = get_hid_record_size(&data, HID_REPORT_TYPE_INPUT);
 
-                let report_buffer = self.control_transfer_in(
-                    0,
-                    ENDPOINT_IN | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
-                    HID_GET_REPORT,
-                    (HID_REPORT_TYPE_FEATURE << 8) | 0,
-                    0,
-                    size as _,
-                )?;
-            }
+        if (size <= 0) {
+            debug!("Skipping Input Report readout (None detected)");
+        } else {
+            debug!("Reading Input Report (length {})...", size);
+            let report_buffer = self.control_transfer_in(
+                0,
+                ENDPOINT_IN | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
+                HID_GET_REPORT,
+                ((HID_REPORT_TYPE_INPUT << 8) | 0x00),
+                0,
+                size as _,
+            )?;
 
-            let size = get_hid_record_size(&data, HID_REPORT_TYPE_INPUT);
-
-            if (size <= 0) {
-                debug!("Skipping Input Report readout (None detected)");
-            } else {
-                debug!("Reading Input Report (length {})...", size);
-                let report_buffer = self.control_transfer_in(
-                    0,
-                    ENDPOINT_IN | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
-                    HID_GET_REPORT,
-                    ((HID_REPORT_TYPE_INPUT << 8) | 0x00),
-                    0,
-                    size as _,
-                )?;
-
-                // Attempt a bulk read from endpoint 0 (this should just return a raw input report)
-                debug!(
+            // Attempt a bulk read from endpoint 0 (this should just return a raw input report)
+            debug!(
                 "==============================================\nTesting interrupt read using endpoint {:#X}...",
                 endpoint_in
             );
 
-                // self.controller.lock().debug_dump_output_ctx(self.slot_id);
-                self.controller
-                    .lock()
-                    .prepare_transfer_normal(self, ep_num_to_dci(endpoint_in));
+            // self.controller.lock().debug_dump_output_ctx(self.slot_id);
+            self.controller
+                .lock()
+                .prepare_transfer_normal(self, ep_num_to_dci(endpoint_in));
 
-                loop {
-                    // for _ in 0..1 {
-                    // self.controller
-                    //     .lock()
-                    //     .debug_dump_eventring_before_after(-4, 8);
-                    let report_buffer = self.interrupt_in(endpoint_in, size as _)?;
-                    // self.controller.lock().debug_dump_output_ctx(self.slot_id);
-                    debug!("rcv data {:?}", report_buffer);
-                    // self.controller
-                    //     .lock()
-                    //     .debug_dump_eventring_before_after(-4, 8);
-                }
+            debug!("report size is {size}");
+            //TODO: babble detected error
+            loop {
+                // for _ in 0..1 {
+                // self.controller
+                //     .lock()
+                //     .debug_dump_eventring_before_after(-4, 8);
+                let report_buffer = self.interrupt_in(endpoint_in, size as _)?;
+                // self.controller.lock().debug_dump_output_ctx(self.slot_id);
+                debug!("rcv data {:?}", report_buffer);
+                // self.controller
+                //     .lock()
+                //     .debug_dump_eventring_before_after(-4, 8);
             }
         }
 
