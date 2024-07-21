@@ -396,9 +396,9 @@ where
         // self.control_transfer_out(
         //     0,
         //     ENDPOINT_OUT | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
-        //     0x0A,
+        //     HID_SET_IDLE,
         //     0x00,
-        //     self.current_interface().data.interface_number as _,
+        //     0,
         //     &[],
         // )?;
 
@@ -408,7 +408,7 @@ where
             ENDPOINT_IN | REQUEST_TYPE_STANDARD | RECIPIENT_INTERFACE,
             REQUEST_GET_DESCRIPTOR,
             DescriptorType::HIDReport.forLowBit(0).bits(),
-            0,
+            self.current_interface().data.interface_number as _,
             256,
         )?;
         let descriptor_size = 256;
@@ -425,7 +425,7 @@ where
                 ENDPOINT_IN | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
                 HID_GET_REPORT,
                 (HID_REPORT_TYPE_FEATURE << 8) | 0,
-                0,
+                self.current_interface().data.interface_number as _,
                 size as _,
             )?;
         }
@@ -445,6 +445,16 @@ where
                 size as _,
             )?;
 
+            // debug!("set report!");
+            // self.control_transfer_in(
+            //     0,
+            //     ENDPOINT_IN | REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE,
+            //     HID_SET_REPORT,
+            //     0, //wtf, captured from usblyzer, todo: analyze report descriptor to set this value for more device
+            //     0,
+            //     0, //no data control transfer
+            // )?;
+
             // Attempt a bulk read from endpoint 0 (this should just return a raw input report)
             debug!(
                 "==============================================\nTesting interrupt read using endpoint {:#X}...",
@@ -456,8 +466,9 @@ where
                 .lock()
                 .prepare_transfer_normal(self, ep_num_to_dci(endpoint_in));
 
+            let size = 8; //temporary, endpoint max transfer size is 20
+                          //TODO: set report
             debug!("report size is {size}");
-            //TODO: babble detected error
             loop {
                 // for _ in 0..1 {
                 // self.controller

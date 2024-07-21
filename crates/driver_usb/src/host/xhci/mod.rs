@@ -192,7 +192,8 @@ where
 
             //TODO: set interface 1?
 
-            device.set_current_interface(0); //just change this line to switch interface
+            // device.set_current_interface(1); //just change this line to switch interface
+
             self.set_configuration(&device, 0)?;
 
             device_list.push(device);
