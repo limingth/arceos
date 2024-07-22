@@ -50,7 +50,7 @@ fn main() {
 
     let mut device_list = usb.device_list();
 
-    let hid = device_list.pop().unwrap();
+    let mut hid = device_list.pop().unwrap();
 
     hid.test_hid_mouse().unwrap();
     println!("test done!");

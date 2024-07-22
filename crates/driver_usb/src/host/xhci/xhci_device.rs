@@ -16,7 +16,8 @@ use alloc::{
 };
 use axhal::time::{busy_wait, busy_wait_until};
 use axtask::sleep;
-use log::{debug, error};
+use hidreport::{Field, Report, ReportDescriptor};
+use log::{debug, error, log, trace};
 use num_derive::FromPrimitive;
 use num_traits::{ops::mul_add, FromPrimitive, ToPrimitive};
 use spinlock::SpinNoIrq;
@@ -44,6 +45,7 @@ use crate::{
                 desc_interface::{self, Interface},
                 Descriptor, DescriptorType,
             },
+            drivers::driver_usb_hid::fallback_solve_hid_mouse_report,
         },
         Controller, ControllerArc, PortSpeed,
     },
@@ -82,6 +84,7 @@ where
     current_interface: usize,
     pub(crate) controller: ControllerArc<O>,
     pub device_desc: descriptors::desc_device::Device,
+    report_parser: Option<ReportDescriptor>,
     os: O,
 }
 
@@ -106,6 +109,7 @@ where
             controller,
             os,
             device_desc: Default::default(),
+            report_parser: None,
         }
     }
     pub fn current_config(&self) -> &DescriptorConfiguration {
@@ -171,7 +175,7 @@ where
             .set_length(len as _)
             .set_transfer_type(transfer_type);
 
-        debug!("{:#?}", setup);
+        trace!("{:#?}", setup);
 
         let mut status = transfer::StatusStage::default();
 
@@ -234,7 +238,7 @@ where
             .set_length(len as _)
             .set_transfer_type(transfer_type);
 
-        debug!("{:#?}", setup);
+        trace!("{:#?}", setup);
 
         let mut status = transfer::StatusStage::default();
 
@@ -350,10 +354,10 @@ where
 
         Ok(())
     }
-    pub fn test_hid_mouse(&self) -> Result {
+    pub fn test_hid_mouse(&mut self) -> Result {
         debug!("test hid");
 
-        self.controller.lock().debug_dump_output_ctx(self.slot_id);
+        self.controller.lock().trace_dump_output_ctx(self.slot_id);
 
         let endpoint_in = self
             .configs
@@ -445,6 +449,17 @@ where
                 size as _,
             )?;
 
+            debug!("got buffer: {:?}", report_buffer);
+            self.report_parser = {
+                let try_from = ReportDescriptor::try_from(&report_buffer);
+                if try_from.is_ok() {
+                    debug!("successed convert report descriptor!");
+                } else {
+                    debug!("convert failed,{:?}", try_from);
+                }
+                try_from.ok()
+            };
+
             // debug!("set report!");
             // self.control_transfer_in(
             //     0,
@@ -467,19 +482,34 @@ where
                 .prepare_transfer_normal(self, ep_num_to_dci(endpoint_in));
 
             let size = 8; //temporary, endpoint max transfer size is 20
-                          //TODO: set report
+                          //TODO: resolve report descriptor
             debug!("report size is {size}");
             loop {
-                // for _ in 0..1 {
-                // self.controller
-                //     .lock()
-                //     .debug_dump_eventring_before_after(-4, 8);
                 let report_buffer = self.interrupt_in(endpoint_in, size as _)?;
-                // self.controller.lock().debug_dump_output_ctx(self.slot_id);
-                debug!("rcv data {:?}", report_buffer);
-                // self.controller
-                //     .lock()
-                //     .debug_dump_eventring_before_after(-4, 8);
+
+                self.report_parser
+                    .as_ref()
+                    .inspect(|parser| {
+                        let input = parser.find_input_report(&report_buffer).unwrap();
+                        input.fields().iter().for_each(|field| match field {
+                            Field::Variable(var) => {
+                                let val: u32 = var.extract_u32(&report_buffer).unwrap();
+                                debug!("Field {:?} is of value {}", field, val);
+                            }
+                            Field::Array(arr) => {
+                                let vals: Vec<u32> = arr.extract_u32(&report_buffer).unwrap();
+                                debug!("Field {:?} has values {:?}", field, vals);
+                            }
+                            Field::Constant(_) => {
+                                debug!("Field {:?} is <padding data>", field);
+                            }
+                        });
+                    })
+                    .or_else(|| {
+                        // debug!("got report: {:?}", report_buffer);
+                        fallback_solve_hid_mouse_report(&report_buffer);
+                        None
+                    });
             }
         }
 

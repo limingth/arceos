@@ -13,6 +13,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use axhal::cpu::this_cpu_id;
 use log::debug;
+use log::trace;
 pub use xhci::ring::trb;
 use xhci::ring::trb::command::Allowed;
 use xhci::ring::trb::Link;
@@ -56,14 +57,14 @@ impl<O: OsDep> Ring<O> {
             trb.clear_cycle_bit();
         }
         let addr = self.enque_trb(trb.clone().into_raw());
-        debug!("[CMD] >> {:?} @{:X}", trb, addr);
+        trace!("[CMD] >> {:?} @{:X}", trb, addr);
         addr
     }
 
     pub fn enque_trb(&mut self, mut trb: TrbData) -> usize {
         self.trbs[self.i].copy_from_slice(&trb);
         let addr = self.trbs[self.i].as_ptr() as usize;
-        debug!(
+        trace!(
             "enqueued {} @{:#X}\n{:x}\n{:x}\n{:x}\n{:x}\n------------------------------------------------",
             self.i, addr, trb[0], trb[1], trb[2], trb[3]
         );
@@ -86,13 +87,13 @@ impl<O: OsDep> Ring<O> {
         if self.link && self.i >= len - 1 {
             self.i = 0;
             need_link = true;
-            debug!("flip and link!")
+            trace!("flip and link!")
         } else if self.i >= len {
             self.i = 0;
         }
 
         if need_link {
-            debug!("link!");
+            trace!("link!");
             let address = self.trbs[0].as_ptr() as usize;
             let mut link = Link::new();
             link.set_ring_segment_pointer(address as u64)

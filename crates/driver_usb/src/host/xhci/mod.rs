@@ -180,13 +180,13 @@ where
 
             device.device_desc = desc;
 
-            debug!(
+            trace!(
                 "fetching device configurations, num:{}",
                 device.device_desc.num_configurations
             );
             for i in 0..device.device_desc.num_configurations {
                 let config = self.fetch_config_desc(&device, i)?;
-                debug!("{:#?}", config);
+                trace!("{:#?}", config);
                 device.configs.push(config)
             }
 
@@ -253,14 +253,17 @@ where
             }
         }
         if trb_pointers.len() == 2 {
-            debug!(
+            trace!(
                 "[Transfer] >> setup@{:#X}, status@{:#X}",
-                trb_pointers[0], trb_pointers[1]
+                trb_pointers[0],
+                trb_pointers[1]
             );
         } else {
-            debug!(
+            trace!(
                 "[Transfer] >> setup@{:#X}, data@{:#X}, status@{:#X}",
-                trb_pointers[0], trb_pointers[1], trb_pointers[2]
+                trb_pointers[0],
+                trb_pointers[1],
+                trb_pointers[2]
             );
         }
 
@@ -335,17 +338,17 @@ where
             });
     }
 
-    fn debug_dump_output_ctx(&self, slot: usize) {
-        debug!(
+    fn trace_dump_output_ctx(&self, slot: usize) {
+        trace!(
             "{:#?}",
             **(self.dev_ctx.device_out_context_list.get(slot).unwrap())
         );
     }
 
-    fn debug_dump_eventring_before_after(&self, before: isize, after: isize) {
+    fn trace_dump_eventring_before_after(&self, before: isize, after: isize) {
         let index = self.event.ring.i;
         for i in before..after {
-            debug!(
+            trace!(
                 "dump at index {} relative {i}: {:?}",
                 index as isize + i,
                 self.event.ring.trbs[(i + index as isize) as usize]
@@ -509,7 +512,7 @@ where
                 .set_input_context_pointer(context_addr),
         ))?;
 
-        debug!("address slot [{}] ok", slot_id);
+        trace!("address slot [{}] ok", slot_id);
 
         Ok(())
     }
@@ -589,7 +592,7 @@ where
             .set_length(len as _)
             .set_transfer_type(transfer_type);
 
-        debug!("{:#?}", setup);
+        trace!("{:#?}", setup);
 
         let mut status = transfer::StatusStage::default();
 
@@ -611,7 +614,7 @@ where
     }
 
     fn event_busy_wait_transfer(&mut self, addr: u64) -> Result<TransferEvent> {
-        debug!("Wait result @{addr:#X}");
+        trace!("Wait result @{addr:#X}");
         loop {
             // sleep(Duration::from_millis(2));
             if let Some((event, cycle)) = self.event.next() {
@@ -620,7 +623,7 @@ where
                 match event {
                     xhci::ring::trb::event::Allowed::TransferEvent(c) => {
                         let code = c.completion_code().unwrap();
-                        debug!(
+                        trace!(
                             "[Transfer] << {code:#?} @{:#X} got result{}, cycle {}, len {}",
                             c.trb_pointer(),
                             code as usize,
@@ -633,7 +636,7 @@ where
                         //     // return Err(Error::Pip);
                         //     continue;
                         // }
-                        debug!("code:{:?},pointer:{:x}", code, c.trb_pointer());
+                        trace!("code:{:?},pointer:{:x}", code, c.trb_pointer());
                         if CompletionCode::Success == code || CompletionCode::ShortPacket == code {
                             return Ok(c);
                         }
@@ -657,7 +660,7 @@ where
                         } else {
                             continue;
                         }
-                        debug!(
+                        trace!(
                             "[CMD] << {code:#?} @{:X} got result, cycle {}",
                             c.command_trb_pointer(),
                             c.cycle_bit()
@@ -922,7 +925,7 @@ where
 
         if let Ok(descriptors::Descriptor::Device(dev)) = descriptors::Descriptor::from_slice(&data)
         {
-            debug!("device desc:{:#?}", dev);
+            trace!("device desc:{:#?}", dev);
             return Ok(dev.max_packet_size());
         }
         Ok(8)
@@ -986,7 +989,7 @@ where
                             }
                         }
                     }
-                    _ => debug!("{:#?}", desc),
+                    _ => trace!("{:#?}", desc),
                 }
             } else {
                 break;
