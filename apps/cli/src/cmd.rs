@@ -21,8 +21,13 @@ const CMD_TABLE: &[(&str, CmdHandler)] = &[
     ("uname", do_uname),
     ("ldr", do_ldr),
     ("str", do_str),
+    ("pca",do_pca),
     // ("test_xhci", test_xhci),
 ];
+
+fn do_pca(_args: &str){
+    driver_pca9685::test_pca();
+}
 
 // fn test_xhci(_args: &str) {
 //     // driver_usb::try_init(0x31a08000 as usize);

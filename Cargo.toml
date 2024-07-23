@@ -74,7 +74,7 @@ members = [
     "apps/task/tls",
     "apps/cli",
     "apps/usb"
-]
+, "crates/driver_pca9685"]
 
 
 [profile.release]

@@ -1,0 +1,12 @@
+[package]
+name = "driver_pca9685"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+log = "0.4"
+smbus-adapter = "0.1.1"
+smbus-pec = "1.0.1"
+
+# arceos
+axhal = {path = "../../modules/axhal",features=["irq"]}
