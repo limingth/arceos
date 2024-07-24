@@ -6,7 +6,7 @@ use crate::AxDeviceEnum;
 use axalloc::{global_allocator, global_no_cache_allocator};
 use cfg_if::cfg_if;
 use driver_common::DeviceType;
-use driver_usb::OsDep;
+// use driver_usb::OsDep;
 
 const VL805_VENDOR_ID: u16 = 0x1106;
 const VL805_DEVICE_ID: u16 = 0x3483;
@@ -151,71 +151,71 @@ cfg_if::cfg_if! {
     }
 }
 
-//todo maybe we should re arrange these code
-//------------------------------------------
-use axalloc::GlobalNoCacheAllocator;
-use driver_usb::ax::USBHostDriverOps;
-use driver_usb::host::xhci::Xhci;
-use driver_usb::host::USBHost;
-pub struct XHCIUSBDriver;
+// //todo maybe we should re arrange these code
+// //------------------------------------------
+// use axalloc::GlobalNoCacheAllocator;
+// use driver_usb::ax::USBHostDriverOps;
+// use driver_usb::host::xhci::Xhci;
+// use driver_usb::host::USBHost;
+// pub struct XHCIUSBDriver;
 
-#[derive(Clone)]
-pub struct OsDepImp;
+// #[derive(Clone)]
+// pub struct OsDepImp;
 
-impl OsDep for OsDepImp {
-    const PAGE_SIZE: usize = axalloc::PAGE_SIZE;
-    type DMA = GlobalNoCacheAllocator;
-    fn dma_alloc(&self) -> Self::DMA {
-        axalloc::global_no_cache_allocator()
-    }
+// impl OsDep for OsDepImp {
+//     const PAGE_SIZE: usize = axalloc::PAGE_SIZE;
+//     type DMA = GlobalNoCacheAllocator;
+//     fn dma_alloc(&self) -> Self::DMA {
+//         axalloc::global_no_cache_allocator()
+//     }
 
-    fn force_sync_cache() {
-        cfg_if::cfg_if! {
-            if #[cfg(usb_host_dev = "phytium-xhci")] {
-                unsafe{
-                    core::arch::asm!("
-                    dc cisw
-                    ")
-                }
-            }
-        }
-    }
-}
+//     fn force_sync_cache() {
+//         cfg_if::cfg_if! {
+//             if #[cfg(usb_host_dev = "phytium-xhci")] {
+//                 unsafe{
+//                     core::arch::asm!("
+//                     dc cisw
+//                     ")
+//                 }
+//             }
+//         }
+//     }
+// }
 
-cfg_match! {
-    cfg(usb_host_dev = "vl805")=>{
-        register_usb_host_driver!(XHCIUSBDriver, VL805<OsDepImp>);
-    }
-    _=>{
-        register_usb_host_driver!(XHCIUSBDriver, USBHost<OsDepImp>);
-    }
-}
+// cfg_match! {
+//     cfg(usb_host_dev = "vl805")=>{
+//         register_usb_host_driver!(XHCIUSBDriver, VL805<OsDepImp>);
+//     }
+//     _=>{
+//         register_usb_host_driver!(XHCIUSBDriver, USBHost<OsDepImp>);
+//     }
+// }
 
-impl DriverProbe for XHCIUSBDriver {
-    #[cfg(bus = "pci")]
-    cfg_match! {
-        cfg(usb_host_dev = "vl805")=>{
-        use driver_usb::platform_spec::vl805::VL805;
-            fn probe_pci(
-                root: &mut PciRoot,
-                bdf: DeviceFunction,
-                dev_info: &DeviceFunctionInfo,
-                config: &ConfigSpace,
-            ) -> Option<AxDeviceEnum> {
-                let osdep = OsDepImp {};
-                VL805::probe_pci(config, osdep).map(|d| AxDeviceEnum::from_usb_host(d))
-            }
-        }
-        _=>{
-            fn probe_pci(
-                root: &mut PciRoot,
-                bdf: DeviceFunction,
-                dev_info: &DeviceFunctionInfo,
-                config: &ConfigSpace,
-            ) -> Option<AxDeviceEnum> {
-                None
-            }
-        }
-    }
-}
-//------------------------------------------
+// impl DriverProbe for XHCIUSBDriver {
+//     #[cfg(bus = "pci")]
+//     cfg_match! {
+//         cfg(usb_host_dev = "vl805")=>{
+//         use driver_usb::platform_spec::vl805::VL805;
+//             fn probe_pci(
+//                 root: &mut PciRoot,
+//                 bdf: DeviceFunction,
+//                 dev_info: &DeviceFunctionInfo,
+//                 config: &ConfigSpace,
+//             ) -> Option<AxDeviceEnum> {
+//                 let osdep = OsDepImp {};
+//                 VL805::probe_pci(config, osdep).map(|d| AxDeviceEnum::from_usb_host(d))
+//             }
+//         }
+//         _=>{
+//             fn probe_pci(
+//                 root: &mut PciRoot,
+//                 bdf: DeviceFunction,
+//                 dev_info: &DeviceFunctionInfo,
+//                 config: &ConfigSpace,
+//             ) -> Option<AxDeviceEnum> {
+//                 None
+//             }
+//         }
+//     }
+// }
+// //------------------------------------------

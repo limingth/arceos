@@ -208,6 +208,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "arceos-uvc"
+version = "0.1.0"
+dependencies = [
+ "axalloc",
+ "axfeat",
+ "axstd",
+ "driver_usb",
+]
+
+[[package]]
 name = "arceos-yield"
 version = "0.1.0"
 dependencies = [
@@ -891,7 +901,7 @@ version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ff4a5fefe330e8d7f31b16a318f9ce81000d8e35e69b93eae154d16d2278f70f"
 dependencies = [
- "thiserror 1.0.63",
+ "thiserror",
 ]
 
 [[package]]
@@ -951,7 +961,6 @@ dependencies = [
  "byteorder",
  "driver_common",
  "driver_pci",
- "hidreport",
  "log",
  "memory_addr",
  "num-derive 0.4.2",
@@ -1123,14 +1132,6 @@ name = "hermit-abi"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d231dfb89cfffdbc30e7fc41579ed6066ad03abda9e567ccafae602b97ec5024"
-
-[[package]]
-name = "hidreport"
-version = "0.4.0"
-dependencies = [
- "axalloc",
- "thiserror 1.0.61",
-]
 
 [[package]]
 name = "home"
@@ -1867,29 +1868,11 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.61"
-source = "git+https://github.com/quartiq/thiserror.git?branch=no-std#8cbdc4ef44343085020aea61adce0835020001d8"
-dependencies = [
- "thiserror-impl 1.0.61",
-]
-
-[[package]]
-name = "thiserror"
 version = "1.0.63"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c0342370b38b6a11b6cc11d6a805569958d54cfa061a29969c3b5ce2ea405724"
 dependencies = [
- "thiserror-impl 1.0.63",
-]
-
-[[package]]
-name = "thiserror-impl"
-version = "1.0.61"
-source = "git+https://github.com/quartiq/thiserror.git?branch=no-std#8cbdc4ef44343085020aea61adce0835020001d8"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.72",
+ "thiserror-impl",
 ]
 
 [[package]]

@@ -3,10 +3,9 @@ use core::fmt::Debug;
 use core::mem;
 use core::ptr::slice_from_raw_parts;
 
-use super::registers::Registers;
-use crate::dma::DMA;
+use crate::abstractions::dma::DMA;
+use crate::abstractions::OSAbstractions;
 use crate::err::*;
-use crate::OsDep;
 use alloc::boxed::Box;
 use alloc::slice;
 use alloc::vec;
@@ -20,14 +19,14 @@ use xhci::ring::trb::Link;
 const TRB_LEN: usize = 4;
 pub type TrbData = [u32; TRB_LEN];
 
-pub struct Ring<O: OsDep> {
+pub struct Ring<O: OSAbstractions> {
     link: bool,
     pub trbs: DMA<[TrbData], O::DMA>,
     pub i: usize,
     pub cycle: bool,
 }
 
-impl<O: OsDep> Ring<O> {
+impl<O: OSAbstractions> Ring<O> {
     pub fn new(os: O, len: usize, link: bool) -> Result<Self> {
         let a = os.dma_alloc();
         let mut trbs = DMA::new_vec([0; TRB_LEN], len, 64, a);
