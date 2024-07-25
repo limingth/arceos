@@ -1,20 +1,25 @@
+pub mod xhci;
 use alloc::{boxed::Box, sync::Arc};
 use spinlock::SpinNoIrq;
 
 use crate::{
     abstractions::{OSAbstractions, PlatformAbstractions},
     err::Result,
-    host::USBHostConfig,
+    USBSystemConfig,
 };
 
-pub mod xhci;
 pub trait Controller<O>: Send
 where
     O: PlatformAbstractions,
 {
-    fn new(config: USBHostConfig<O>) -> Result<Self>
+    fn new(config: USBSystemConfig<O>) -> Self
     where
         Self: Sized;
+
+    fn init(&mut self);
+    fn probe(&mut self);
+
+    // fn poll();
 }
 
 pub(crate) type ControllerArc<O> = Arc<SpinNoIrq<Box<dyn Controller<O>>>>;

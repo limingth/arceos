@@ -7,6 +7,11 @@
 #![feature(if_let_guard)]
 #![feature(get_many_mut)]
 #![feature(let_chains)]
+#![feature(cfg_match)]
+
+use abstractions::PlatformAbstractions;
+use host::USBHostSystem;
+use usb::USBDriverSystem;
 
 extern crate alloc;
 
@@ -15,6 +20,56 @@ pub mod err;
 pub mod glue;
 pub mod host;
 pub mod usb;
+
+#[derive(Clone)]
+pub struct USBSystemConfig<O>
+where
+    O: PlatformAbstractions,
+{
+    pub(crate) base_addr: O::VirtAddr,
+    pub(crate) irq_num: u32,
+    pub(crate) irq_priority: u32,
+    pub(crate) os: O,
+}
+
+pub struct USBSystem<O>
+where
+    O: PlatformAbstractions,
+{
+    platform_abstractions: O,
+    config: USBSystemConfig<O>,
+    host_driver_layer: USBHostSystem<O>,
+    usb_driver_layer: USBDriverSystem,
+}
+
+impl<O> USBSystem<O>
+where
+    O: PlatformAbstractions + 'static,
+{
+    pub fn new(config: USBSystemConfig<O>) -> Self {
+        Self {
+            platform_abstractions: config.os.clone(),
+            config: config.clone(),
+            host_driver_layer: USBHostSystem::new(config.clone()).unwrap(),
+            usb_driver_layer: USBDriverSystem,
+        }
+    }
+
+    pub fn init(self) -> Self {
+        self.host_driver_layer.init();
+        self.usb_driver_layer.init();
+        self
+    }
+
+    pub fn init_probe(self) -> Self {
+        // async { //todo:async it!
+        self.host_driver_layer.init_probe(); //probe hardware and initialize them
+        self.usb_driver_layer.init_probe(); //probe driver modules and load them
+                                            // }
+                                            // .await;
+        self
+    }
+}
 
 // #[cfg(feature = "arceos")]
 // pub mod ax;

@@ -1,8 +1,17 @@
+use alloc::vec::Vec;
 use num_derive::{FromPrimitive, ToPrimitive};
 
-pub struct ControlTransfer {
+use crate::abstractions::{dma::DMA, PlatformAbstractions};
+
+pub struct ControlTransfer<O>
+where
+    O: PlatformAbstractions,
+{
     request_type: bmRequestType,
     request: bRequest,
+    index: u16,
+    value: u16,
+    data: Option<DMA<u8, O::DMA>>,
 }
 
 #[allow(non_camel_case_types)]

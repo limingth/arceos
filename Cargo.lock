@@ -78,10 +78,7 @@ dependencies = [
 name = "arceos-cli"
 version = "0.1.0"
 dependencies = [
- "axfeat",
  "axstd",
- "driver_usb",
- "xhci",
 ]
 
 [[package]]
@@ -162,7 +159,6 @@ dependencies = [
 name = "arceos-raspi4-usb"
 version = "0.1.0"
 dependencies = [
- "axfeat",
  "axstd",
 ]
 
@@ -202,9 +198,7 @@ name = "arceos-usb"
 version = "0.1.0"
 dependencies = [
  "axalloc",
- "axfeat",
  "axstd",
- "driver_usb",
 ]
 
 [[package]]
@@ -213,6 +207,7 @@ version = "0.1.0"
 dependencies = [
  "axalloc",
  "axfeat",
+ "axhal",
  "axstd",
  "driver_usb",
 ]
@@ -339,7 +334,6 @@ dependencies = [
  "driver_display",
  "driver_net",
  "driver_pci",
- "driver_usb",
  "driver_virtio",
  "log",
 ]

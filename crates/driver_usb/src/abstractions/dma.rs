@@ -8,7 +8,6 @@ use core::{
 
 use alloc::vec::Vec;
 use axalloc::global_no_cache_allocator;
-use axhal::paging::PageSize;
 use log::debug;
 
 pub struct DMA<T, A>
@@ -60,7 +59,7 @@ where
     }
 
     pub fn new_singleton_page4k(value: T, allocator: A) -> Self {
-        Self::new(value, PageSize::Size4K.into(), allocator)
+        Self::new(value, 4096, allocator)
     }
 
     pub fn fill_zero(mut self) -> Self {
