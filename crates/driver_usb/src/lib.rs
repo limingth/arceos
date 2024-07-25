@@ -9,8 +9,15 @@
 #![feature(let_chains)]
 #![feature(cfg_match)]
 
+use core::usize;
+
 use abstractions::PlatformAbstractions;
-use alloc::sync::Arc;
+use alloc::{
+    collections::{btree_map::BTreeMap, btree_set::BTreeSet},
+    sync::Arc,
+    vec::Vec,
+};
+use glue::driver_independent_device_instance::DriverIndependentDeviceInstance;
 use host::USBHostSystem;
 use spinlock::SpinNoIrq;
 use usb::USBDriverSystem;
@@ -42,6 +49,7 @@ where
     config: Arc<SpinNoIrq<USBSystemConfig<O>>>,
     host_driver_layer: USBHostSystem<O>,
     usb_driver_layer: USBDriverSystem,
+    driver_independent_devices: Vec<DriverIndependentDeviceInstance<O>>,
 }
 
 impl<O> USBSystem<O>
@@ -55,6 +63,7 @@ where
             platform_abstractions: config.clone().lock().os.clone(),
             host_driver_layer: USBHostSystem::new(config.clone()).unwrap(),
             usb_driver_layer: USBDriverSystem,
+            driver_independent_devices: Vec::new(),
         }
     }
 
@@ -64,13 +73,34 @@ where
         self
     }
 
-    pub fn init_probe(self) -> Self {
+    pub fn init_probe(mut self) -> Self {
         // async { //todo:async it!
-        self.host_driver_layer.init_probe(); //probe hardware and initialize them
-        self.usb_driver_layer.init_probe(); //probe driver modules and load them
-                                            // }
-                                            // .await;
+        {
+            self.driver_independent_devices.clear(); //need to have a merge algorithm for hot plug
+            let mut after = Vec::new();
+
+            self.host_driver_layer.probe(|device| after.push(device));
+
+            for driver in after {
+                self.new_device(driver)
+            }
+        }
+
+        {
+            self.usb_driver_layer.init_probe(); //probe driver modules and load them
+        }
+        // }
+        // .await;
         self
+    }
+
+    pub fn drop_device(&mut self, driver_independent_device_slot_id: usize) {
+        //do something
+    }
+
+    pub fn new_device(&mut self, driver: DriverIndependentDeviceInstance<O>) {
+        self.driver_independent_devices.push(driver);
+        //do something
     }
 }
 

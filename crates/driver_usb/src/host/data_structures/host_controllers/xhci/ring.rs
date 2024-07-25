@@ -14,7 +14,9 @@ use axhal::cpu::this_cpu_id;
 use log::debug;
 use log::trace;
 pub use xhci::ring::trb;
-use xhci::ring::trb::command::Allowed;
+use xhci::ring::trb::command;
+use xhci::ring::trb::event;
+use xhci::ring::trb::transfer;
 use xhci::ring::trb::Link;
 const TRB_LEN: usize = 4;
 pub type TrbData = [u32; TRB_LEN];
@@ -49,7 +51,7 @@ impl<O: OSAbstractions> Ring<O> {
         self.get_trb().as_ptr() as usize as u64
     }
 
-    pub fn enque_command(&mut self, mut trb: Allowed) -> usize {
+    pub fn enque_command(&mut self, mut trb: command::Allowed) -> usize {
         if self.cycle {
             trb.set_cycle_bit();
         } else {
@@ -57,6 +59,16 @@ impl<O: OSAbstractions> Ring<O> {
         }
         let addr = self.enque_trb(trb.clone().into_raw());
         trace!("[CMD] >> {:?} @{:X}", trb, addr);
+        addr
+    }
+
+    pub fn enque_transfer(&mut self, mut trb: transfer::Allowed) -> usize {
+        if self.cycle {
+            trb.set_cycle_bit();
+        } else {
+            trb.clear_cycle_bit();
+        }
+        let addr = self.enque_trb(trb.clone().into_raw());
         addr
     }
 
@@ -103,7 +115,7 @@ impl<O: OSAbstractions> Ring<O> {
             } else {
                 link.clear_cycle_bit();
             }
-            let trb = Allowed::Link(link);
+            let trb = command::Allowed::Link(link);
             let link_trb = trb.into_raw();
             let mut this_trb = &mut self.trbs[len - 1];
             this_trb.copy_from_slice(&link_trb);

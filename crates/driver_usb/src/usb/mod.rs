@@ -1,3 +1,4 @@
+pub mod drivers;
 use crate::abstractions::PlatformAbstractions;
 
 pub mod descriptors;

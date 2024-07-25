@@ -1,8 +1,11 @@
-use alloc::{boxed::Box, sync::Arc};
+use alloc::{boxed::Box, collections::binary_heap::Iter, sync::Arc, vec::Vec};
 use data_structures::host_controllers::{xhci::XHCI, Controller, ControllerArc};
 use spinlock::SpinNoIrq;
 
-use crate::{abstractions::PlatformAbstractions, USBSystemConfig};
+use crate::{
+    abstractions::PlatformAbstractions,
+    glue::driver_independent_device_instance::DriverIndependentDeviceInstance, USBSystemConfig,
+};
 
 pub mod data_structures;
 
@@ -52,8 +55,17 @@ where
         self.controller.lock().init()
     }
 
-    pub fn init_probe(&self) {
-        self.controller.lock().probe()
+    pub fn probe<F>(&self, consumer: F)
+    where
+        F: FnMut(DriverIndependentDeviceInstance<O>),
+    {
+        let mut probe = self.controller.lock().probe();
+        probe
+            .iter()
+            .map(|slot_id| {
+                DriverIndependentDeviceInstance::new(slot_id.clone(), self.controller.clone())
+            })
+            .for_each(consumer);
     }
 
     // pub fn poll(&self) -> crate::err::Result {

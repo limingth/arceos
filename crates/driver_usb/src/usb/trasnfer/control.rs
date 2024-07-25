@@ -1,17 +1,15 @@
 use alloc::vec::Vec;
 use num_derive::{FromPrimitive, ToPrimitive};
+use xhci::ring::trb::transfer::Direction;
 
 use crate::abstractions::{dma::DMA, PlatformAbstractions};
 
-pub struct ControlTransfer<O>
-where
-    O: PlatformAbstractions,
-{
-    request_type: bmRequestType,
-    request: bRequest,
-    index: u16,
-    value: u16,
-    data: Option<DMA<u8, O::DMA>>,
+pub struct ControlTransfer {
+    pub request_type: bmRequestType,
+    pub request: bRequest,
+    pub index: u16,
+    pub value: u16,
+    pub data: Option<(usize, usize)>,
 }
 
 #[allow(non_camel_case_types)]
@@ -49,14 +47,14 @@ pub enum bRequest {
 #[allow(non_camel_case_types)]
 #[repr(C, packed)]
 pub struct bmRequestType {
-    direction: DataTransferDirection,
-    transfer_type: DataTransferType,
-    recipient: Recipient,
+    pub direction: Direction,
+    pub transfer_type: DataTransferType,
+    pub recipient: Recipient,
 }
 
 impl bmRequestType {
     pub fn new(
-        direction: DataTransferDirection,
+        direction: Direction,
         transfer_type: DataTransferType,
         recipient: Recipient,
     ) -> bmRequestType {
@@ -68,17 +66,10 @@ impl bmRequestType {
     }
 }
 
-impl Into<u8> for bmRequestType {
-    fn into(self) -> u8 {
-        (self.direction as u8) << 7 | (self.transfer_type as u8) << 4 | self.recipient as u8
+impl From<bmRequestType> for u8 {
+    fn from(value: bmRequestType) -> Self {
+        (value.direction as u8) << 7 | (value.transfer_type as u8) << 4 | value.recipient as u8
     }
-}
-
-#[derive(FromPrimitive, ToPrimitive, Copy, Clone, Debug)]
-#[repr(u8)]
-pub enum DataTransferDirection {
-    Host2Device = 0,
-    Device2Host = 1,
 }
 
 #[derive(FromPrimitive, ToPrimitive, Copy, Clone, Debug)]
