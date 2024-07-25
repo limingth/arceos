@@ -16,6 +16,7 @@ pub use xhci::context::{Device, Device64Byte, DeviceHandler};
 const NUM_EPS: usize = 32;
 
 pub struct DeviceContextList<O>
+//SHOULD We Rearrange these code,and shatter these array into single device?
 where
     O: OSAbstractions,
 {

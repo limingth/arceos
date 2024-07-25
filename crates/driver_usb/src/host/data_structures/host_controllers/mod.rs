@@ -12,7 +12,7 @@ pub trait Controller<O>: Send
 where
     O: PlatformAbstractions,
 {
-    fn new(config: USBSystemConfig<O>) -> Self
+    fn new(config: Arc<SpinNoIrq<USBSystemConfig<O>>>) -> Self
     where
         Self: Sized;
 

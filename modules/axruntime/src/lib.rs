@@ -18,10 +18,12 @@
 
 #![cfg_attr(not(test), no_std)]
 #![feature(doc_auto_cfg)]
+#![allow(unused_imports)]
+#![allow(unexpected_cfgs)]
+#![allow(dead_code)]
 
 #[macro_use]
 extern crate axlog;
-use core::ptr;
 
 #[cfg(all(target_os = "none", not(test)))]
 mod lang_items;

@@ -10,7 +10,9 @@
 #![feature(cfg_match)]
 
 use abstractions::PlatformAbstractions;
+use alloc::sync::Arc;
 use host::USBHostSystem;
+use spinlock::SpinNoIrq;
 use usb::USBDriverSystem;
 
 extern crate alloc;
@@ -37,7 +39,7 @@ where
     O: PlatformAbstractions,
 {
     platform_abstractions: O,
-    config: USBSystemConfig<O>,
+    config: Arc<SpinNoIrq<USBSystemConfig<O>>>,
     host_driver_layer: USBHostSystem<O>,
     usb_driver_layer: USBDriverSystem,
 }
@@ -47,9 +49,10 @@ where
     O: PlatformAbstractions + 'static,
 {
     pub fn new(config: USBSystemConfig<O>) -> Self {
+        let config = Arc::new(SpinNoIrq::new(config));
         Self {
-            platform_abstractions: config.os.clone(),
             config: config.clone(),
+            platform_abstractions: config.clone().lock().os.clone(),
             host_driver_layer: USBHostSystem::new(config.clone()).unwrap(),
             usb_driver_layer: USBDriverSystem,
         }

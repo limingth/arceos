@@ -1,5 +1,5 @@
 use alloc::{boxed::Box, sync::Arc};
-use data_structures::host_controllers::{xhci::XHCIRegisters, Controller, ControllerArc};
+use data_structures::host_controllers::{xhci::XHCI, Controller, ControllerArc};
 use spinlock::SpinNoIrq;
 
 use crate::{abstractions::PlatformAbstractions, USBSystemConfig};
@@ -26,7 +26,7 @@ pub struct USBHostSystem<O>
 where
     O: PlatformAbstractions,
 {
-    pub(crate) config: USBSystemConfig<O>,
+    pub(crate) config: Arc<SpinNoIrq<USBSystemConfig<O>>>,
     pub(crate) controller: ControllerArc<O>,
 }
 
@@ -34,11 +34,11 @@ impl<O> USBHostSystem<O>
 where
     O: PlatformAbstractions + 'static,
 {
-    pub fn new(config: USBSystemConfig<O>) -> crate::err::Result<Self> {
+    pub fn new(config: Arc<SpinNoIrq<USBSystemConfig<O>>>) -> crate::err::Result<Self> {
         let controller = Arc::new(SpinNoIrq::new({
             let xhciregisters: Box<(dyn Controller<O> + 'static)> = {
-                if cfg!(xhci) {
-                    Box::new(XHCIRegisters::new(config.clone()))
+                if cfg!(feature = "xhci") {
+                    Box::new(XHCI::new(config.clone()))
                 } else {
                     panic!("no host controller defined")
                 }
