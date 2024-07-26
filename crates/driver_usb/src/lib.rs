@@ -11,16 +11,22 @@
 
 use core::usize;
 
-use abstractions::PlatformAbstractions;
+use abstractions::{dma::DMA, PlatformAbstractions};
 use alloc::{
     collections::{btree_map::BTreeMap, btree_set::BTreeSet},
     sync::Arc,
     vec::Vec,
 };
 use glue::driver_independent_device_instance::DriverIndependentDeviceInstance;
-use host::USBHostSystem;
+use host::{data_structures::MightBeInited, USBHostSystem};
+use log::{error, trace};
 use spinlock::SpinNoIrq;
-use usb::USBDriverSystem;
+use usb::{
+    descriptors::DescriptorType,
+    trasnfer::control::{bRequest, bmRequestType, ControlTransfer, DataTransferType},
+    USBDriverSystem,
+};
+use xhci::ring::trb::transfer::{Direction, TransferType};
 
 extern crate alloc;
 
@@ -94,12 +100,90 @@ where
         self
     }
 
-    pub fn drop_device(&mut self, driver_independent_device_slot_id: usize) {
+    pub fn drop_device(&mut self, mut driver_independent_device_slot_id: usize) {
         //do something
     }
 
-    pub fn new_device(&mut self, driver: DriverIndependentDeviceInstance<O>) {
-        self.driver_independent_devices.push(driver);
+    pub fn new_device(&mut self, mut driver: DriverIndependentDeviceInstance<O>) {
+        'label: {
+            if let MightBeInited::Uninit = driver.descriptors {
+                let buffer = DMA::new_vec(
+                    0u8,
+                    O::PAGE_SIZE,
+                    O::PAGE_SIZE,
+                    self.config.lock().os.dma_alloc(),
+                );
+
+                let desc = match (&driver.controller).lock().control_transfer(
+                    driver.slotid,
+                    ControlTransfer {
+                        request_type: bmRequestType::new(
+                            Direction::In,
+                            DataTransferType::Standard,
+                            usb::trasnfer::control::Recipient::Device,
+                        ),
+                        request: bRequest::GetDescriptor,
+                        index: 0,
+                        value: DescriptorType::Device.forLowBit(0).bits(),
+                        data: Some(buffer.addr_len_tuple()),
+                    },
+                ) {
+                    Ok(_) => {
+                        trace!("fetched desc,buffer:{:?}", buffer.to_vec());
+                        let mut parse_root_descriptors =
+                            usb::descriptors::RawDescriptorParser::<O>::new(buffer)
+                                .parse_root_descriptors(true);
+                        {
+                            let first = parse_root_descriptors.device.first_mut().unwrap();
+                            for index in 0..first.data.num_configurations {
+                                let buffer = DMA::new_vec(
+                                    0u8,
+                                    O::PAGE_SIZE,
+                                    O::PAGE_SIZE,
+                                    self.config.lock().os.dma_alloc(),
+                                );
+                                (&driver.controller)
+                                    .lock()
+                                    .control_transfer(
+                                        driver.slotid,
+                                        ControlTransfer {
+                                            request_type: bmRequestType::new(
+                                                Direction::In,
+                                                DataTransferType::Standard,
+                                                usb::trasnfer::control::Recipient::Device,
+                                            ),
+                                            request: bRequest::GetDescriptor,
+                                            index: 0,
+                                            value: DescriptorType::Configuration
+                                                .forLowBit(index)
+                                                .bits(),
+                                            data: Some(buffer.addr_len_tuple()),
+                                        },
+                                    )
+                                    .inspect(|_| {
+                                        trace!("fetched desc,buffer:{:?}", buffer.to_vec());
+                                        first.child.push(
+                                            usb::descriptors::RawDescriptorParser::<O>::new(buffer)
+                                                .parse_config_descriptor()
+                                                .unwrap(),
+                                        )
+                                    });
+                            }
+                        }
+
+                        trace!("parsed!{:#?}", parse_root_descriptors);
+                        driver.descriptors = MightBeInited::Inited(parse_root_descriptors);
+                        //fetch driver descriptors
+                    }
+                    Err(err) => {
+                        error!("err! {:?}", err);
+                        break 'label;
+                    }
+                };
+            }
+
+            self.driver_independent_devices.push(driver);
+        }
         //do something
     }
 }

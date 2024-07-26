@@ -1,5 +1,5 @@
  
-## Total Size      = 0x00021040 = 135232 Bytes
+## Total Size      = 0x0002f040 = 192576 Bytes
 ## Start Addr      = 0x90100000
 Phytium-Pi#go 0x90100000
 ## Starting application at 0x90100000 ...
@@ -10,116 +10,492 @@ smp = 1
 build_mode = release
 log_level = trace
 
-[ 24.181863 0 axruntime:143] Logging is enabled.
-[ 24.187591 0 axruntime:144] Primary CPU 512 started, dtb = 0x1.
-[ 24.194709 0 axruntime:146] Found physcial memory regions:
-[ 24.201394 0 axruntime:149]   [PA:0x90100000, PA:0x90119000) .text (READ | EXECUTE | RESERVED)
-[ 24.211201 0 axruntime:149]   [PA:0x90119000, PA:0x9011e000) .rodata (READ | RESERVED)
-[ 24.220315 0 axruntime:149]   [PA:0x9011e000, PA:0x90122000) .data .tdata .tbss .percpu (READ | WRITE | RESERVED)
-[ 24.231772 0 axruntime:149]   [PA:0x90122000, PA:0x90162000) boot stack (READ | WRITE | RESERVED)
-[ 24.241841 0 axruntime:149]   [PA:0x90162000, PA:0x90188000) .bss (READ | WRITE | RESERVED)
-[ 24.251389 0 axruntime:149]   [PA:0x0, PA:0x1000) spintable (READ | WRITE | RESERVED)
-[ 24.260416 0 axruntime:149]   [PA:0x90188000, PA:0x90888000) nocache memory (READ | WRITE | DEVICE)
-[ 24.270659 0 axruntime:149]   [PA:0x90888000, PA:0xff900000) free memory (READ | WRITE | FREE)
-[ 24.280467 0 axruntime:149]   [PA:0x2800c000, PA:0x2800d000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 24.290796 0 axruntime:149]   [PA:0x2800d000, PA:0x2800e000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 24.301125 0 axruntime:149]   [PA:0x2800e000, PA:0x2800f000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 24.311455 0 axruntime:149]   [PA:0x2800f000, PA:0x28010000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 24.321784 0 axruntime:149]   [PA:0x30000000, PA:0x38000000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 24.332113 0 axruntime:149]   [PA:0x40000000, PA:0x80000000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 24.342442 0 axruntime:149]   [PA:0x1000000000, PA:0x3000000000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 24.353119 0 axruntime:228] Initialize global memory allocator...
-[ 24.360410 0 axruntime:229]   use TLSF allocator.
-[ 24.366314 0 axalloc:284] initialize global allocator at: free-[0xffff000090888000, 0xffff0000ff900000)
-[ 24.377224 0 axruntime:163] Initialize kernel page table...
-[ 24.383677 0 page_table::bits64:159] map_region(PA:0x90890000): [VA:0xffff000090100000, VA:0xffff000090119000) -> [PA:0x90100000, PA:0x90119000) MappingFlags(READ | EXECUTE)
-[ 24.400346 0 page_table::bits64:159] map_region(PA:0x90890000): [VA:0xffff000090119000, VA:0xffff00009011e000) -> [PA:0x90119000, PA:0x9011e000) MappingFlags(READ)
-[ 24.416136 0 page_table::bits64:159] map_region(PA:0x90890000): [VA:0xffff00009011e000, VA:0xffff000090122000) -> [PA:0x9011e000, PA:0x90122000) MappingFlags(READ | WRITE)
-[ 24.432628 0 page_table::bits64:159] map_region(PA:0x90890000): [VA:0xffff000090122000, VA:0xffff000090162000) -> [PA:0x90122000, PA:0x90162000) MappingFlags(READ | WRITE)
-[ 24.449123 0 page_table::bits64:159] map_region(PA:0x90890000): [VA:0xffff000090162000, VA:0xffff000090188000) -> [PA:0x90162000, PA:0x90188000) MappingFlags(READ | WRITE)
-[ 24.465613 0 page_table::bits64:159] map_region(PA:0x90890000): [VA:0xffff000000000000, VA:0xffff000000001000) -> [PA:0x0, PA:0x1000) MappingFlags(READ | WRITE)
-[ 24.481151 0 page_table::bits64:159] map_region(PA:0x90890000): [VA:0x90188000, VA:0x90888000) -> [PA:0x90188000, PA:0x90888000) MappingFlags(READ | WRITE | DEVICE)
-[ 24.497046 0 page_table::bits64:159] map_region(PA:0x90890000): [VA:0xffff000090888000, VA:0xffff0000ff900000) -> [PA:0x90888000, PA:0xff900000) MappingFlags(READ | WRITE)
-[ 24.513596 0 page_table::bits64:159] map_region(PA:0x90890000): [VA:0xffff00002800c000, VA:0xffff00002800d000) -> [PA:0x2800c000, PA:0x2800d000) MappingFlags(READ | WRITE | DEVICE)
-[ 24.530799 0 page_table::bits64:159] map_region(PA:0x90890000): [VA:0xffff00002800d000, VA:0xffff00002800e000) -> [PA:0x2800d000, PA:0x2800e000) MappingFlags(READ | WRITE | DEVICE)
-[ 24.548072 0 page_table::bits64:159] map_region(PA:0x90890000): [VA:0xffff00002800e000, VA:0xffff00002800f000) -> [PA:0x2800e000, PA:0x2800f000) MappingFlags(READ | WRITE | DEVICE)
-[ 24.565345 0 page_table::bits64:159] map_region(PA:0x90890000): [VA:0xffff00002800f000, VA:0xffff000028010000) -> [PA:0x2800f000, PA:0x28010000) MappingFlags(READ | WRITE | DEVICE)
-[ 24.582618 0 page_table::bits64:159] map_region(PA:0x90890000): [VA:0xffff000030000000, VA:0xffff000038000000) -> [PA:0x30000000, PA:0x38000000) MappingFlags(READ | WRITE | DEVICE)
-[ 24.599894 0 page_table::bits64:159] map_region(PA:0x90890000): [VA:0xffff000040000000, VA:0xffff000080000000) -> [PA:0x40000000, PA:0x80000000) MappingFlags(READ | WRITE | DEVICE)
-[ 24.617164 0 page_table::bits64:159] map_region(PA:0x90890000): [VA:0xffff001000000000, VA:0xffff003000000000) -> [PA:0x1000000000, PA:0x3000000000) MappingFlags(READ | WRITE | DEVICE)
-[ 24.634790 0 axhal::arch::aarch64:67] set page table root: PA:0x9011e000 => PA:0x90890000
-[ 24.644159 0 axruntime:263] Initialize global no cache memory allocator...
-[ 24.652233 0 axalloc:300] initialize global allocator at: nocache-[0x90188000,0x90888000)
-[ 24.661608 0 axruntime:170] Initialize platform devices...
-[ 24.668290 0 axhal::platform::aarch64_common::gic:51] Initialize GICv2...
-[ 24.676276 0 axhal::platform::aarch64_common::gic:27] GICD set enable: 30 true
-[ 24.684695 0 axhal::platform::aarch64_common::gic:27] GICD set enable: 56 true
-[ 24.693115 0 axtask::api:66] Initialize scheduling...
-[ 24.699367 0 axtask::task:146] new task: Task(1, "idle")
-[ 24.705878 0 axtask::task:146] new task: Task(3, "gc")
-[ 24.712215 0 axalloc:126] expand heap memory: [0xffff00009089a000, 0xffff0000908da000)
-[ 24.721331 0 axalloc:126] expand heap memory: [0xffff0000908da000, 0xffff00009095a000)
-[ 24.730441 0 axtask::api:72]   use Round-robin scheduler.
-[ 24.737035 0 axruntime:196] Initialize interrupt handlers...
-[ 24.743893 0 axhal::platform::aarch64_common::gic:36] register handler irq 30
-[ 24.752225 0 axhal::platform::aarch64_common::gic:27] GICD set enable: 30 true
-[ 24.760645 0 axruntime:206] Primary CPU 512 init OK.
-[ 24.766812 0:2 driver_usb::host::data_structures::host_controllers::xhci:412] [XHCI] Max_slots: 16, max_ports: 2, max_irqs: 1, page size: 1
-[ 24.781450 0:2 driver_usb::host::data_structures::host_controllers::xhci:425] [XHCI] ring size 256
-[ 24.790680 0:2 driver_usb::host::data_structures::host_controllers::xhci:91] [XHCI] Reset begin
-[ 24.800573 0:2 driver_usb::host::data_structures::host_controllers::xhci:92] [XHCI] Stop
-[ 24.809861 0:2 driver_usb::host::data_structures::host_controllers::xhci:97] [XHCI] Until halt
-[ 24.819669 0:2 driver_usb::host::data_structures::host_controllers::xhci:99] [XHCI] Halted
-[ 24.829130 0:2 driver_usb::host::data_structures::host_controllers::xhci:104] [XHCI] Wait for ready...
-[ 24.839633 0:2 driver_usb::host::data_structures::host_controllers::xhci:106] [XHCI] Ready
-[ 24.849095 0:2 driver_usb::host::data_structures::host_controllers::xhci:114] [XHCI] Reset HC
-[ 24.858817 0:2 driver_usb::host::data_structures::host_controllers::xhci:130] [XHCI] XCHI reset ok
-[ 24.868971 0:2 driver_usb::host::data_structures::host_controllers::xhci:136] [XHCI] Setting enabled slots to 16.
-[ 24.880429 0:2 driver_usb::host::data_structures::host_controllers::xhci:145] [XHCI] Writing DCBAAP: 90189000
-[ 24.891540 0:2 driver_usb::host::data_structures::host_controllers::xhci:158] [XHCI] Writing CRCR: 901A9880
-[ 24.902477 0:2 driver_usb::host::data_structures::host_controllers::xhci:191] [XHCI] Disable interrupts
-[ 24.913066 0:2 driver_usb::host::data_structures::host_controllers::xhci:200] [XHCI] Writing ERSTZ
-[ 24.923221 0:2 driver_usb::host::data_structures::host_controllers::xhci:204] [XHCI] Writing ERDP: 901AA900
-[ 24.934159 0:2 driver_usb::host::data_structures::host_controllers::xhci:211] [XHCI] Writing ERSTBA: 901AA8C0
-[ 24.945270 0:2 driver_usb::host::data_structures::host_controllers::xhci:221] [XHCI] Enabling primary interrupter.
-[ 24.956814 0:2 driver_usb::host::data_structures::host_controllers::xhci:299] [XHCI] Scratch buf count: 0
-[ 24.967576 0:2 driver_usb::host::data_structures::host_controllers::xhci:303] no buf count! check hardware!
-[ 24.978513 0:2 driver_usb::host::data_structures::host_controllers::xhci:173] [XHCI] Start run
-[ 24.988322 0:2 driver_usb::host::data_structures::host_controllers::xhci:180] [XHCI] Is running
-[ 24.998217 0:2 driver_usb::host::data_structures::host_controllers::xhci:325] [XHCI] Test command ring
-[ 25.008720 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:66] enqueued 0 @0x901A9880
+[ 34.627906 0 axruntime:143] Logging is enabled.
+[ 34.633634 0 axruntime:144] Primary CPU 512 started, dtb = 0x1.
+[ 34.640751 0 axruntime:146] Found physcial memory regions:
+[ 34.647436 0 axruntime:149]   [PA:0x90100000, PA:0x90125000) .text (READ | EXECUTE | RESERVED)
+[ 34.657243 0 axruntime:149]   [PA:0x90125000, PA:0x9012c000) .rodata (READ | RESERVED)
+[ 34.666357 0 axruntime:149]   [PA:0x9012c000, PA:0x90130000) .data .tdata .tbss .percpu (READ | WRITE | RESERVED)
+[ 34.677815 0 axruntime:149]   [PA:0x90130000, PA:0x90170000) boot stack (READ | WRITE | RESERVED)
+[ 34.687884 0 axruntime:149]   [PA:0x90170000, PA:0x90196000) .bss (READ | WRITE | RESERVED)
+[ 34.697432 0 axruntime:149]   [PA:0x0, PA:0x1000) spintable (READ | WRITE | RESERVED)
+[ 34.706459 0 axruntime:149]   [PA:0x90196000, PA:0x90896000) nocache memory (READ | WRITE | DEVICE)
+[ 34.716701 0 axruntime:149]   [PA:0x90896000, PA:0xff900000) free memory (READ | WRITE | FREE)
+[ 34.726510 0 axruntime:149]   [PA:0x2800c000, PA:0x2800d000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 34.736839 0 axruntime:149]   [PA:0x2800d000, PA:0x2800e000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 34.747168 0 axruntime:149]   [PA:0x2800e000, PA:0x2800f000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 34.757497 0 axruntime:149]   [PA:0x2800f000, PA:0x28010000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 34.767827 0 axruntime:149]   [PA:0x30000000, PA:0x38000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 34.778156 0 axruntime:149]   [PA:0x40000000, PA:0x80000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 34.788485 0 axruntime:149]   [PA:0x1000000000, PA:0x3000000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 34.799161 0 axruntime:228] Initialize global memory allocator...
+[ 34.806453 0 axruntime:229]   use TLSF allocator.
+[ 34.812357 0 axalloc:284] initialize global allocator at: free-[0xffff000090896000, 0xffff0000ff900000)
+[ 34.823268 0 axruntime:163] Initialize kernel page table...
+[ 34.829720 0 page_table::bits64:159] map_region(PA:0x9089e000): [VA:0xffff000090100000, VA:0xffff000090125000) -> [PA:0x90100000, PA:0x90125000) MappingFlags(READ | EXECUTE)
+[ 34.846388 0 page_table::bits64:159] map_region(PA:0x9089e000): [VA:0xffff000090125000, VA:0xffff00009012c000) -> [PA:0x90125000, PA:0x9012c000) MappingFlags(READ)
+[ 34.862178 0 page_table::bits64:159] map_region(PA:0x9089e000): [VA:0xffff00009012c000, VA:0xffff000090130000) -> [PA:0x9012c000, PA:0x90130000) MappingFlags(READ | WRITE)
+[ 34.878670 0 page_table::bits64:159] map_region(PA:0x9089e000): [VA:0xffff000090130000, VA:0xffff000090170000) -> [PA:0x90130000, PA:0x90170000) MappingFlags(READ | WRITE)
+[ 34.895165 0 page_table::bits64:159] map_region(PA:0x9089e000): [VA:0xffff000090170000, VA:0xffff000090196000) -> [PA:0x90170000, PA:0x90196000) MappingFlags(READ | WRITE)
+[ 34.911656 0 page_table::bits64:159] map_region(PA:0x9089e000): [VA:0xffff000000000000, VA:0xffff000000001000) -> [PA:0x0, PA:0x1000) MappingFlags(READ | WRITE)
+[ 34.927194 0 page_table::bits64:159] map_region(PA:0x9089e000): [VA:0x90196000, VA:0x90896000) -> [PA:0x90196000, PA:0x90896000) MappingFlags(READ | WRITE | DEVICE)
+[ 34.943088 0 page_table::bits64:159] map_region(PA:0x9089e000): [VA:0xffff000090896000, VA:0xffff0000ff900000) -> [PA:0x90896000, PA:0xff900000) MappingFlags(READ | WRITE)
+[ 34.959636 0 page_table::bits64:159] map_region(PA:0x9089e000): [VA:0xffff00002800c000, VA:0xffff00002800d000) -> [PA:0x2800c000, PA:0x2800d000) MappingFlags(READ | WRITE | DEVICE)
+[ 34.976842 0 page_table::bits64:159] map_region(PA:0x9089e000): [VA:0xffff00002800d000, VA:0xffff00002800e000) -> [PA:0x2800d000, PA:0x2800e000) MappingFlags(READ | WRITE | DEVICE)
+[ 34.994114 0 page_table::bits64:159] map_region(PA:0x9089e000): [VA:0xffff00002800e000, VA:0xffff00002800f000) -> [PA:0x2800e000, PA:0x2800f000) MappingFlags(READ | WRITE | DEVICE)
+[ 35.011387 0 page_table::bits64:159] map_region(PA:0x9089e000): [VA:0xffff00002800f000, VA:0xffff000028010000) -> [PA:0x2800f000, PA:0x28010000) MappingFlags(READ | WRITE | DEVICE)
+[ 35.028661 0 page_table::bits64:159] map_region(PA:0x9089e000): [VA:0xffff000030000000, VA:0xffff000038000000) -> [PA:0x30000000, PA:0x38000000) MappingFlags(READ | WRITE | DEVICE)
+[ 35.045936 0 page_table::bits64:159] map_region(PA:0x9089e000): [VA:0xffff000040000000, VA:0xffff000080000000) -> [PA:0x40000000, PA:0x80000000) MappingFlags(READ | WRITE | DEVICE)
+[ 35.063207 0 page_table::bits64:159] map_region(PA:0x9089e000): [VA:0xffff001000000000, VA:0xffff003000000000) -> [PA:0x1000000000, PA:0x3000000000) MappingFlags(READ | WRITE | DEVICE)
+[ 35.080832 0 axhal::arch::aarch64:67] set page table root: PA:0x9012c000 => PA:0x9089e000
+[ 35.090202 0 axruntime:263] Initialize global no cache memory allocator...
+[ 35.098275 0 axalloc:300] initialize global allocator at: nocache-[0x90196000,0x90896000)
+[ 35.107651 0 axruntime:170] Initialize platform devices...
+[ 35.114332 0 axhal::platform::aarch64_common::gic:51] Initialize GICv2...
+[ 35.122318 0 axhal::platform::aarch64_common::gic:27] GICD set enable: 30 true
+[ 35.130737 0 axhal::platform::aarch64_common::gic:27] GICD set enable: 56 true
+[ 35.139157 0 axtask::api:66] Initialize scheduling...
+[ 35.145410 0 axtask::task:146] new task: Task(1, "idle")
+[ 35.151921 0 axtask::task:146] new task: Task(3, "gc")
+[ 35.158257 0 axalloc:126] expand heap memory: [0xffff0000908a8000, 0xffff0000908e8000)
+[ 35.167374 0 axalloc:126] expand heap memory: [0xffff0000908e8000, 0xffff000090968000)
+[ 35.176484 0 axtask::api:72]   use Round-robin scheduler.
+[ 35.183078 0 axruntime:196] Initialize interrupt handlers...
+[ 35.189935 0 axhal::platform::aarch64_common::gic:36] register handler irq 30
+[ 35.198268 0 axhal::platform::aarch64_common::gic:27] GICD set enable: 30 true
+[ 35.206688 0 axruntime:206] Primary CPU 512 init OK.
+[ 35.212854 0:2 driver_usb::host::data_structures::host_controllers::xhci:513] [XHCI] Max_slots: 16, max_ports: 2, max_irqs: 1, page size: 1
+[ 35.227355 0:2 driver_usb::host::data_structures::host_controllers::xhci:526] [XHCI] ring size 256
+[ 35.236722 0:2 driver_usb::host::data_structures::host_controllers::xhci:109] [XHCI] Reset begin
+[ 35.246702 0:2 driver_usb::host::data_structures::host_controllers::xhci:110] [XHCI] Stop
+[ 35.256077 0:2 driver_usb::host::data_structures::host_controllers::xhci:115] [XHCI] Until halt
+[ 35.265972 0:2 driver_usb::host::data_structures::host_controllers::xhci:117] [XHCI] Halted
+[ 35.275520 0:2 driver_usb::host::data_structures::host_controllers::xhci:122] [XHCI] Wait for ready...
+[ 35.286023 0:2 driver_usb::host::data_structures::host_controllers::xhci:124] [XHCI] Ready
+[ 35.295485 0:2 driver_usb::host::data_structures::host_controllers::xhci:132] [XHCI] Reset HC
+[ 35.305206 0:2 driver_usb::host::data_structures::host_controllers::xhci:148] [XHCI] XCHI reset ok
+[ 35.315361 0:2 driver_usb::host::data_structures::host_controllers::xhci:154] [XHCI] Setting enabled slots to 16.
+[ 35.326819 0:2 driver_usb::host::data_structures::host_controllers::xhci:163] [XHCI] Writing DCBAAP: 90197000
+[ 35.337930 0:2 driver_usb::host::data_structures::host_controllers::xhci:176] [XHCI] Writing CRCR: 901B7880
+[ 35.348867 0:2 driver_usb::host::data_structures::host_controllers::xhci:209] [XHCI] Disable interrupts
+[ 35.359456 0:2 driver_usb::host::data_structures::host_controllers::xhci:218] [XHCI] Writing ERSTZ
+[ 35.369612 0:2 driver_usb::host::data_structures::host_controllers::xhci:222] [XHCI] Writing ERDP: 901B8900
+[ 35.380549 0:2 driver_usb::host::data_structures::host_controllers::xhci:229] [XHCI] Writing ERSTBA: 901B88C0
+[ 35.391660 0:2 driver_usb::host::data_structures::host_controllers::xhci:239] [XHCI] Enabling primary interrupter.
+[ 35.403204 0:2 driver_usb::host::data_structures::host_controllers::xhci:318] [XHCI] Scratch buf count: 0
+[ 35.413966 0:2 driver_usb::host::data_structures::host_controllers::xhci:322] buf count=0,is it a error?
+[ 35.424642 0:2 driver_usb::host::data_structures::host_controllers::xhci:191] [XHCI] Start run
+[ 35.434452 0:2 driver_usb::host::data_structures::host_controllers::xhci:198] [XHCI] Is running
+[ 35.444346 0:2 driver_usb::host::data_structures::host_controllers::xhci:344] [XHCI] Test command ring
+[ 35.454850 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 0 @0x901B7880
 0
 0
 0
 5c01
 ------------------------------------------------
-[ 25.025125 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:59] [CMD] >> Noop(Noop { cycle_bit: true }) @901A9880
-[ 25.038232 0:2 driver_usb::host::data_structures::host_controllers::xhci:358] Wait result
-[ 25.047607 0:2 driver_usb::host::data_structures::host_controllers::xhci:383] event: PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 1, cycle_bit: true })
-[ 25.064966 0:2 driver_usb::host::data_structures::host_controllers::xhci:369] [CMD] << Success @901A9880 got result, cycle true
-[ 25.077639 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:66] enqueued 1 @0x901A9890
+[ 35.471254 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:61] [CMD] >> Noop(Noop { cycle_bit: true }) @901B7880
+[ 35.484361 0:2 driver_usb::host::data_structures::host_controllers::xhci:379] Wait result
+[ 35.493737 0:2 driver_usb::host::data_structures::host_controllers::xhci:404] event: PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 1, cycle_bit: true })
+[ 35.511096 0:2 driver_usb::host::data_structures::host_controllers::xhci:390] [CMD] << Success @901B7880 got result, cycle true
+[ 35.523769 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 1 @0x901B7890
 0
 0
 0
 5c01
 ------------------------------------------------
-[ 25.094043 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:59] [CMD] >> Noop(Noop { cycle_bit: true }) @901A9890
-[ 25.107151 0:2 driver_usb::host::data_structures::host_controllers::xhci:358] Wait result
-[ 25.116525 0:2 driver_usb::host::data_structures::host_controllers::xhci:369] [CMD] << Success @901A9890 got result, cycle true
-[ 25.129198 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:66] enqueued 2 @0x901A98A0
+[ 35.540173 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:61] [CMD] >> Noop(Noop { cycle_bit: true }) @901B7890
+[ 35.553280 0:2 driver_usb::host::data_structures::host_controllers::xhci:379] Wait result
+[ 35.562655 0:2 driver_usb::host::data_structures::host_controllers::xhci:390] [CMD] << Success @901B7890 got result, cycle true
+[ 35.575328 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 2 @0x901B78A0
 0
 0
 0
 5c01
 ------------------------------------------------
-[ 25.145603 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:59] [CMD] >> Noop(Noop { cycle_bit: true }) @901A98A0
-[ 25.158710 0:2 driver_usb::host::data_structures::host_controllers::xhci:358] Wait result
-[ 25.168085 0:2 driver_usb::host::data_structures::host_controllers::xhci:369] [CMD] << Success @901A98A0 got result, cycle true
-[ 25.180757 0:2 driver_usb::host::data_structures::host_controllers::xhci:329] [XHCI] Command ring ok
-[ 25.191086 0:2 driver_usb::host::data_structures::host_controllers::xhci:273] [XHCI] Port 0 start reset
-[ 25.259518 0:2 driver_usb::host::data_structures::host_controllers::xhci:286] [XHCI] Port 0 reset ok
-[ 25.266976 0:2 driver_usb::host::data_structures::host_controllers::xhci:273] [XHCI] Port 1 start reset
-[ 25.277571 0:2 driver_usb::host::data_structures::host_controllers::xhci:286] [XHCI] Port 1 reset ok
-[ 25.287895 0:2 axruntime::lang_items:5] panicked at /home/dbydd/gitProjects/arceos_test/crates/driver_usb/src/host/data_structures/host_controllers/xhci/mod.rs:455:9:
-not yet implemented
-[ 25.305775 0:2 axhal::platform::aarch64_phytium_pi::misc:22] Shutting down...
+[ 35.591732 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:61] [CMD] >> Noop(Noop { cycle_bit: true }) @901B78A0
+[ 35.604840 0:2 driver_usb::host::data_structures::host_controllers::xhci:379] Wait result
+[ 35.614214 0:2 driver_usb::host::data_structures::host_controllers::xhci:390] [CMD] << Success @901B78A0 got result, cycle true
+[ 35.626887 0:2 driver_usb::host::data_structures::host_controllers::xhci:350] [XHCI] Command ring ok
+[ 35.637216 0:2 driver_usb::host::data_structures::host_controllers::xhci:291] [XHCI] Port 0 start reset
+[ 35.705648 0:2 driver_usb::host::data_structures::host_controllers::xhci:304] [XHCI] Port 0 reset ok
+[ 35.713105 0:2 driver_usb::host::data_structures::host_controllers::xhci:291] [XHCI] Port 1 start reset
+[ 35.723701 0:2 driver_usb::host::data_structures::host_controllers::xhci:304] [XHCI] Port 1 reset ok
+[ 35.734026 0:2 driver_usb::host::data_structures::host_controllers::xhci:563] [XHCI] Port 0: Enabled: true, Connected: true, Speed 1, Power true
+[ 35.748175 0:2 driver_usb::host::data_structures::host_controllers::xhci:563] [XHCI] Port 1: Enabled: false, Connected: false, Speed 0, Power true
+[ 35.762495 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 3 @0x901B78B0
+0
+0
+0
+2401
+------------------------------------------------
+[ 35.778899 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:61] [CMD] >> EnableSlot(EnableSlot { slot_type: 0, cycle_bit: true }) @901B78B0
+[ 35.794264 0:2 driver_usb::host::data_structures::host_controllers::xhci:379] Wait result
+[ 35.803638 0:2 driver_usb::host::data_structures::host_controllers::xhci:404] event: PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 1, cycle_bit: true })
+[ 35.820998 0:2 driver_usb::host::data_structures::host_controllers::xhci:390] [CMD] << Success @901B78B0 got result, cycle true
+[ 35.833672 0:2 driver_usb::host::data_structures::host_controllers::xhci:731] assigned slot id: 1
+[ 35.843892 0:2 driver_usb::host::data_structures::host_controllers::xhci:584] assign complete!
+[ 35.853550 0:2 driver_usb::host::data_structures::host_controllers::xhci:440] fetch transfer ring at slot1-dci1
+[ 35.864832 0:2 driver_usb::host::data_structures::host_controllers::xhci:440] fetch transfer ring at slot1-dci1
+[ 35.876118 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 4 @0x901B78C0
+9019b000
+0
+0
+1002c01
+------------------------------------------------
+[ 35.893389 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:61] [CMD] >> AddressDevice(AddressDevice { input_context_pointer: 2417602560, block_set_address_request: false, slot_id: 1, cycle_bit: true }) @901B78C0
+[ 35.915089 0:2 driver_usb::host::data_structures::host_controllers::xhci:379] Wait result
+[ 35.924464 0:2 driver_usb::host::data_structures::host_controllers::xhci:390] [CMD] << Success @901B78C0 got result, cycle true
+[ 35.937137 0:2 driver_usb::host::data_structures::host_controllers::xhci:800] address slot [1] ok
+[ 35.947205 0:2 driver_usb::host::data_structures::host_controllers::xhci:412] slot 1 Addressed
+[ 35.957013 0:2 driver_usb::host::data_structures::host_controllers::xhci:421]   ep dci 1: Running
+[ 35.967086 0:2 driver_usb::host::data_structures::host_controllers::xhci:804] control_fetch_control_point_packet_size
+[ 35.978888 0:2 driver_usb::host::data_structures::host_controllers::xhci:659] SetupStage {
+    interrupt_on_completion: false,
+    request_type: 128,
+    request: 6,
+    value: 256,
+    index: 0,
+    length: 8,
+    interrupt_on_completion: false,
+    transfer_type: In,
+    cycle_bit: false,
+}
+[ 36.006837 0:2 driver_usb::host::data_structures::host_controllers::xhci:440] fetch transfer ring at slot1-dci1
+[ 36.018120 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 0 @0x901B9940
+1000680
+80000
+8
+30841
+------------------------------------------------
+[ 36.035481 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 1 @0x901B9950
+901be140
+0
+8
+10c01
+------------------------------------------------
+[ 36.052580 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 2 @0x901B9960
+0
+0
+0
+1021
+------------------------------------------------
+[ 36.068986 0:2 driver_usb::host::data_structures::host_controllers::xhci:688] [Transfer] >> setup@0x901B9940, data@0x901B9950, status@0x901B9960
+[ 36.083134 0:2 driver_usb::host::data_structures::host_controllers::xhci:455] Wait result @0x901B9960
+[ 36.093552 0:2 driver_usb::host::data_structures::host_controllers::xhci:464] [Transfer] << Success @0x901B9960 got result1, cycle true, len 0
+[ 36.107525 0:2 driver_usb::host::data_structures::host_controllers::xhci:477] code:Success,pointer:901b9960
+[ 36.118463 0:2 driver_usb::host::data_structures::host_controllers::xhci:824] got [18, 1, 0, 2, 0, 0, 0, 8]
+[ 36.129399 0:2 driver_usb::host::data_structures::host_controllers::xhci:590] packet_size0: 8
+[ 36.139120 0:2 driver_usb::host::data_structures::host_controllers::xhci:838] CMD: evaluating context for set endpoint0 packet size 8
+[ 36.152313 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 5 @0x901B78D0
+9019b000
+0
+0
+1003401
+------------------------------------------------
+[ 36.169586 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:61] [CMD] >> EvaluateContext(EvaluateContext { input_context_pointer: 2417602560, slot_id: 1, cycle_bit: true }) @901B78D0
+[ 36.188683 0:2 driver_usb::host::data_structures::host_controllers::xhci:379] Wait result
+[ 36.198057 0:2 driver_usb::host::data_structures::host_controllers::xhci:390] [CMD] << Success @901B78D0 got result, cycle true
+[ 36.211008 0:2 driver_usb::host::data_structures::host_controllers::xhci:659] SetupStage {
+    interrupt_on_completion: false,
+    request_type: 128,
+    request: 6,
+    value: 256,
+    index: 0,
+    length: 4096,
+    interrupt_on_completion: false,
+    transfer_type: In,
+    cycle_bit: false,
+}
+[ 36.238940 0:2 driver_usb::host::data_structures::host_controllers::xhci:440] fetch transfer ring at slot1-dci1
+[ 36.250223 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 3 @0x901B9970
+1000680
+10000000
+8
+30841
+------------------------------------------------
+[ 36.267844 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 4 @0x901B9980
+901bf000
+0
+1000
+10c01
+------------------------------------------------
+[ 36.285204 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 5 @0x901B9990
+0
+0
+0
+1021
+------------------------------------------------
+[ 36.301609 0:2 driver_usb::host::data_structures::host_controllers::xhci:688] [Transfer] >> setup@0x901B9970, data@0x901B9980, status@0x901B9990
+[ 36.315758 0:2 driver_usb::host::data_structures::host_controllers::xhci:455] Wait result @0x901B9990
+[ 36.326175 0:2 driver_usb::host::data_structures::host_controllers::xhci:464] [Transfer] << Success @0x901B9990 got result1, cycle true, len 0
+[ 36.340148 0:2 driver_usb::host::data_structures::host_controllers::xhci:477] code:Success,pointer:901b9990
+[ 36.351149 0:2 driver_usb:132] fetched desc,buffer:[18, 1, 0, 2, 0, 0, 0, 8, 109, 4, 47, 197, 0, 48, 1, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+[ 37.424367 0:2 driver_usb::usb::descriptors:164] parse root desc!
+[ 37.431659 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Device)
+[ 37.439645 0:2 driver_usb::usb::descriptors:204] parse single device desc!
+[ 37.447997 0:2 driver_usb::host::data_structures::host_controllers::xhci:659] SetupStage {
+    interrupt_on_completion: false,
+    request_type: 128,
+    request: 6,
+    value: 512,
+    index: 0,
+    length: 4096,
+    interrupt_on_completion: false,
+    transfer_type: In,
+    cycle_bit: false,
+}
+[ 37.475926 0:2 driver_usb::host::data_structures::host_controllers::xhci:440] fetch transfer ring at slot1-dci1
+[ 37.487210 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 6 @0x901B99A0
+2000680
+10000000
+8
+30841
+------------------------------------------------
+[ 37.504831 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 7 @0x901B99B0
+901bf000
+0
+1000
+10c01
+------------------------------------------------
+[ 37.522191 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 8 @0x901B99C0
+0
+0
+0
+1021
+------------------------------------------------
+[ 37.538596 0:2 driver_usb::host::data_structures::host_controllers::xhci:688] [Transfer] >> setup@0x901B99A0, data@0x901B99B0, status@0x901B99C0
+[ 37.552745 0:2 driver_usb::host::data_structures::host_controllers::xhci:455] Wait result @0x901B99C0
+[ 37.563162 0:2 driver_usb::host::data_structures::host_controllers::xhci:464] [Transfer] << Success @0x901B99C0 got result1, cycle true, len 0
+[ 37.577135 0:2 driver_usb::host::data_structures::host_controllers::xhci:477] code:Success,pointer:901b99c0
+[ 37.588135 0:2 driver_usb:164] fetched desc,buffer:[9, 2, 59, 0, 2, 1, 4, 160, 49, 9, 4, 0, 0, 1, 3, 1, 2, 0, 9, 33, 17, 1, 0, 1, 34, 67, 0, 7, 5, 129, 3, 8, 0, 2, 9, 4, 1, 0, 1, 3, 0, 0, 0, 9, 33, 17, 1, 0, 1, 34, 79, 0, 7, 5, 130, 3, 20, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+[ 38.662222 0:2 driver_usb::usb::descriptors:244] parse config desc!
+[ 38.669689 0:2 driver_usb::usb::descriptors:258] num of interfaces:2
+[ 38.677239 0:2 driver_usb::usb::descriptors:276] parse function desc!
+[ 38.684877 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Interface)
+[ 38.693123 0:2 driver_usb::usb::descriptors:280] parse single interface desc!
+[ 38.701456 0:2 driver_usb::usb::descriptors:385] peek at 9,value:9
+[ 38.708834 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Interface)
+[ 38.717082 0:2 driver_usb::usb::descriptors:385] peek at 9,value:9
+[ 38.724458 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Interface)
+[ 38.732705 0:2 driver_usb::usb::descriptors:289] peeked Interface {
+    len: 9,
+    descriptor_type: 4,
+    interface_number: 0,
+    alternate_setting: 0,
+    num_endpoints: 1,
+    interface_class: 3,
+    interface_subclass: 1,
+    interface_protocol: 2,
+    interface: 0,
+},compare with Interface {
+    len: 9,
+    descriptor_type: 4,
+    interface_number: 0,
+    alternate_setting: 0,
+    num_endpoints: 1,
+    interface_class: 3,
+    interface_subclass: 1,
+    interface_protocol: 2,
+    interface: 0,
+}
+[ 38.780010 0:2 driver_usb::usb::descriptors:290] loop for interface desc!
+[ 38.787995 0:2 driver_usb::usb::descriptors:360] parse interfaces
+[ 38.795286 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Interface)
+[ 38.803532 0:2 driver_usb::usb::descriptors:196] parse any desc! type:Some(Interface)
+[ 38.812562 0:2 driver_usb::usb::descriptors:292] got interface Interface { len: 9, descriptor_type: 4, interface_number: 0, alternate_setting: 0, num_endpoints: 1, interface_class: 3, interface_subclass: 1, interface_protocol: 2, interface: 0 }
+[ 38.835388 0:2 driver_usb::usb::descriptors:334] parse additional data for interface
+[ 38.844329 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Hid)
+[ 38.852054 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Hid)
+[ 38.859779 0:2 driver_usb::usb::descriptors:196] parse any desc! type:Some(Hid)
+[ 38.868289 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Endpoint)
+[ 38.876444 0:2 driver_usb::usb::descriptors:348] parse enedpoints
+[ 38.883736 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Endpoint)
+[ 38.891895 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Endpoint)
+[ 38.900054 0:2 driver_usb::usb::descriptors:196] parse any desc! type:Some(Endpoint)
+[ 38.908997 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Interface)
+[ 38.917240 0:2 driver_usb::usb::descriptors:385] peek at 34,value:9
+[ 38.924705 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Interface)
+[ 38.932954 0:2 driver_usb::usb::descriptors:276] parse function desc!
+[ 38.940590 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Interface)
+[ 38.948835 0:2 driver_usb::usb::descriptors:280] parse single interface desc!
+[ 38.957168 0:2 driver_usb::usb::descriptors:385] peek at 34,value:9
+[ 38.964633 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Interface)
+[ 38.972880 0:2 driver_usb::usb::descriptors:385] peek at 34,value:9
+[ 38.980344 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Interface)
+[ 38.988592 0:2 driver_usb::usb::descriptors:289] peeked Interface {
+    len: 9,
+    descriptor_type: 4,
+    interface_number: 1,
+    alternate_setting: 0,
+    num_endpoints: 1,
+    interface_class: 3,
+    interface_subclass: 0,
+    interface_protocol: 0,
+    interface: 0,
+},compare with Interface {
+    len: 9,
+    descriptor_type: 4,
+    interface_number: 1,
+    alternate_setting: 0,
+    num_endpoints: 1,
+    interface_class: 3,
+    interface_subclass: 0,
+    interface_protocol: 0,
+    interface: 0,
+}
+[ 39.035896 0:2 driver_usb::usb::descriptors:290] loop for interface desc!
+[ 39.043881 0:2 driver_usb::usb::descriptors:360] parse interfaces
+[ 39.051173 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Interface)
+[ 39.059419 0:2 driver_usb::usb::descriptors:196] parse any desc! type:Some(Interface)
+[ 39.068448 0:2 driver_usb::usb::descriptors:292] got interface Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 0, num_endpoints: 1, interface_class: 3, interface_subclass: 0, interface_protocol: 0, interface: 0 }
+[ 39.091274 0:2 driver_usb::usb::descriptors:334] parse additional data for interface
+[ 39.100215 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Hid)
+[ 39.107940 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Hid)
+[ 39.115665 0:2 driver_usb::usb::descriptors:196] parse any desc! type:Some(Hid)
+[ 39.124174 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Endpoint)
+[ 39.132331 0:2 driver_usb::usb::descriptors:348] parse enedpoints
+[ 39.139622 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Endpoint)
+[ 39.147781 0:2 driver_usb::usb::descriptors:380] peeked type:Some(Endpoint)
+[ 39.155940 0:2 driver_usb::usb::descriptors:196] parse any desc! type:Some(Endpoint)
+[ 39.164882 0:2 driver_usb::usb::descriptors:380] peeked type:None
+[ 39.172172 0:2 driver_usb::usb::descriptors:385] peek at 59,value:0
+[ 39.179637 0:2 driver_usb::usb::descriptors:380] peeked type:None
+[ 39.186928 0:2 driver_usb::usb::descriptors:276] parse function desc!
+[ 39.194567 0:2 driver_usb::usb::descriptors:380] peeked type:None
+[ 39.201860 0:2 driver_usb:174] parsed!TopologicalUSBDescriptorRoot {
+    device: [
+        TopologicalUSBDescriptorDevice {
+            data: Device {
+                len: 18,
+                descriptor_type: 1,
+                cd_usb: 512,
+                class: 0,
+                subclass: 0,
+                protocol: 0,
+                max_packet_size0: 8,
+                vendor: 1133,
+                product_id: 50479,
+                device: 12288,
+                manufacture: 1,
+                product: 2,
+                serial_number: 0,
+                num_configurations: 1,
+            },
+            child: [
+                TopologicalUSBDescriptorConfiguration {
+                    data: Configuration {
+                        length: 9,
+                        ty: 2,
+                        total_length: 59,
+                        num_interfaces: 2,
+                        config_val: 1,
+                        config_string: 4,
+                        attributes: 160,
+                        max_power: 49,
+                    },
+                    child: [
+                        Interface(
+                            [
+                                (
+                                    Interface {
+                                        len: 9,
+                                        descriptor_type: 4,
+                                        interface_number: 0,
+                                        alternate_setting: 0,
+                                        num_endpoints: 1,
+                                        interface_class: 3,
+                                        interface_subclass: 1,
+                                        interface_protocol: 2,
+                                        interface: 0,
+                                    },
+                                    [
+                                        Hid(
+                                            Hid {
+                                                len: 9,
+                                                descriptor_type: 33,
+                                                hid_bcd: 273,
+                                                country_code: 0,
+                                                num_descriptions: 1,
+                                                report_descriptor_type: 34,
+                                                report_descriptor_len: 67,
+                                            },
+                                        ),
+                                    ],
+                                    [
+                                        Endpoint {
+                                            len: 7,
+                                            descriptor_type: 5,
+                                            endpoint_address: 129,
+                                            attributes: 3,
+                                            max_packet_size: 8,
+                                            interval: 2,
+                                            ssc: Some(
+                                                SuperSpeedCmp {
+                                                    kind: 0,
+                                                    max_burst: 0,
+                                                    attributes: 0,
+                                                    bytes_per_interval: 0,
+                                                },
+                                            ),
+                                        },
+                                    ],
+                                ),
+                            ],
+                        ),
+                        Interface(
+                            [
+                                (
+                                    Interface {
+                                        len: 9,
+                                        descriptor_type: 4,
+                                        interface_number: 1,
+                                        alternate_setting: 0,
+                                        num_endpoints: 1,
+                                        interface_class: 3,
+                                        interface_subclass: 0,
+                                        interface_protocol: 0,
+                                        interface: 0,
+                                    },
+                                    [
+                                        Hid(
+                                            Hid {
+                                                len: 9,
+                                                descriptor_type: 33,
+                                                hid_bcd: 273,
+                                                country_code: 0,
+                                                num_descriptions: 1,
+                                                report_descriptor_type: 34,
+                                                report_descriptor_len: 79,
+                                            },
+                                        ),
+                                    ],
+                                    [
+                                        Endpoint {
+                                            len: 7,
+                                            descriptor_type: 5,
+                                            endpoint_address: 130,
+                                            attributes: 3,
+                                            max_packet_size: 20,
+                                            interval: 2,
+                                            ssc: Some(
+                                                SuperSpeedCmp {
+                                                    kind: 0,
+                                                    max_burst: 0,
+                                                    attributes: 0,
+                                                    bytes_per_interval: 0,
+                                                },
+                                            ),
+                                        },
+                                    ],
+                                ),
+                            ],
+                        ),
+                    ],
+                },
+            ],
+        },
+    ],
+    others: [],
+}
+[ 39.762574 0:2 axtask::run_queue:86] task exit: Task(2, "main"), exit_code=0
+[ 39.770745 0:2 axhal::platform::aarch64_phytium_pi::misc:22] Shutting down...

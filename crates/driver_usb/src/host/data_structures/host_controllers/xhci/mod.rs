@@ -437,6 +437,7 @@ where
     }
 
     fn ep_ring_mut(&mut self, device_slot_id: usize, dci: u8) -> &mut Ring<O> {
+        trace!("fetch transfer ring at slot{}-dci{}", device_slot_id, dci);
         &mut self.dev_ctx.transfer_rings[device_slot_id][dci as usize - 1]
     }
 
@@ -588,7 +589,7 @@ where
                 let packet_size0 = self.control_fetch_control_point_packet_size(slot_id);
                 trace!("packet_size0: {}", packet_size0);
                 //↓
-                // self.set_ep0_packet_size(slot_id, packet_size0);
+                self.set_ep0_packet_size(slot_id, packet_size0 as _);
 
                 // takeover by new drivers
                 // let desc = self.fetch_device_desc(&device)?;
@@ -617,6 +618,89 @@ where
         }
 
         founded
+    }
+
+    fn control_transfer(
+        &mut self,
+        dev_slot_id: usize,
+        urb_req: ControlTransfer,
+    ) -> crate::err::Result {
+        let direction = urb_req.request_type.direction.clone();
+        let buffer = urb_req.data;
+
+        let mut len = 0;
+        let data = if let Some((addr, length)) = buffer {
+            let mut data = transfer::DataStage::default();
+            len = length;
+            data.set_data_buffer_pointer(addr as u64)
+                .set_trb_transfer_length(len as _)
+                .set_direction(direction);
+            Some(data)
+        } else {
+            None
+        };
+
+        let setup = *transfer::SetupStage::default()
+            .set_request_type(urb_req.request_type.into())
+            .set_request(urb_req.request as u8)
+            .set_value(urb_req.value)
+            .set_index(urb_req.index)
+            .set_transfer_type({
+                if buffer.is_some() {
+                    match direction {
+                        Direction::In => TransferType::In,
+                        Direction::Out => TransferType::Out,
+                    }
+                } else {
+                    TransferType::No
+                }
+            })
+            .set_length(len as u16);
+        trace!("{:#?}", setup);
+
+        let mut status = *transfer::StatusStage::default().set_interrupt_on_completion();
+
+        //=====post!=======
+        let mut trbs: Vec<transfer::Allowed> = Vec::new();
+
+        trbs.push(setup.into());
+        if let Some(data) = data {
+            trbs.push(data.into());
+        }
+        trbs.push(status.into());
+
+        let mut trb_pointers = Vec::new();
+
+        {
+            let ring = self.ep_ring_mut(dev_slot_id, 1);
+            for trb in trbs {
+                trb_pointers.push(ring.enque_transfer(trb));
+            }
+        }
+
+        if trb_pointers.len() == 2 {
+            trace!(
+                "[Transfer] >> setup@{:#X}, status@{:#X}",
+                trb_pointers[0],
+                trb_pointers[1]
+            );
+        } else {
+            trace!(
+                "[Transfer] >> setup@{:#X}, data@{:#X}, status@{:#X}",
+                trb_pointers[0],
+                trb_pointers[1],
+                trb_pointers[2]
+            );
+        }
+
+        fence(Ordering::Release);
+        self.regs.doorbell.update_volatile_at(dev_slot_id, |r| {
+            r.set_doorbell_target(1);
+        });
+
+        let r = self.event_busy_wait_transfer(*trb_pointers.last().unwrap() as _)?;
+
+        Ok(())
     }
 
     fn device_slot_assignment(&mut self) -> usize {
@@ -716,98 +800,17 @@ where
         trace!("address slot [{}] ok", slot_id);
     }
 
-    fn control_transfer(
-        &mut self,
-        dev_slot_id: usize,
-        urb_req: ControlTransfer,
-    ) -> crate::err::Result {
-        let direction = urb_req.request_type.direction.clone();
-        let buffer = urb_req.data;
-
-        let setup = *transfer::SetupStage::default()
-            .set_request_type(urb_req.request_type.into())
-            .set_request(urb_req.request as u8)
-            .set_value(urb_req.value)
-            .set_index(urb_req.index)
-            .set_transfer_type({
-                if buffer.is_some() {
-                    match direction {
-                        Direction::In => TransferType::In,
-                        Direction::Out => TransferType::Out,
-                    }
-                } else {
-                    TransferType::No
-                }
-            });
-        trace!("{:#?}", setup);
-
-        let mut len = 0;
-        let data = if let Some((addr, length)) = buffer {
-            let mut data = transfer::DataStage::default();
-            len = length;
-            data.set_data_buffer_pointer(addr as u64)
-                .set_trb_transfer_length(len as _)
-                .set_direction(direction);
-            Some(data)
-        } else {
-            None
-        };
-
-        let mut status = *transfer::StatusStage::default().set_interrupt_on_completion();
-
-        //=====post!=======
-        let mut trbs: Vec<transfer::Allowed> = Vec::new();
-
-        trbs.push(setup.into());
-        if let Some(data) = data {
-            trbs.push(data.into());
-        }
-        trbs.push(status.into());
-
-        let mut trb_pointers = Vec::new();
-
-        {
-            let ring = self.ep_ring_mut(dev_slot_id, 0);
-            for trb in trbs {
-                trb_pointers.push(ring.enque_transfer(trb));
-            }
-        }
-
-        if trb_pointers.len() == 2 {
-            trace!(
-                "[Transfer] >> setup@{:#X}, status@{:#X}",
-                trb_pointers[0],
-                trb_pointers[1]
-            );
-        } else {
-            trace!(
-                "[Transfer] >> setup@{:#X}, data@{:#X}, status@{:#X}",
-                trb_pointers[0],
-                trb_pointers[1],
-                trb_pointers[2]
-            );
-        }
-
-        fence(Ordering::Release);
-        self.regs.doorbell.update_volatile_at(dev_slot_id, |r| {
-            r.set_doorbell_target(0);
-        });
-
-        let r = self.event_busy_wait_transfer(*trb_pointers.last().unwrap() as _)?;
-
-        Ok(())
-    }
-
-    fn control_fetch_control_point_packet_size(&mut self, slot_id: usize) -> u16 {
+    fn control_fetch_control_point_packet_size(&mut self, slot_id: usize) -> u8 {
+        trace!("control_fetch_control_point_packet_size");
         let mut buffer = DMA::new_vec(0u8, 8, 64, self.config.lock().os.dma_alloc());
         self.control_transfer(
             slot_id,
             ControlTransfer {
-                request_type: bmRequestType {
-                    direction: Direction::In,
-                    transfer_type: DataTransferType::Standard,
-                    recipient: trasnfer::control::Recipient::Device,
-                },
+                request_type: bmRequestType::new(
+                    Direction::In,
+                    DataTransferType::Standard,
+                    trasnfer::control::Recipient::Device,
+                ),
                 request: bRequest::GetDescriptor,
                 index: 0,
                 value: DescriptorType::Device.forLowBit(0).bits(),
@@ -816,14 +819,33 @@ where
         )
         .unwrap();
 
-        let mut data = [0u8; 18];
+        let mut data = [0u8; 8];
         data[..8].copy_from_slice(&buffer);
+        trace!("got {:?}", data);
+        data.last()
+            .and_then(|len| Some(if *len == 0 { 8u8 } else { *len }))
+            .unwrap()
+    }
 
-        // if let Ok(descriptors::Descriptor::Device(dev)) = descriptors::Descriptor::from_slice(&data)//TODO: fixup DescriptorDecoder
-        // {
-        //     trace!("device desc:{:#?}", dev);
-        //     return Ok(dev.max_packet_size());
-        // }
-        8u16 //best guess
+    fn set_ep0_packet_size(&mut self, dev_slot_id: usize, max_packet_size: u16) {
+        let addr = {
+            let input = self.dev_ctx.device_input_context_list[dev_slot_id as usize].deref_mut();
+            input
+                .device_mut()
+                .endpoint_mut(1) //dci=1: endpoint 0
+                .set_max_packet_size(max_packet_size);
+
+            debug!(
+                "CMD: evaluating context for set endpoint0 packet size {}",
+                max_packet_size
+            );
+            (input as *mut Input<16>).addr() as u64
+        };
+        self.post_cmd(command::Allowed::EvaluateContext(
+            *command::EvaluateContext::default()
+                .set_slot_id(dev_slot_id as _)
+                .set_input_context_pointer(addr),
+        ))
+        .unwrap();
     }
 }

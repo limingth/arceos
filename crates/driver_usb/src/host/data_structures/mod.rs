@@ -1,14 +1,21 @@
-use core::mem::MaybeUninit;
+use core::{fmt::Debug, mem::MaybeUninit};
 
 pub mod host_controllers;
 
-pub enum MightBeInited<T> {
+#[derive(Clone, Debug)]
+pub enum MightBeInited<T>
+where
+    T: Clone,
+{
     Inited(T),
-    Uninit(MaybeUninit<T>),
+    Uninit,
 }
 
-impl<T> Default for MightBeInited<T> {
+impl<T> Default for MightBeInited<T>
+where
+    T: Clone + Debug,
+{
     fn default() -> Self {
-        Self::Uninit(MaybeUninit::zeroed())
+        Self::Uninit
     }
 }

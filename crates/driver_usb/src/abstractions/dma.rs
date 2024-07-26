@@ -81,6 +81,10 @@ where
     pub fn length_for_bytes(&self) -> usize {
         self.layout.size()
     }
+
+    pub fn addr_len_tuple(&self) -> (usize, usize) {
+        (self.addr(), self.length_for_bytes())
+    }
 }
 
 impl<T, A> DMA<[T], A>

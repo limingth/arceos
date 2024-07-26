@@ -4,7 +4,8 @@ use spinlock::SpinNoIrq;
 
 use crate::{
     abstractions::PlatformAbstractions,
-    glue::driver_independent_device_instance::DriverIndependentDeviceInstance, USBSystemConfig,
+    glue::driver_independent_device_instance::DriverIndependentDeviceInstance,
+    usb::trasnfer::control::ControlTransfer, USBSystemConfig,
 };
 
 pub mod data_structures;
@@ -29,8 +30,8 @@ pub struct USBHostSystem<O>
 where
     O: PlatformAbstractions,
 {
-    pub(crate) config: Arc<SpinNoIrq<USBSystemConfig<O>>>,
-    pub(crate) controller: ControllerArc<O>,
+    config: Arc<SpinNoIrq<USBSystemConfig<O>>>,
+    controller: ControllerArc<O>,
 }
 
 impl<O> USBHostSystem<O>
@@ -68,13 +69,13 @@ where
             .for_each(consumer);
     }
 
-    // pub fn poll(&self) -> crate::err::Result {
-    //     let controller = self.controller.clone();
-    //     let mut g = self.controller.lock();
-    //     let mut device_list = g.poll(controller)?;
-
-    //     let mut dl = self.device_list.lock();
-    //     dl.append(&mut device_list);
-    //     Ok(())
-    // }
+    pub fn control_transfer(
+        &mut self,
+        dev_slot_id: usize,
+        urb_req: ControlTransfer,
+    ) -> crate::err::Result {
+        self.controller
+            .lock()
+            .control_transfer(dev_slot_id, urb_req)
+    }
 }
