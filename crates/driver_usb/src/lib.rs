@@ -129,7 +129,6 @@ where
                     },
                 ) {
                     Ok(_) => {
-                        trace!("fetched desc,buffer:{:?}", buffer.to_vec());
                         let mut parse_root_descriptors =
                             usb::descriptors::RawDescriptorParser::<O>::new(buffer)
                                 .parse_root_descriptors(true);
@@ -161,7 +160,6 @@ where
                                         },
                                     )
                                     .inspect(|_| {
-                                        trace!("fetched desc,buffer:{:?}", buffer.to_vec());
                                         first.child.push(
                                             usb::descriptors::RawDescriptorParser::<O>::new(buffer)
                                                 .parse_config_descriptor()
@@ -171,7 +169,6 @@ where
                             }
                         }
 
-                        trace!("parsed!{:#?}", parse_root_descriptors);
                         driver.descriptors = MightBeInited::Inited(parse_root_descriptors);
                         //fetch driver descriptors
                     }
@@ -181,6 +178,8 @@ where
                     }
                 };
             }
+
+            trace!("parsed descriptor:{:#?}", driver.descriptors);
 
             self.driver_independent_devices.push(driver);
         }
