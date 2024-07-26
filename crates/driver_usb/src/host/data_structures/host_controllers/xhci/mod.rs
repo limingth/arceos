@@ -17,7 +17,7 @@ use ring::Ring;
 use spinlock::SpinNoIrq;
 use xhci::{
     accessor::Mapper,
-    context::{DeviceHandler, EndpointState, Input, InputHandler, SlotHandler},
+    context::{DeviceHandler, EndpointState, EndpointType, Input, InputHandler, SlotHandler},
     extended_capabilities::XhciSupportedProtocol,
     ring::trb::{
         command,
@@ -32,7 +32,8 @@ use crate::{
     err::Error,
     host::data_structures::MightBeInited,
     usb::{
-        descriptors::DescriptorType,
+        descriptors::{desc_configuration, DescriptorType, TopologicalUSBDescriptorConfiguration},
+        operation::Configuration,
         trasnfer::{
             self,
             control::{bRequest, bmRequestType, ControlTransfer, DataTransferType},
@@ -257,7 +258,7 @@ where
             .port_speed()
     }
 
-    fn get_default_max_packet_size(&self, port: usize) -> u16 {
+    fn parse_default_max_packet_size_from_port(&self, port: usize) -> u16 {
         match self.get_speed(port) {
             1 | 3 => 64,
             2 => 8,
@@ -486,6 +487,112 @@ where
             }
         }
     }
+
+    fn setup_device(
+        &mut self,
+        device_slot_id: usize,
+        configure: &TopologicalUSBDescriptorConfiguration,
+    ) -> crate::err::Result {
+        configure.child.iter().for_each(|func| match func {
+            crate::usb::descriptors::TopologicalUSBDescriptorFunction::InterfaceAssociation(_) => {
+                todo!()
+            }
+            crate::usb::descriptors::TopologicalUSBDescriptorFunction::Interface(interfaces) => {
+                let (interface0, attributes, endpoints) = interfaces.first().unwrap();
+                let input_addr = {
+                    {
+                        let input =
+                            self.dev_ctx.device_input_context_list[device_slot_id].deref_mut();
+                        {
+                            let control_mut = input.control_mut();
+                            control_mut.set_add_context_flag(0);
+                            control_mut.set_configuration_value(configure.data.config_val());
+
+                            control_mut.set_interface_number(interface0.interface_number);
+                            control_mut.set_alternate_setting(interface0.alternate_setting);
+                        }
+
+                        let entries = endpoints
+                            .iter()
+                            .map(|endpoint| endpoint.doorbell_value_aka_dci())
+                            .max()
+                            .unwrap_or(1);
+
+                        input
+                            .device_mut()
+                            .slot_mut()
+                            .set_context_entries(entries as u8);
+                    }
+
+                    // debug!("endpoints:{:#?}", interface.endpoints);
+
+                    for ep in endpoints {
+                        let dci = ep.doorbell_value_aka_dci() as usize;
+                        let max_packet_size = ep.max_packet_size;
+                        let ring_addr = self.ep_ring_mut(device_slot_id, dci as _).register();
+
+                        let input =
+                            self.dev_ctx.device_input_context_list[device_slot_id].deref_mut();
+                        let control_mut = input.control_mut();
+                        debug!("init ep {} {:?}", dci, ep.endpoint_type());
+                        control_mut.set_add_context_flag(dci);
+                        let ep_mut = input.device_mut().endpoint_mut(dci);
+                        ep_mut.set_interval(3);
+                        ep_mut.set_endpoint_type(ep.endpoint_type());
+                        ep_mut.set_tr_dequeue_pointer(ring_addr);
+                        ep_mut.set_max_packet_size(max_packet_size);
+                        ep_mut.set_error_count(3);
+                        ep_mut.set_dequeue_cycle_state();
+                        let endpoint_type = ep.endpoint_type();
+                        match endpoint_type {
+                            EndpointType::Control => {}
+                            EndpointType::BulkOut | EndpointType::BulkIn => {
+                                ep_mut.set_max_burst_size(0);
+                                ep_mut.set_max_primary_streams(0);
+                            }
+                            EndpointType::IsochOut
+                            | EndpointType::IsochIn
+                            | EndpointType::InterruptOut
+                            | EndpointType::InterruptIn => {
+                                //init for isoch/interrupt
+                                ep_mut.set_max_packet_size(max_packet_size & 0x7ff); //refer xhci page 162
+                                ep_mut.set_max_burst_size(
+                                    ((max_packet_size & 0x1800) >> 11).try_into().unwrap(),
+                                );
+                                ep_mut.set_mult(0); //always 0 for interrupt
+
+                                if let EndpointType::IsochOut | EndpointType::IsochIn =
+                                    endpoint_type
+                                {
+                                    ep_mut.set_error_count(0);
+                                }
+
+                                ep_mut.set_tr_dequeue_pointer(ring_addr);
+                                ep_mut.set_max_endpoint_service_time_interval_payload_low(4);
+                                //best guess?
+                            }
+                            EndpointType::NotValid => {
+                                unreachable!("Not Valid Endpoint should not exist.")
+                            }
+                        }
+                    }
+
+                    let input = self.dev_ctx.device_input_context_list[device_slot_id].deref_mut();
+                    (input as *const Input<16>).addr() as u64
+                };
+
+                self.post_cmd(command::Allowed::ConfigureEndpoint(
+                    *command::ConfigureEndpoint::default()
+                        .set_slot_id(device_slot_id as _)
+                        .set_input_context_pointer(input_addr),
+                ))
+                .unwrap();
+
+                self.trace_dump_context(device_slot_id);
+            }
+        });
+        Ok(())
+    }
 }
 
 impl<O> Controller<O> for XHCI<O>
@@ -590,29 +697,6 @@ where
                 trace!("packet_size0: {}", packet_size0);
                 //↓
                 self.set_ep0_packet_size(slot_id, packet_size0 as _);
-
-                // takeover by new drivers
-                // let desc = self.fetch_device_desc(&device)?;
-                // let vid = desc.vendor;
-                // let pid = desc.product_id;
-
-                // info!("device found, pid: {pid:#X}, vid: {vid:#X}");
-
-                // device.device_desc = desc;
-
-                // trace!(
-                //     "fetching device configurations, num:{}",
-                //     device.device_desc.num_configurations
-                // );
-                // for i in 0..device.device_desc.num_configurations {
-                //     let config = self.fetch_config_desc(&device, i)?;
-                //     trace!("{:#?}", config);
-                //     device.configs.push(config)
-                // }
-
-                // self.set_configuration(&device, 0)?;
-
-                // device_list.push(device);
                 founded.push(slot_id)
             }
         }
@@ -703,6 +787,17 @@ where
         Ok(())
     }
 
+    fn configure_device(
+        &mut self,
+        dev_slot_id: usize,
+        urb_req: Configuration,
+    ) -> crate::err::Result {
+        match urb_req {
+            Configuration::SetupDevice(config) => self.setup_device(dev_slot_id, &config),
+            Configuration::SwitchInterface(_, _) => todo!(),
+        }
+    }
+
     fn device_slot_assignment(&mut self) -> usize {
         // enable slot
         let result = self
@@ -735,7 +830,7 @@ where
     fn address_device(&mut self, slot_id: usize, port_id: usize) {
         let port_idx = port_id - 1;
         let port_speed = self.get_speed(port_idx);
-        let max_packet_size = self.get_default_max_packet_size(port_idx);
+        let max_packet_size = self.parse_default_max_packet_size_from_port(port_idx);
         let dci = 1;
 
         let transfer_ring_0_addr = self.ep_ring_mut(slot_id, dci).register();

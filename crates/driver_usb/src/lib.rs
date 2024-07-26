@@ -22,8 +22,10 @@ use host::{data_structures::MightBeInited, USBHostSystem};
 use log::{error, trace};
 use spinlock::SpinNoIrq;
 use usb::{
-    descriptors::DescriptorType,
+    descriptors::{DescriptorType, TopologicalUSBDescriptorRoot},
+    operation,
     trasnfer::control::{bRequest, bmRequestType, ControlTransfer, DataTransferType},
+    urb::{RequestedOperation, URB},
     USBDriverSystem,
 };
 use xhci::ring::trb::transfer::{Direction, TransferType};
@@ -97,6 +99,7 @@ where
         }
         // }
         // .await;
+
         self
     }
 
@@ -180,6 +183,22 @@ where
             }
 
             trace!("parsed descriptor:{:#?}", driver.descriptors);
+
+            if let MightBeInited::Inited(TopologicalUSBDescriptorRoot {
+                device: devices,
+                others,
+            }) = &driver.descriptors
+            {
+                self.host_driver_layer
+                    .urb_request(URB::new(
+                        driver.slotid,
+                        RequestedOperation::ConfigureDevice(operation::Configuration::SetupDevice(
+                            //TODO: fixme
+                            devices.first().unwrap().child.first().unwrap(),
+                        )),
+                    ))
+                    .unwrap();
+            };
 
             self.driver_independent_devices.push(driver);
         }

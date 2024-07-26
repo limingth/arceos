@@ -12,7 +12,7 @@ use spinlock::SpinNoIrq;
 use crate::{
     abstractions::{dma::DMA, OSAbstractions, PlatformAbstractions},
     err::Result,
-    usb::trasnfer::control::ControlTransfer,
+    usb::{operation::Configuration, trasnfer::control::ControlTransfer},
     USBSystemConfig,
 };
 
@@ -30,6 +30,12 @@ where
         &mut self,
         dev_slot_id: usize,
         urb_req: ControlTransfer,
+    ) -> crate::err::Result;
+
+    fn configure_device(
+        &mut self,
+        dev_slot_id: usize,
+        urb_req: Configuration,
     ) -> crate::err::Result;
 
     fn device_slot_assignment(&mut self) -> usize;

@@ -4,6 +4,7 @@ use xhci::ring::trb::transfer::Direction;
 
 use crate::abstractions::{dma::DMA, PlatformAbstractions};
 
+#[derive(Debug, Clone)]
 pub struct ControlTransfer {
     pub request_type: bmRequestType,
     pub request: bRequest,
@@ -14,6 +15,7 @@ pub struct ControlTransfer {
 
 #[allow(non_camel_case_types)]
 #[repr(u8)]
+#[derive(Debug, Clone)]
 pub enum bRequest {
     GetStatus = 0,
     ClearFeature = 1,
@@ -46,6 +48,7 @@ pub enum bRequest {
 
 #[allow(non_camel_case_types)]
 #[repr(C, packed)]
+#[derive(Debug, Clone)]
 pub struct bmRequestType {
     pub direction: Direction,
     pub transfer_type: DataTransferType,

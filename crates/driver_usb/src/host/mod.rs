@@ -1,11 +1,13 @@
 use alloc::{boxed::Box, collections::binary_heap::Iter, sync::Arc, vec::Vec};
 use data_structures::host_controllers::{xhci::XHCI, Controller, ControllerArc};
+use log::trace;
 use spinlock::SpinNoIrq;
 
 use crate::{
     abstractions::PlatformAbstractions,
     glue::driver_independent_device_instance::DriverIndependentDeviceInstance,
-    usb::trasnfer::control::ControlTransfer, USBSystemConfig,
+    usb::{self, operation::Configuration, trasnfer::control::ControlTransfer, urb::URB},
+    USBSystemConfig,
 };
 
 pub mod data_structures;
@@ -77,5 +79,31 @@ where
         self.controller
             .lock()
             .control_transfer(dev_slot_id, urb_req)
+    }
+
+    pub fn configure_device(
+        &mut self,
+        dev_slot_id: usize,
+        urb_req: Configuration,
+    ) -> crate::err::Result {
+        self.controller
+            .lock()
+            .configure_device(dev_slot_id, urb_req)
+    }
+
+    pub fn urb_request(&mut self, request: URB) -> crate::err::Result {
+        // trace!("request {:#?}", request);
+        match request.operation {
+            usb::urb::RequestedOperation::Control(control) => {
+                self.control_transfer(request.device_slot_id, control)
+            }
+            usb::urb::RequestedOperation::Bulk => todo!(),
+            usb::urb::RequestedOperation::Interrupt => todo!(),
+            usb::urb::RequestedOperation::Isoch => todo!(),
+            usb::urb::RequestedOperation::ConfigureDevice(configure) => self
+                .controller
+                .lock()
+                .configure_device(request.device_slot_id, configure),
+        }
     }
 }

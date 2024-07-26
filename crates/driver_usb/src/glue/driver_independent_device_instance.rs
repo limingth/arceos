@@ -12,6 +12,8 @@ where
     O: PlatformAbstractions,
 {
     pub slotid: usize,
+    pub configuration_id: usize,
+    pub interface_id: usize,
     pub descriptors: MightBeInited<TopologicalUSBDescriptorRoot>,
     pub controller: ControllerArc<O>,
 }
@@ -25,6 +27,8 @@ where
             slotid: slotid,
             descriptors: MightBeInited::default(),
             controller: controller,
+            configuration_id: 0,
+            interface_id: 0,
         }
     }
 }
