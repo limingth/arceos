@@ -8,11 +8,11 @@ pub mod descriptors;
 pub mod trasnfer;
 pub mod urb;
 
-pub struct USBDriverSystem {
-    managed_modules: DriverContainers,
+pub struct USBDriverSystem<'a> {
+    managed_modules: DriverContainers<'a>,
 }
 
-impl USBDriverSystem {
+impl<'a> USBDriverSystem<'a> {
     pub fn init(&self) {}
 
     pub fn init_probe(&self) {}

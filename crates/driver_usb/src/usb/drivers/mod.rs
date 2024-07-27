@@ -1,23 +1,23 @@
 use alloc::{sync::Arc, vec::Vec};
 use spinlock::SpinNoIrq;
 
-use self::driverapi::USBSubSystemDriverModule;
+use self::driverapi::USBSystemDriverModule;
 
 pub mod driverapi;
 
-pub struct DriverContainers {
-    drivers: Vec<Arc<SpinNoIrq<USBSubSystemDriverModule>>>,
+pub struct DriverContainers<'a> {
+    drivers: Vec<Arc<SpinNoIrq<dyn USBSystemDriverModule<'a>>>>,
 }
 
-impl DriverContainers {
+impl<'a> DriverContainers<'a> {
     pub fn new() -> Self {
         DriverContainers {
             drivers: Vec::new(),
         }
     }
 
-    pub fn load_driver(&mut self, module: USBSubSystemDriverModule) {
-
-        // self.drivers.push()
+    pub fn load_driver(&mut self, mut module: Arc<SpinNoIrq<dyn USBSystemDriverModule<'a>>>) {
+        module.lock().preload_module();
+        self.drivers.push(module)
     }
 }
