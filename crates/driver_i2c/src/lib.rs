@@ -8,21 +8,10 @@ const IC_DATA_CMD: usize = 0x10;
 const IC_ENABLE: usize = 0x6C;
 const IC_STATUS: usize = 0x70;
 const CREG_MIO_FUNC_SEL_OFFSET: usize = 0x00;
+use crates::driver_iic::{i2c_hw,i2c_init,i2c,i2c_sinit,i2c_master,io};
+use crates::driver_mio::{mio_g,mio_hw,mio_sinit,mio};
 
-use cortex_m_rt::{entry, exception, ExceptionFrame};
-use embedded_graphics::{
-    mono_font::{ascii::FONT_6X10, MonoTextStyleBuilder},
-    pixelcolor::BinaryColor,
-    prelude::*,
-    text::{Baseline, Text},
-};
-use panic_halt as _;
-use ssd1306::{prelude::*, I2CDisplayInterface, Ssd1306};
-use stm32f1xx_hal::{
-    i2c::{BlockingI2c, DutyCycle, Mode},
-    prelude::*,
-    stm32,
-};
+FI2cCalcSpeedCfg
 
 unsafe fn write_reg(addr: u32, value: u32) {
     debug!("Writing value {:#X} to address {:#X}", value, addr);
