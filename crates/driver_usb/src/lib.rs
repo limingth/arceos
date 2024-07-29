@@ -49,18 +49,18 @@ where
     pub(crate) os: O,
 }
 
-pub struct USBSystem<O>
+pub struct USBSystem<'a, O>
 where
     O: PlatformAbstractions,
 {
     platform_abstractions: O,
     config: Arc<SpinNoIrq<USBSystemConfig<O>>>,
     host_driver_layer: USBHostSystem<O>,
-    usb_driver_layer: USBDriverSystem,
+    usb_driver_layer: USBDriverSystem<'a, O>,
     driver_independent_devices: Vec<DriverIndependentDeviceInstance<O>>,
 }
 
-impl<O> USBSystem<O>
+impl<'a, O> USBSystem<'a, O>
 where
     O: PlatformAbstractions + 'static,
 {
@@ -70,7 +70,7 @@ where
             config: config.clone(),
             platform_abstractions: config.clone().lock().os.clone(),
             host_driver_layer: USBHostSystem::new(config.clone()).unwrap(),
-            usb_driver_layer: USBDriverSystem,
+            usb_driver_layer: USBDriverSystem::new(config.clone()),
             driver_independent_devices: Vec::new(),
         }
     }
@@ -100,6 +100,14 @@ where
         // }
         // .await;
 
+        self
+    }
+
+    pub fn driver_active(mut self) -> Self {
+        self
+    }
+
+    pub fn drive_all(mut self) -> Self {
         self
     }
 

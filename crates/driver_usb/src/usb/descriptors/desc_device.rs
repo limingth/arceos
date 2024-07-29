@@ -37,8 +37,8 @@ impl Device {
     }
 }
 
-#[derive(FromPrimitive, ToPrimitive, Copy, Clone, Debug)]
 #[repr(u8)]
+#[derive(FromPrimitive, ToPrimitive, Copy, Clone, Debug)]
 pub enum USBDeviceClassCode {
     ReferInterfaceDescriptor = 0x00,
     Audio = 0x01,

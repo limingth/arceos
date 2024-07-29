@@ -14,6 +14,7 @@ where
     pub slotid: usize,
     pub configuration_id: usize,
     pub interface_id: usize,
+    pub current_alternative_interface_value: usize,
     pub descriptors: MightBeInited<TopologicalUSBDescriptorRoot>,
     pub controller: ControllerArc<O>,
 }
@@ -29,6 +30,7 @@ where
             controller: controller,
             configuration_id: 0,
             interface_id: 0,
+            current_alternative_interface_value: 0,
         }
     }
 }

@@ -2,6 +2,7 @@ use alloc::{boxed::Box, collections::binary_heap::Iter, sync::Arc, vec::Vec};
 use data_structures::host_controllers::{xhci::XHCI, Controller, ControllerArc};
 use log::trace;
 use spinlock::SpinNoIrq;
+use xhci::ring::trb::event;
 
 use crate::{
     abstractions::PlatformAbstractions,
@@ -91,14 +92,17 @@ where
             .configure_device(dev_slot_id, urb_req)
     }
 
-    pub fn urb_request(&mut self, request: URB) -> crate::err::Result {
+    pub fn urb_request(&mut self, request: URB<O>) -> crate::err::Result {
         // trace!("request {:#?}", request);
         match request.operation {
             usb::urb::RequestedOperation::Control(control) => {
                 self.control_transfer(request.device_slot_id, control)
             }
             usb::urb::RequestedOperation::Bulk => todo!(),
-            usb::urb::RequestedOperation::Interrupt => todo!(),
+            usb::urb::RequestedOperation::Interrupt(interrupt_transfer) => self
+                .controller
+                .lock()
+                .interrupt_transfer(request.device_slot_id, interrupt_transfer),
             usb::urb::RequestedOperation::Isoch => todo!(),
             usb::urb::RequestedOperation::ConfigureDevice(configure) => self
                 .controller

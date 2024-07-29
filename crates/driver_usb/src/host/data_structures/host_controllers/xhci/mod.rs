@@ -943,4 +943,12 @@ where
         ))
         .unwrap();
     }
+
+    fn interrupt_transfer(
+        &mut self,
+        dev_slot_id: usize,
+        urb_req: trasnfer::interrupt::InterruptTransfer,
+    ) -> crate::err::Result {
+        todo!()
+    }
 }

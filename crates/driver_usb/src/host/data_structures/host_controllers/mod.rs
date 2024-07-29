@@ -3,7 +3,7 @@ use core::sync::atomic::{fence, Ordering};
 
 use ::xhci::{
     context::{EndpointType, Input},
-    ring::trb::command,
+    ring::trb::{command, event},
 };
 use alloc::{boxed::Box, sync::Arc, vec::Vec};
 use log::trace;
@@ -12,7 +12,10 @@ use spinlock::SpinNoIrq;
 use crate::{
     abstractions::{dma::DMA, OSAbstractions, PlatformAbstractions},
     err::Result,
-    usb::{operation::Configuration, trasnfer::control::ControlTransfer},
+    usb::{
+        operation::Configuration,
+        trasnfer::{control::ControlTransfer, interrupt::InterruptTransfer},
+    },
     USBSystemConfig,
 };
 
@@ -30,6 +33,12 @@ where
         &mut self,
         dev_slot_id: usize,
         urb_req: ControlTransfer,
+    ) -> crate::err::Result;
+
+    fn interrupt_transfer(
+        &mut self,
+        dev_slot_id: usize,
+        urb_req: InterruptTransfer,
     ) -> crate::err::Result;
 
     fn configure_device(
