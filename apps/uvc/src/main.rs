@@ -33,5 +33,6 @@ fn main() {
         USBSystemConfig::new(0xffff_0000_31a0_8000, 48, 0, PlatformAbstraction)
     })
     .init()
-    .init_probe();
+    .init_probe()
+    .drive_all();
 }

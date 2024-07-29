@@ -101,14 +101,9 @@ where
             let mut preparing_list = Vec::new();
             self.usb_driver_layer
                 .init_probe(&mut self.driver_independent_devices, &mut preparing_list);
-            //probe driver modules and load them
 
-            for preplist in preparing_list {
-                //change it to async, different preplist should be perpendicular
-                for ele in preplist {
-                    self.host_driver_layer.urb_request(ele).unwrap()
-                }
-            }
+            //probe driver modules and load them
+            self.host_driver_layer.tock(preparing_list);
 
             //and do some prepare stuff
         }
@@ -123,6 +118,15 @@ where
     }
 
     pub fn drive_all(mut self) -> Self {
+        //TODO: Drive All
+
+        loop {
+            let tick = self.usb_driver_layer.tick();
+            let tock = self.host_driver_layer.tock(tick);
+            trace!("result:{:#?}", tock);
+            // let tack = self.usb_driver_layer.tack(tock);
+            // let tark = self.host_driver_layer.tark(tack);
+        }
         self
     }
 

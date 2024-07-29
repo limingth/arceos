@@ -13,6 +13,7 @@ use super::{
     trasnfer::{control::ControlTransfer, interrupt::InterruptTransfer},
 };
 
+#[derive(Clone)]
 pub struct URB<'a, O>
 where
     O: PlatformAbstractions,

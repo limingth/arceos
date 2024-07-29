@@ -72,4 +72,11 @@ where
             self.driver_device_instances.len()
         )
     }
+
+    pub fn tick(&mut self) -> Vec<Vec<URB<'a, O>>> {
+        self.driver_device_instances
+            .iter()
+            .map(|drv_dev| drv_dev.lock().gather_urb())
+            .collect()
+    }
 }

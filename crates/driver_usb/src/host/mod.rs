@@ -6,6 +6,7 @@ use xhci::ring::trb::event;
 
 use crate::{
     abstractions::PlatformAbstractions,
+    err,
     glue::driver_independent_device_instance::DriverIndependentDeviceInstance,
     usb::{self, operation::Configuration, trasnfer::control::ControlTransfer, urb::URB},
     USBSystemConfig,
@@ -110,5 +111,12 @@ where
                 .lock()
                 .configure_device(request.device_slot_id, configure),
         }
+    }
+
+    pub fn tock(&mut self, todo_list_list: Vec<Vec<URB<O>>>) -> Vec<Vec<err::Result>> {
+        todo_list_list
+            .iter()
+            .map(|list| list.iter().map(|todo| self.urb_request(todo)).collect())
+            .collect();
     }
 }

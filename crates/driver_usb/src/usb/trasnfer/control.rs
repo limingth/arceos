@@ -71,7 +71,7 @@ impl bmRequestType {
 
 impl From<bmRequestType> for u8 {
     fn from(value: bmRequestType) -> Self {
-        (value.direction as u8) << 7 | (value.transfer_type as u8) << 4 | value.recipient as u8
+        (value.direction as u8) << 7 | (value.transfer_type as u8) << 5 | value.recipient as u8
     }
 }
 

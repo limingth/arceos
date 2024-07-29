@@ -119,8 +119,8 @@ where
             RequestedOperation::Control(ControlTransfer {
                 request_type: bmRequestType::new(
                     Direction::Out,
-                    DataTransferType::Class,
-                    Recipient::Interface,
+                    DataTransferType::Standard,
+                    Recipient::Device,
                 ),
                 request: bRequest::SetConfiguration,
                 index: self.interface_value as u16,
