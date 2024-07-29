@@ -26,7 +26,7 @@ pub enum bRequest {
     GetConfiguration = 8,
     SetConfiguration = 9,
     GetInterface = 10,
-    SetInterface = 11,
+    SetInterfaceSpec = 11,
     SynchFrame = 12,
     SetEncryption = 13,
     GetEncryption = 14,

@@ -1,21 +1,35 @@
-use alloc::vec::Vec;
+use core::fmt::Debug;
+
+use alloc::{sync::Arc, vec::Vec};
+use spinlock::SpinNoIrq;
+use xhci::ring::trb::event;
 
 use crate::{
     abstractions::PlatformAbstractions,
     glue::driver_independent_device_instance::DriverIndependentDeviceInstance, usb::urb::URB,
+    USBSystemConfig,
 };
 
 pub trait USBSystemDriverModule<'a, O>: Send + Sync
 where
     O: PlatformAbstractions,
 {
-    fn gather_urb(self: &Self) -> Option<URB<'a, O>> {
-        None
-    }
-
-    fn should_active(independent_dev: DriverIndependentDeviceInstance<O>) -> Option<Vec<Self>>
-    where
-        Self: Sized;
+    fn should_active(
+        &self,
+        independent_dev: &DriverIndependentDeviceInstance<O>,
+        config: Arc<SpinNoIrq<USBSystemConfig<O>>>,
+    ) -> Option<Vec<Arc<SpinNoIrq<dyn USBSystemDriverModuleInstance<'a, O>>>>>;
 
     fn preload_module(&self);
+}
+
+pub trait USBSystemDriverModuleInstance<'a, O>: Send + Sync
+where
+    O: PlatformAbstractions,
+{
+    fn prepare_for_drive(&mut self) -> Option<Vec<URB<'a, O>>>;
+
+    fn gather_urb(&mut self) -> Option<URB<'a, O>>;
+
+    fn receive_complete_event(&mut self, event: event::Allowed);
 }

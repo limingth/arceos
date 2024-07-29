@@ -8,19 +8,18 @@ use xhci::ring::trb::event;
 use crate::PlatformAbstractions;
 
 use super::{
-    drivers::driverapi::USBSystemDriverModule,
+    drivers::driverapi::{USBSystemDriverModule, USBSystemDriverModuleInstance},
     operation::Configuration,
     trasnfer::{control::ControlTransfer, interrupt::InterruptTransfer},
 };
 
-//basiclly migrated version of linux urb
 pub struct URB<'a, O>
 where
     O: PlatformAbstractions,
 {
     pub device_slot_id: usize,
     pub operation: RequestedOperation<'a>,
-    pub sender: Option<Arc<SpinNoIrq<dyn USBSystemDriverModule<'a, O>>>>,
+    pub sender: Option<Arc<SpinNoIrq<dyn USBSystemDriverModuleInstance<'a, O>>>>,
 }
 
 impl<'a, O> URB<'a, O>
@@ -35,7 +34,7 @@ where
         }
     }
 
-    pub fn set_sender(&mut self, sender: Arc<SpinNoIrq<dyn USBSystemDriverModule<'a, O>>>) {
+    pub fn set_sender(&mut self, sender: Arc<SpinNoIrq<dyn USBSystemDriverModuleInstance<'a, O>>>) {
         self.sender = Some(sender)
     }
 }

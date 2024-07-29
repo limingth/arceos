@@ -1,6 +1,6 @@
 pub mod dma;
 
-use core::alloc::Allocator;
+use core::{alloc::Allocator, fmt::Debug};
 
 // pub trait PlatformAbstractions: Clone + Send + Sync + Sized {
 //     type VirtAddr;

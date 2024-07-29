@@ -56,7 +56,8 @@ where
     }
 
     pub fn init(&self) {
-        self.controller.lock().init()
+        self.controller.lock().init();
+        trace!("controller init complete");
     }
 
     pub fn probe<F>(&self, consumer: F)
@@ -93,9 +94,9 @@ where
     }
 
     pub fn urb_request(&mut self, request: URB<O>) -> crate::err::Result {
-        // trace!("request {:#?}", request);
         match request.operation {
             usb::urb::RequestedOperation::Control(control) => {
+                trace!("request transfer!");
                 self.control_transfer(request.device_slot_id, control)
             }
             usb::urb::RequestedOperation::Bulk => todo!(),

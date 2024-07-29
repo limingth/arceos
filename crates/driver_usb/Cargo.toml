@@ -10,7 +10,8 @@ documentation = "https://rcore-os.github.io/arceos/driver_usb/index.html"
 
 
 [features]
-default = ["xhci"]
+default = ["xhci","packed_drivers"]
+packed_drivers=[]
 xhci=[]
 
 [dependencies]

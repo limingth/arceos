@@ -1,5 +1,6 @@
 use core::{
     alloc::{AllocError, Allocator, Layout},
+    fmt::Debug,
     marker::PhantomData,
     mem::size_of,
     ops::{Deref, DerefMut},

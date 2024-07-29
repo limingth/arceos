@@ -8,6 +8,7 @@
 #![feature(get_many_mut)]
 #![feature(let_chains)]
 #![feature(cfg_match)]
+#![feature(iter_collect_into)]
 
 use core::usize;
 
@@ -38,7 +39,7 @@ pub mod glue;
 pub mod host;
 pub mod usb;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct USBSystemConfig<O>
 where
     O: PlatformAbstractions,
@@ -75,9 +76,11 @@ where
         }
     }
 
-    pub fn init(self) -> Self {
+    pub fn init(mut self) -> Self {
+        trace!("initializing!");
         self.host_driver_layer.init();
         self.usb_driver_layer.init();
+        trace!("usb system init complete");
         self
     }
 
@@ -92,10 +95,22 @@ where
             for driver in after {
                 self.new_device(driver)
             }
+            trace!("device probe complete");
         }
-
         {
-            self.usb_driver_layer.init_probe(); //probe driver modules and load them
+            let mut preparing_list = Vec::new();
+            self.usb_driver_layer
+                .init_probe(&mut self.driver_independent_devices, &mut preparing_list);
+            //probe driver modules and load them
+
+            for preplist in preparing_list {
+                //change it to async, different preplist should be perpendicular
+                for ele in preplist {
+                    self.host_driver_layer.urb_request(ele).unwrap()
+                }
+            }
+
+            //and do some prepare stuff
         }
         // }
         // .await;
