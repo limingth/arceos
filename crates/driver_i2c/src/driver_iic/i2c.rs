@@ -4,11 +4,22 @@ use core::ptr;
 use core::time::Duration;
 use log::*;
 use axhal::time::busy_wait;
-use crate::{i2c_master,i2c_hw};
+use super::{i2c,i2c_intr,i2c_master,i2c_sinit,io,i2c_hw};
+use super::driver_mio::{mio_g,mio_hw,mio_sinit,mio};
 
+use crate::driver_iic::i2c_hw::*;
+use crate::driver_iic::i2c_intr::*;
+use crate::driver_iic::i2c_master::*;
+use crate::driver_iic::i2c_sinit::*;
+use crate::driver_iic::io::*;
+
+use crate::driver_mio::mio::*;
+use crate::driver_mio::mio_g::*;
+use crate::driver_mio::mio_hw::*;
+use crate::driver_mio::mio_sinit::*;
 
 /// I2C设备配置结构体
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy,Default)]
 pub struct FI2cConfig {
     pub instance_id: u32,         // 设备实例ID
     pub base_addr: usize,         // 设备基地址
@@ -22,44 +33,95 @@ pub struct FI2cConfig {
 }
 
 /// I2C事件处理程序函数类型
-pub type FI2cEvtHandler = fn(instance_p: *mut FI2c, param: *mut std::ffi::c_void);
+pub type FI2cEvtHandler = fn(instance_p: *mut FI2c, param: *mut core::ffi::c_void);
 
 /// I2C发送数据帧
 #[derive(Debug, Clone, Copy)]
 pub struct FI2cFrameTX {
-    pub data_buff: *const std::ffi::c_void,  // 数据缓冲区
+    pub data_buff: *const core::ffi::c_void,  // 数据缓冲区
     pub tx_total_num: u32,                  // 发送数据总量
     pub tx_cnt: u32,                        // 已发送数据量
     pub flag: u32,                          // 标志位（CMD、STOP、RESTART）
 }
 
+impl Default for FI2cFrameTX {
+    fn default() -> Self {
+        Self {
+            data_buff: core::ptr::null_mut(), // 设置默认值为 null 指针
+            tx_total_num: 0,
+            tx_cnt: 0,
+            flag: 0,
+        }
+    }
+}
+
 /// I2C接收数据帧
 #[derive(Debug, Clone, Copy)]
 pub struct FI2cFrameRX {
-    pub data_buff: *mut std::ffi::c_void,  // 数据缓冲区
+    pub data_buff: *mut core::ffi::c_void,  // 数据缓冲区
     pub rx_total_num: u32,                // 接收数据总量
     pub rx_cnt: u32,                      // 已接收数据量
 }
 
+impl Default for FI2cFrameRX {
+    fn default() -> Self {
+        Self {
+            data_buff: core::ptr::null_mut(), // 设置默认值为 null 指针
+            rx_total_num: 0,
+            rx_cnt: 0,
+        }
+    }
+}
+
 /// I2C设备实例
-#[derive(Debug, Clone, Copy)]
+#[feature(const_trait_impl)]
+#[derive(Debug, Clone, Copy,Default)]
 pub struct FI2c {
     pub config: FI2cConfig,               // 当前活跃配置
     pub is_ready: u32,                   // 设备是否已初始化并准备好
     pub status: u32,                     // 设备状态
     pub txframe: FI2cFrameTX,            // 发送数据帧
     pub rxframe: FI2cFrameRX,            // 接收数据帧
-    pub master_evt_handlers: [FI2cEvtHandler; FI2C_MASTER_INTR_EVT_NUM], // 主设备中断处理程序
-    pub slave_evt_handlers: [FI2cEvtHandler; FI2C_SLAVE_INTR_EVT_NUM],   // 从设备中断处理程序
+    pub master_evt_handlers: [Option<FI2cEvtHandler>; 3], // 主设备中断处理程序
+    pub slave_evt_handlers: [Option<FI2cEvtHandler>; 6],   // 从设备中断处理程序
 }
 
-pub fn FI2cCfgInitialize(instance_p: &mut FI2c, input_config_p: &FI2cConfig) -> false {
-    assert!(instance_p.is_some() && input_config_p.is_some());
+pub static mut master_i2c_instance:FI2c = FI2c{
+    config:FI2cConfig {
+        instance_id: 0,                
+        base_addr: 0,      
+        irq_num: 0,                  
+        irq_priority: 0,               
+        ref_clk_hz: 0,         
+        work_mode: 0,                  
+        slave_addr: 0,                
+        use_7bit_addr: false,             
+        speed_rate: 0,           
+    },
+    is_ready:0,
+    status:0,
+    txframe:FI2cFrameTX{
+        data_buff: core::ptr::null_mut(), 
+        tx_total_num: 0,                  
+        tx_cnt: 0,                        
+        flag: 0,                        
+    },
+    rxframe:FI2cFrameRX {
+        data_buff: core::ptr::null_mut(),  
+        rx_total_num: 0,                
+        rx_cnt: 0,                    
+    },
+    master_evt_handlers:[None;3],
+    slave_evt_handlers:[None;6],
+};
 
-    let mut ret = 0;
+pub fn FI2cCfgInitialize(instance_p: &mut FI2c, input_config_p: &FI2cConfig) -> bool {
+    assert!(Some(instance_p.clone()).is_some() && Some(input_config_p).is_some());
+
+    let mut ret = true;
 
     // 如果设备已启动，禁止初始化并返回已启动状态，允许用户取消初始化设备并重新初始化，但防止用户无意中初始化
-    if instance_p.is_ready == 0x11111111U {
+    if instance_p.is_ready == 0x11111111u32 {
         debug!("Device is already initialized!!!");
         return false;
     }
@@ -70,31 +132,31 @@ pub fn FI2cCfgInitialize(instance_p: &mut FI2c, input_config_p: &FI2cConfig) -> 
 
     // 重置设备
     ret = FI2cReset(instance_p);
-    if ret == 0 {
-        instance_p.is_ready = 0x11111111U;
+    if ret == true {
+        instance_p.is_ready = 0x11111111u32;
     }
 
     ret
 }
 
 pub fn FI2cDeInitialize(instance_p: &mut FI2c) {
-    assert!(instance_p.is_some());
+    assert!(Some(instance_p.clone()).is_some());
     instance_p.is_ready = 0;
 
     // 清零实例数据
     unsafe {
-        write_bytes(instance_p as *mut FI2c, 0, size_of::<FI2c>());
+        core::ptr::write_bytes(instance_p as *mut FI2c, 0, size_of::<FI2c>());  
     }
 }
 
-pub fn fi2c_reset(instance_p: &mut FI2c) -> false {
-    assert!(instance_p.is_some());
-    let mut ret = 0;
+pub fn FI2cReset(instance_p: &mut FI2c) -> bool {
+    assert!(Some(instance_p.clone()).is_some());
+    let mut ret = true;
     let config_p = &instance_p.config;
     let base_addr = config_p.base_addr;
     let mut reg_val: u32 = 0;
 
-    ret = FI2cSetEnable(base_addr, false); // 禁用 i2c 控制器
+    ret = FI2cSetEnable(base_addr.try_into().unwrap(), false); // 禁用 i2c 控制器
 
     if config_p.work_mode == 0 {
         reg_val |= if config_p.use_7bit_addr { (0x0 << 4) } else { (0x1 << 4) };
@@ -108,20 +170,20 @@ pub fn fi2c_reset(instance_p: &mut FI2c) -> false {
     }
     reg_val |= (0x1 << 1);
 
-    output_32(base_addr, 0x00, reg_val);
-    output_32(base_addr, 0x38, 0);
-    output_32(base_addr, 0x3C, 0);
-    output_32(base_addr,0x30,0); // 禁用所有中断
+    output_32(base_addr.try_into().unwrap(), 0x00, reg_val);
+    output_32(base_addr.try_into().unwrap(), 0x38, 0);
+    output_32(base_addr.try_into().unwrap(), 0x3C, 0);
+    output_32(base_addr.try_into().unwrap(),0x30,0); // 禁用所有中断
 
-    ret = fi2c_set_speed(base_addr, config_p.speed_rate);
+    ret = FI2cSetSpeed(base_addr.try_into().unwrap(), config_p.speed_rate);
 
-    if ret == 0 {
-        ret = FI2cSetEnable(base_addr, true); // 启用 i2c 控制器
+    if ret == true {
+        ret = FI2cSetEnable(base_addr.try_into().unwrap(), true); // 启用 i2c 控制器
     }
 
     // 如果初始化成功且 i2c 处于从模式，则设置从地址
-    if ret == 0 && config_p.work_mode == 1 {
-        ret = FI2cSetSar(base_addr, config_p.slave_addr);
+    if ret == true && config_p.work_mode == 1 {
+        ret = FI2cSetSar(base_addr.try_into().unwrap(), config_p.slave_addr);
     }
 
     ret

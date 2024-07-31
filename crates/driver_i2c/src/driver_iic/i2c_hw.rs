@@ -6,60 +6,22 @@ use core::ptr::write_volatile;
 use log::*;
 use axhal::time::busy_wait;
 
-const FI2C_CON_OFFSET 0x00
-const FI2C_TAR_OFFSET 0x04
-const FI2C_SAR_OFFSET 0x08
-const FI2C_HS_MADDR_OFFSET 0x0C
-const FI2C_DATA_CMD_OFFSET 0x10
-const FI2C_SS_SCL_HCNT_OFFSET 0x14
-const FI2C_SS_SCL_LCNT_OFFSET 0x18
-const FI2C_FS_SCL_HCNT_OFFSET 0x1C
-const FI2C_FS_SCL_LCNT_OFFSET 0x20
-const FI2C_HS_SCL_HCNT_OFFSET 0x24
-const FI2C_HS_SCL_LCNT_OFFSET 0x28
-const FI2C_INTR_STAT_OFFSET 0x2C
-const FI2C_INTR_MASK_OFFSET 0x30
-const FI2C_RAW_INTR_STAT_OFFSET 0x34
-const FI2C_RX_TL_OFFSET 0x38
-const FI2C_TX_TL_OFFSET 0x3C
-const FI2C_CLR_INTR_OFFSET 0x40
-const FI2C_CLR_RX_UNDER_OFFSET 0x44
-const FI2C_CLR_RX_OVER_OFFSET 0x48
-const FI2C_CLR_TX_OVER_OFFSET 0x4C
-const FI2C_CLR_RD_REQ_OFFSET 0x50
-const FI2C_CLR_TX_ABRT_OFFSET 0x54
-const FI2C_CLR_RX_DONE_OFFSET 0x58
-const FI2C_CLR_ACTIVITY_OFFSET 0x5c
-const FI2C_CLR_STOP_DET_OFFSET 0x60
-const FI2C_CLR_START_DET_OFFSET 0x64
-const FI2C_CLR_GEN_CALL_OFFSET 0x68
-const FI2C_ENABLE_OFFSET 0x6C
-const FI2C_STATUS_OFFSET 0x70
-const FI2C_TXFLR_OFFSET 0x74
-const FI2C_RXFLR_OFFSET 0x78
-const FI2C_SDA_HOLD_OFFSET 0x7c
-const FI2C_TX_ABRT_SOURCE_OFFSET 0x80
-const FI2C_SLV_DATA_NACK_ONLY_OFFSET 0x84
-const FI2C_DMA_CR_OFFSET 0x88
-const FI2C_DMA_TDLR_OFFSET 0x8c
-const FI2C_DMA_RDLR_OFFSET 0x90
-const FI2C_SDA_SETUP_OFFSET 0x94
-const FI2C_ACK_GENERAL_CALL_OFFSET 0x98
-const FI2C_ENABLE_STATUS_OFFSET 0x9C
-const FI2C_FS_SPKLEN_OFFSET 0xa0
-const FI2C_HS_SPKLEN_OFFSET 0xa4
-const FI2C_COMP_PARAM_1_OFFSET 0xf4
-const FI2C_COMP_VERSION_OFFSET 0xf8
-const FI2C_COMP_TYPE_OFFSET 0xfc
+use super::{i2c,i2c_intr,i2c_master,i2c_sinit,io,i2c_hw};
+use super::driver_mio::{mio_g,mio_hw,mio_sinit,mio};
 
-const DIV_ROUND_UP(n, d) (((n) + (d)-1) / (d))
-const FI2C_IC_SAR_MASK (((!0u32) - (1u32 << (0)) + 1) & (!0u32 >> (32 - 1 - (9))))
-const FI2C_IC_TAR_MASK (((!0u32) - (1u32 << (0)) + 1) & (!0u32 >> (32 - 1 - (9))))
-const FI2C_CON_SPEED_MASK (((!0u32) - (1u32 << 1) + 1) & (!0u32 >> (32 - 1 - 2)));
-const FI2C_TIMEOUT: u32 = 50000;
+use crate::driver_iic::i2c::*;
+use crate::driver_iic::i2c_intr::*;
+use crate::driver_iic::i2c_master::*;
+use crate::driver_iic::i2c_sinit::*;
+use crate::driver_iic::io::*;
+
+use crate::driver_mio::mio::*;
+use crate::driver_mio::mio_g::*;
+use crate::driver_mio::mio_hw::*;
+use crate::driver_mio::mio_sinit::*;
 
 // 定义速度配置相关的结构体
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy,Default)]
 pub struct FI2cSpeedCfg {
     speed_mode: u32,
     scl_lcnt: u32,
@@ -67,7 +29,7 @@ pub struct FI2cSpeedCfg {
     sda_hold: u32,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy,Default)]
 pub struct FI2cSpeedModeInfo {
     speed: u32,
     min_scl_hightime_ns: u32,
@@ -78,21 +40,21 @@ pub struct FI2cSpeedModeInfo {
 
 pub const I2C_SPEED_CFG: [FI2cSpeedModeInfo; 3] = [
     FI2cSpeedModeInfo {
-        speed: FI2C_SPEED_STANDARD_RATE,
+        speed: 100000,
         min_scl_hightime_ns: 4000,
         min_scl_lowtime_ns: 4700,
         def_risetime_ns: 1000,
         def_falltime_ns: 300,
     },
     FI2cSpeedModeInfo {
-        speed: FI2C_SPEED_FAST_RATE,
+        speed: 400000,
         min_scl_hightime_ns: 600,
         min_scl_lowtime_ns: 1300,
         def_risetime_ns: 300,
         def_falltime_ns: 300,
     },
     FI2cSpeedModeInfo {
-        speed: FI2C_SPEED_HIGH_RATE,
+        speed: 1000000,
         min_scl_hightime_ns: 390,
         min_scl_lowtime_ns: 460,
         def_risetime_ns: 60,
@@ -100,34 +62,51 @@ pub const I2C_SPEED_CFG: [FI2cSpeedModeInfo; 3] = [
     },
 ];
 
+pub fn DIV_ROUND_UP(n:u32, d:u32) -> u32{
+    (((n) + (d)-1) / (d)) as u32
+}
+
+pub fn FI2C_IC_SAR_MASK() -> u32{
+    (((!0u32) - (1u32 << (0)) + 1) & (!0u32 >> (32 - 1 - (9))))
+}
+
+pub fn FI2C_IC_TAR_MASK() -> u32{
+    (((!0u32) - (1u32 << (0)) + 1) & (!0u32 >> (32 - 1 - (9))))
+}
+
+pub fn FI2C_CON_SPEED_MASK() -> u32{
+    (((!0u32) - (1u32 << 1) + 1) & (!0u32 >> (32 - 1 - 2)))
+}
+
 //设置I2C控制器的使能状态
-pub fn i2c_setenable(addr:u32,enable:bool) -> bool{
+pub fn FI2cSetEnable(addr:u32,enable:bool) -> bool{
     let status:u32 = match enable{
         true => 0x1 << 0,
         false => 0x0 << 0,
     };
-    let timeout:u32 = FI2C_TIMEOUT;
-    while(0!=timeout--){
-        output_32(addr,FI2C_ENABLE_OFFSET,status);
-        if (((input_32(addr,FI2C_ENABLE_STATUS_OFFSET)) & FI2C_IC_ENABLE_MASK) == status)
+    let mut timeout:u32 = 50000;
+    while(0!=timeout){
+        output_32(addr,0x6C,status);
+        if (((input_32(addr,0x9C)) & (0x1 << 0)) == status)
         {
-            //!!!!!!!!!!!return ture;
+            return true;
         }
+        timeout-=1;
     }
     debug!("the enable is {:?}",enable);
-    //!!!!!!!!!!!!!!!!!return false;
+    return false;
 }
 
 //计算I2C的上升沿下降沿配置
-pub fn i2c_calc_timing(
+pub fn FI2cCalcTiming(
     bus_clk_hz: u32,
     spk_cnt: u32,
     speed_cfg_p: &mut FI2cSpeedCfg
 ) -> bool {
     // 确保 speed_cfg_p 不为空
-    assert!(speed_cfg_p.is_some());
+    assert!(Some(speed_cfg_p.clone()).is_some());
 
-    let speed_mode = speed_cfg_p.speed_mode;
+    let speed_mode:usize = speed_cfg_p.speed_mode as usize;
     let info_p = &I2C_SPEED_CFG[speed_mode];
     
     let mut fall_cnt: i32;
@@ -142,15 +121,15 @@ pub fn i2c_calc_timing(
     let scl_rise_time_ns: i32;
     let scl_fall_time_ns: i32;
 
-    period_cnt = bus_clk_hz / info_p.speed;
-    scl_rise_time_ns = info_p.def_risetime_ns;
-    scl_fall_time_ns = info_p.def_falltime_ns;
+    period_cnt = (bus_clk_hz / info_p.speed) as i32;
+    scl_rise_time_ns = (info_p.def_risetime_ns) as i32;
+    scl_fall_time_ns = (info_p.def_falltime_ns) as i32;
 
     // 将周期转换为 IC 时钟周期的数量
-    fall_cnt = DIV_ROUND_UP(bus_clk_hz / 1000 * scl_rise_time_ns, NANO_TO_KILO);
-    rise_cnt = DIV_ROUND_UP(bus_clk_hz / 1000 * scl_fall_time_ns, NANO_TO_KILO);
-    min_t_low_cnt = DIV_ROUND_UP(bus_clk_hz / 1000 * info_p->min_scl_lowtime_ns, NANO_TO_KILO);
-    min_t_high_cnt = DIV_ROUND_UP(bus_clk_hz / 1000 * info_p->min_scl_hightime_ns, NANO_TO_KILO);
+    fall_cnt = DIV_ROUND_UP(bus_clk_hz / 1000 * (scl_rise_time_ns as u32), 1000000) as i32;
+    rise_cnt = DIV_ROUND_UP(bus_clk_hz / 1000 * (scl_fall_time_ns as u32), 1000000) as i32;
+    min_t_low_cnt = DIV_ROUND_UP(bus_clk_hz / 1000 * info_p.min_scl_lowtime_ns, 1000000) as i32;
+    min_t_high_cnt = DIV_ROUND_UP(bus_clk_hz / 1000 * info_p.min_scl_hightime_ns, 1000000) as i32;
 
     // 打印调试信息
     debug!(
@@ -190,7 +169,7 @@ pub fn i2c_calc_timing(
 
     speed_cfg_p.scl_lcnt = lcnt as u32;
     speed_cfg_p.scl_hcnt = hcnt as u32;
-    speed_cfg_p.sda_hold = (bus_clk_hz / 1000 * 300 + NANO_TO_KILO - 1) / NANO_TO_KILO; // 使用默认值，除非另有指定
+    speed_cfg_p.sda_hold = (bus_clk_hz / 1000 * 300 + 1000000 - 1) / 1000000; // 使用默认值，除非另有指定
 
     // 打印最终配置
     debug!(
@@ -212,7 +191,7 @@ pub fn i2c_calc_timing(
 //     FI2C_SPEED_MODE_MAX
 // };
 pub fn FI2cCalcSpeedCfg(addr: u32, speed: u32, bus_clk_hz: u32, speed_cfg_p: &mut FI2cSpeedCfg) -> bool {
-    assert!(speed_cfg_p.is_some()); // 确保 speed_cfg_p 不为空
+    assert!(Some(speed_cfg_p.clone()).is_some()); // 确保 speed_cfg_p 不为空
     let spk_cnt: u32;
 
     if speed >= 1000000 {
@@ -233,22 +212,22 @@ pub fn FI2cCalcSpeedCfg(addr: u32, speed: u32, bus_clk_hz: u32, speed_cfg_p: &mu
 
 //设置I2C控制器的速率
 pub fn FI2cSetSpeed(addr: u32, speed_rate: u32) -> bool {
-    let mut ret = 0;
+    let mut ret = true;
     let mut speed_cfg = FI2cSpeedCfg { ..Default::default() }; // 初始化 speed_cfg
     let enable_status:u32;
     let mut reg_val:u32;
 
     // 计算速率配置
     ret = FI2cCalcSpeedCfg(addr, speed_rate, 50000000, &mut speed_cfg);
-    if ret != 0 {
-        return ret;
+    if ret != true {
+        return false;
     }
 
     // 获取启用状态
     enable_status = input_32(addr,0x9C);
 
     // 重置速率模式位
-    reg_val = (input_32(addr, 0x00) & !FI2C_CON_SPEED_MASK);
+    reg_val = (input_32(addr, 0x00) & !FI2C_CON_SPEED_MASK());
     match speed_cfg.speed_mode {
         0 => {
             reg_val |= (0x1 << 1);
@@ -286,7 +265,7 @@ pub fn FI2cSetSpeed(addr: u32, speed_rate: u32) -> bool {
 }
 
 //等待特定的I2C状态位直到状态不存在或者超时
-pub fn FI2cWaitStatus(addr: u32, stat_bit: u32) -> false {
+pub fn FI2cWaitStatus(addr: u32, stat_bit: u32) -> bool {
     let mut timeout:u32 = 0;
 
     // 等待状态位设置或超时
@@ -305,12 +284,11 @@ pub fn FI2cWaitStatus(addr: u32, stat_bit: u32) -> false {
 
 //等待I2C总线忙
 pub fn FI2cWaitBusBusy(addr: u32) -> bool {
-    let mut ret:u32 = 0;
+    let mut ret = true;
 
-    if (input_32(addr, 0x70) & (0x1 << 5)) &&
-        (0 != FI2cWaitStatus(addr, (0x1 << 2)))
+    if (input_32(addr, 0x70) & (0x1 << 5)) != 0 && (true != FI2cWaitStatus(addr, (0x1 << 2))) != true
     {
-        ret = 1111;
+        ret = false;
         debug!("Timeout when wait i2c bus busy.");
     }
 
@@ -320,14 +298,14 @@ pub fn FI2cWaitBusBusy(addr: u32) -> bool {
 //设置与I2C主机通信的从机地址
 pub fn FI2cSetTar(addr: u32, tar_addr: u32) -> bool {
     let enable_status = input_32(addr,0x9C);
-    let mut ret = 0;
+    let mut ret = true;
 
     if enable_status == (0x1 << 0) {
         ret = FI2cSetEnable(addr, false);
     }
 
-    if ret == 0 {
-        output_32(addr, 0x04, tar_addr & FI2C_IC_TAR_MASK);
+    if ret == true {
+        output_32(addr, 0x04, tar_addr & FI2C_IC_TAR_MASK());
     }
 
     if enable_status == (0x1 << 0) {
@@ -338,16 +316,16 @@ pub fn FI2cSetTar(addr: u32, tar_addr: u32) -> bool {
 }
 
 //从机模式下，设置I2C地址
-pub fn FI2cSetSar(addr: u32, sar_addr: u32) -> false {
+pub fn FI2cSetSar(addr: u32, sar_addr: u32) -> bool {
     let enable_status = input_32(addr,0x9C);
-    let mut ret = 0;
+    let mut ret = true;
 
     if enable_status == (0x1 << 0) {
         ret = FI2cSetEnable(addr, false);
     }
 
-    if ret == 0 {
-        output_32(addr, 0x08, sar_addr & FI2C_IC_SAR_MASK);
+    if ret == true {
+        output_32(addr, 0x08, sar_addr & FI2C_IC_SAR_MASK());
     }
 
     if enable_status == (0x1 << 0) {
@@ -358,17 +336,17 @@ pub fn FI2cSetSar(addr: u32, sar_addr: u32) -> false {
 }
 
 //等待接收Fifo传输完成
-pub fn FI2cFlushRxFifo(addr: u32) -> false {
+pub fn FI2cFlushRxFifo(addr: u32) -> bool{
     let mut data: u8;
     let mut timeout = 0;
-    let mut ret = 0;
+    let mut ret = true;
 
     // 读取数据直到 FIFO 为空
     while (input_32(addr, 0x70) & (0x1 << 3)) != 0 {
         data = input_32(addr, 0x10) as u8;
 
         if timeout >= 50000{
-            ret = 50000;
+            ret = false;
             debug!("Timeout when flush fifo.");
             break;
         }
@@ -382,7 +360,7 @@ pub fn FI2cFlushRxFifo(addr: u32) -> false {
 
 //清除中断状态位，返回清除前的中断状态
 pub fn FI2cClearIntrBits(addr: u32, last_err_p: &mut u32) -> u32 {
-    assert!(last_err_p.is_some());
+    assert!(Some(last_err_p.clone()).is_some());
 
     let stat:u32 = input_32(addr, 0x2C);
 

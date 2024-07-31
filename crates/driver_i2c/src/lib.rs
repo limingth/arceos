@@ -1,86 +1,29 @@
-#![no_std] 
+#![no_std]
 #![no_main]
+
+use axhal::time::busy_wait;
+use core::default;
+use core::ptr;
+use core::slice;
+use core::time::Duration;
 use log::debug;
-const MIO1_BASE: u32 = 0x000_2801_6000;
-const IC_CON: usize = 0x00;
-const IC_TAR: usize = 0x04;
-const IC_DATA_CMD: usize = 0x10;
-const IC_ENABLE: usize = 0x6C;
-const IC_STATUS: usize = 0x70;
-const CREG_MIO_FUNC_SEL_OFFSET: usize = 0x00;
-use crates::driver_iic::{i2c_hw,i2c_init,i2c,i2c_sinit,i2c_master,io};
-use crates::driver_mio::{mio_g,mio_hw,mio_sinit,mio};
+pub mod driver_iic;
+pub mod driver_mio;
+pub mod example;
 
-FI2cCalcSpeedCfg
+use crate::driver_iic::i2c::*;
+use crate::driver_iic::i2c_hw::*;
+use crate::driver_iic::i2c_intr::*;
+use crate::driver_iic::i2c_master::*;
+use crate::driver_iic::i2c_sinit::*;
+use crate::driver_iic::io::*;
 
-unsafe fn write_reg(addr: u32, value: u32) {
-    debug!("Writing value {:#X} to address {:#X}", value, addr);
-    *(addr as *mut u32) = value;
-}
+use crate::driver_mio::mio::*;
+use crate::driver_mio::mio_g::*;
+use crate::driver_mio::mio_hw::*;
+use crate::driver_mio::mio_sinit::*;
 
-unsafe fn read_reg(addr: u32) -> u32 {
-    let value = *(addr as *const u32);
-    debug!("Read value {:#X} from address {:#X}", value, addr);
-    value
-}
-
-unsafe fn configure_mio_for_i2c(mio_base: u32) {
-    let creg_mio_func_sel = mio_base + CREG_MIO_FUNC_SEL_OFFSET as u32;
-    
-    debug!("Configuring MIO for I2C at base {:#X}", mio_base);
-    write_reg(creg_mio_func_sel, 0x00); 
-}
-
-unsafe fn wait_send_fifo_not_full(mio_base: u32) {
-    let ic_status = mio_base + IC_STATUS as u32;
-    while (read_reg(ic_status) & (1 << 1)) == 0 {}
-}
-
-unsafe fn i2c_init(mio_base: u32, slave_address: u8) {
-    let ic_enable = mio_base + IC_ENABLE as u32;
-    let ic_con = mio_base + IC_CON as u32;
-    let ic_tar = mio_base + IC_TAR as u32;
-
-    debug!("Initializing I2C at base {:#X} with slave address {:#X}", mio_base, slave_address);
-    write_reg(ic_enable, 0x00);
-    write_reg(ic_con, 0x63);
-    write_reg(ic_tar, slave_address as u32);
-    write_reg(ic_enable, 0x01);
-}
-
-unsafe fn i2c_send_data(mio_base: u32, data: &[u8]) {
-    let ic_status = mio_base + IC_STATUS as u32;
-    let ic_data_cmd = mio_base + IC_DATA_CMD as u32;
-
-    debug!("Sending I2C data: {:?}", data);
-
-    for (i, &byte) in data.iter().enumerate() {
-        wait_send_fifo_not_full(mio_base);
-        if i == data.len() - 1 {
-            debug!("writing end!");
-            write_reg(ic_data_cmd, (byte as u32) |(1 << 9));  
-        } else {
-            write_reg(ic_data_cmd, byte as u32);  
-        }
-    }
-}
-
-unsafe fn i2c_receive_data(mio_base: u32, buffer: &mut [u8]) {
-    let ic_status = mio_base + IC_STATUS as u32;
-    let ic_data_cmd = mio_base + IC_DATA_CMD as u32;
-    debug!("Receiving I2C data into buffer of length {}", buffer.len());
-    for i in 0..buffer.len() {
-        if i == buffer.len() - 1 {
-            write_reg(ic_data_cmd, (1 << 8) | (1 << 9)); 
-        } else {
-            write_reg(ic_data_cmd, (1 << 8)); 
-        }
-    }
-    for (i, byte) in buffer.iter_mut().enumerate() {
-        while (read_reg(ic_status) & (1 << 3)) == 0 {}
-        *byte = read_reg(ic_data_cmd) as u8;
-    }
-}
+use crate::example::*;
 
 // unsafe fn oled_fill_screen(mio_base: u32) {
 //     for y in 0..8 {
@@ -167,7 +110,7 @@ unsafe fn i2c_receive_data(mio_base: u32, buffer: &mut [u8]) {
 //     for _ in 0..1_000_000 {
 //         // 上电延时
 //     }
-    
+
 //     i2c_init(mio_base, 0x78);
 //     oled_write_command(mio_base, 0xAE);  // 关闭显示
 
@@ -209,30 +152,50 @@ unsafe fn i2c_receive_data(mio_base: u32, buffer: &mut [u8]) {
 //     oled_clear(MIO1_BASE);
 // }
 
+
 pub fn run_iicoled() {
     unsafe {
-        configure_mio_for_i2c(MIO1_BASE);
-        i2c_init(MIO1_BASE, 0x3C); 
-        let send_data = [0x55, 0xAA, 0xF0];
-        debug!("Sending data: {:?}", send_data);
-        i2c_send_data(MIO1_BASE, &send_data);
-        let mut receive_buffer = [0u8; 3];
-        debug!("Receiving data into buffer...");
-        i2c_receive_data(MIO1_BASE, &mut receive_buffer);
-        debug!("Received data: {:?}", receive_buffer);
+        let mut ret: bool = true;
+        let address: u32 = 0x3c;
+        let mut speed_rate: u32 = 100000; /*kb/s*/
+        FIOPadCfgInitialize(&mut iopad_ctrl, &FIOPadLookupConfig(0).unwrap());
+        ret = FI2cMioMasterInit(address, speed_rate);
+        if ret != true {
+            debug!("FI2cMioMasterInit mio_id {:?} is error!", 1);
+        }
+        let offset: u32 = 0x05;
+        let input: &[u8] = b"012";
+        let input_len: u32 = input.len() as u32;
+        let mut write_buf: [u8; 256] = [0; 256];
+        let mut read_buf: [u8; 256] = [0; 256];
+
+
+        unsafe {
+            // 复制数据到 write_buf
+            ptr::copy_nonoverlapping(input.as_ptr(), write_buf.as_mut_ptr(), input_len as usize);
+            debug!("------------------------------------------------------");
+            debug!("write 0x{:x} len {}", offset, input_len);
+
+            // 调用 FI2cMasterwrite
+            let ret = FI2cMasterWrite(&mut write_buf, input_len, offset);
+            if ret != true {
+                debug!("FI2cMasterwrite error!");
+                return;
+            }
+            debug!("------------------------------------------------------");
+            // 调用 FI2cSlaveDump
+            FI2cSlaveDump();
+            let read_buf =
+                unsafe { slice::from_raw_parts_mut(read_buf.as_mut_ptr(), read_buf.len()) };
+
+            // 调用 FI2cMasterRead
+            let ret = FI2cMasterRead(read_buf, input_len, offset);
+            debug!("------------------------------------------------------");
+            if ret == true {
+                debug!("Read {:?} len {:?}: {:?}.", offset, input_len, read_buf);
+                FtDumpHexByte(read_buf.as_ptr(), input_len as usize);
+            }
+            debug!("------------------------------------------------------");
+        }
     }
 }
-
-
-// debug!("Running I2C OLED example");
-    // unsafe {
-    //     configure_mio_for_i2c(MIO1_BASE);
-    //     oled_init(MIO1_BASE);
-    // }
-    // while true {
-    //     unsafe {
-    //         oled_fill_screen(MIO1_BASE);
-    //     }
-    // }
-
-
