@@ -22,7 +22,12 @@ fn FI2C_DATA_MASK() -> u32 {
     (((!0u32) - (1u32 << 0) + 1) & (!0u32 >> (32 - 1 - 7)))
 }
 
-pub fn FI2cMasterStartTrans(instance_p: &mut FI2c, mem_addr: u32, mem_byte_len: u8, flag: u16) -> bool {
+pub fn FI2cMasterStartTrans(
+    instance_p: &mut FI2c,
+    mem_addr: u32,
+    mem_byte_len: u8,
+    flag: u16,
+) -> bool {
     assert!(Some(instance_p.clone()).is_some());
     let base_addr = instance_p.config.base_addr;
     let mut addr_len: u32 = mem_byte_len as u32;
@@ -54,7 +59,7 @@ pub fn FI2cMasterStartTrans(instance_p: &mut FI2c, mem_addr: u32, mem_byte_len: 
     ret
 }
 
-pub fn FI2cMasterStopTrans(instance_p:&mut FI2c) -> bool {
+pub fn FI2cMasterStopTrans(instance_p: &mut FI2c) -> bool {
     assert!(Some(instance_p.clone()).is_some());
     let mut ret = true;
     let base_addr = instance_p.config.base_addr;
@@ -126,23 +131,23 @@ pub fn FI2cMasterReadPoll(
             tx_limit -= 1;
         }
         let mut rx_tem: u32 = input_32(base_addr, 0x78);
-
+        let mut i = 0;
         while rx_len > 0 && rx_tem > 0 {
-            for (i, byte) in buf_p.iter_mut().enumerate() {
-                if input_32(base_addr, 0x70) & (0x1 << 3) != 0 {
-                    *byte = (input_32(base_addr, 0x10) & FI2C_DATA_MASK()) as u8;
-                    rx_len -= 1;
-                    rx_tem -= 1;
-                    trans_timeout = 0;
-                } else {
-                    trans_timeout += 1;
-                    busy_wait(Duration::from_millis(1));
-                    if trans_timeout >= 500 {
-                        return false;
-                    }
+            if input_32(base_addr, 0x70) & (0x1 << 3) != 0 {
+                buf_p[i] = (input_32(base_addr, 0x10) & FI2C_DATA_MASK()) as u8;
+                i+=1;
+                rx_len -= 1;
+                rx_tem -= 1;
+                trans_timeout = 0;
+            } else {
+                trans_timeout += 1;
+                busy_wait(Duration::from_millis(1));
+                if trans_timeout >= 500 {
+                    return false;
                 }
             }
         }
+        i = 0;
     }
     if ret == true {
         ret = FI2cMasterStopTrans(instance_p);
@@ -182,28 +187,27 @@ pub unsafe fn FI2cMasterWritePoll(
         }
 
         let mut tx_limit = 8 - input_32(base_addr.try_into().unwrap(), 0x74);
-
-        //while tx_limit > 0 && buf_idx > 0 {
-            for (i, &byte) in buf_p.iter().enumerate() {
-                if input_32(base_addr.try_into().unwrap(), 0x70) & (0x1 << 1) != 0 {
-                    let reg_val = if buf_idx == 1 {
-                        (FI2C_DATA_MASK() & byte as u32) | (0x0 << 8) | (0x1 << 9)
-                    } else {
-                        (FI2C_DATA_MASK() & byte as u32) | (0x0 << 8)
-                    };
-                    output_32(base_addr.try_into().unwrap(), 0x10, reg_val);
-                    //buf_idx -= 1;
-                    //tx_limit -= 1;
-                    trans_timeout = 0;
-                } else if trans_timeout >= 500 {
-                    return false;
-                }
-                trans_timeout += 1;
-                busy_wait(Duration::from_millis(1));
+        let mut i = 0;
+        while tx_limit > 0 && buf_idx > 0 {
+            if input_32(base_addr.try_into().unwrap(), 0x70) & (0x1 << 1) != 0 {
+                let reg_val = if buf_idx == 1 {
+                    (FI2C_DATA_MASK() & buf_p[i] as u32) | (0x0 << 8) | (0x1 << 9)
+                } else {
+                    (FI2C_DATA_MASK() & buf_p[i] as u32) | (0x0 << 8)
+                };
+                output_32(base_addr.try_into().unwrap(), 0x10, reg_val);
+                i += 1;
+                buf_idx -= 1;
+                tx_limit -= 1;
+                trans_timeout = 0;
+            } else if trans_timeout >= 500 {
+                return false;
             }
-            debug!("================================================================");
-        //}
-        buf_idx -= 1;
+            trans_timeout += 1;
+            //busy_wait(Duration::from_millis(1));
+        }
+        i = 0;
+        debug!("================================================================");
     }
     if ret == true {
         ret = FI2cMasterStopTrans(instance_p);
