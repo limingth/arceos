@@ -11,7 +11,11 @@ use xhci::ring::trb::transfer::Direction;
 
 use crate::abstractions::dma::DMA;
 use crate::glue::ucb::{TransferEventCompleteCode, UCB};
-use crate::usb::descriptors::DescriptorType;
+use crate::usb::descriptors::desc_hid::HIDDescriptorTypes;
+use crate::usb::descriptors::topological_desc::{
+    TopologicalUSBDescriptorEndpoint, TopologicalUSBDescriptorFunction,
+};
+use crate::usb::descriptors::USBStandardDescriptorTypes;
 use crate::usb::operation::ExtraStep;
 use crate::usb::trasnfer::control::{
     bRequest, bmRequestType, ControlTransfer, DataTransferType, Recipient,
@@ -24,10 +28,7 @@ use crate::{
     glue::driver_independent_device_instance::DriverIndependentDeviceInstance,
     host::data_structures::MightBeInited,
     usb::{
-        descriptors::{
-            desc_device::USBDeviceClassCode, desc_endpoint::Endpoint,
-            TopologicalUSBDescriptorFunction,
-        },
+        descriptors::{desc_device::StandardUSBDeviceClassCode, desc_endpoint::Endpoint},
         drivers::driverapi::{USBSystemDriverModule, USBSystemDriverModuleInstance},
     },
 };
@@ -230,7 +231,11 @@ where
                     ),
                     request: bRequest::GetDescriptor,
                     index: self.interface_alternative_value as u16,
-                    value: DescriptorType::HIDReport.forLowBit(0).bits(),
+                    value: crate::usb::descriptors::construct_control_transfer_type(
+                        HIDDescriptorTypes::HIDReport as u8,
+                        0,
+                    )
+                    .bits(),
                     data: Some({ buf.lock().addr_len_tuple() }),
                 }),
             ));
@@ -264,12 +269,12 @@ where
         if let MightBeInited::Inited(inited) = &independent_dev.descriptors {
             let device = inited.device.first().unwrap();
             return match (
-                USBDeviceClassCode::from_u8(device.data.class),
+                StandardUSBDeviceClassCode::from(device.data.class),
                 USBHidDeviceSubClassCode::from_u8(device.data.subclass),
                 device.data.protocol,
             ) {
                 (
-                    Some(USBDeviceClassCode::HID),
+                    StandardUSBDeviceClassCode::HID,
                     Some(USBHidDeviceSubClassCode::Mouse),
                     bootable,
                 ) => {
@@ -308,6 +313,13 @@ where
                                 })
                                 .take(1)
                                 .flat_map(|a| a)
+                                .filter_map(|e| {
+                                    if let TopologicalUSBDescriptorEndpoint::Standard(ep) = e {
+                                        Some(ep)
+                                    } else {
+                                        None
+                                    }
+                                })
                                 .collect()
                         },
                         config.clone(),
@@ -316,8 +328,9 @@ where
                         independent_dev.configuration_val,
                     )]);
                 }
-                (Some(USBDeviceClassCode::ReferInterfaceDescriptor), _, _) => Some({
-                    let collect = device
+                (StandardUSBDeviceClassCode::ReferInterfaceDescriptor, _, _) => {
+                    Some({
+                        let collect = device
                         .child
                         .iter()
                         .find(|configuration| {
@@ -332,12 +345,12 @@ where
                                 asso,
                                 interfaces,
                             )) if let (
-                                USBDeviceClassCode::HID,
-                                USBHidDeviceSubClassCode::Mouse,
+                                StandardUSBDeviceClassCode::HID,
+                                Some(USBHidDeviceSubClassCode::Mouse),
                                 bootable,
                             ) = (
-                                USBDeviceClassCode::from_u8(asso.function_class).unwrap(),
-                                USBHidDeviceSubClassCode::from_u8(asso.function_subclass).unwrap(),
+                                StandardUSBDeviceClassCode::from(asso.function_class),
+                                USBHidDeviceSubClassCode::from_u8(asso.function_subclass),
                                 asso.function_protocol,
                             ) =>
                             {
@@ -349,18 +362,20 @@ where
                                     .get(independent_dev.current_alternative_interface_value)
                                     .expect("invalid anternative interface value");
                                 if let (
-                                    Some(USBDeviceClassCode::HID),
+                                    StandardUSBDeviceClassCode::HID,
                                     Some(USBHidDeviceSubClassCode::Mouse),
                                     bootable,
                                 ) = (
-                                    USBDeviceClassCode::from_u8(interface.interface_class),
+                                    StandardUSBDeviceClassCode::from(interface.interface_class),
                                     USBHidDeviceSubClassCode::from_u8(interface.interface_subclass),
                                     interface.interface_protocol,
                                 ) {
                                     return Some(HidMouseDriver::new_and_init(
                                         independent_dev.slotid,
                                         bootable,
-                                        endpoints.clone(),
+                                        endpoints.iter().filter_map(|e|if let TopologicalUSBDescriptorEndpoint::Standard(ep) = e{
+                                            Some(ep.clone())
+                                        }else {None}).collect(),
                                         config.clone(),
                                         independent_dev.interface_val,
                                         independent_dev.current_alternative_interface_value,
@@ -373,8 +388,9 @@ where
                             _ => None,
                         })
                         .collect();
-                    collect
-                }),
+                        collect
+                    })
+                }
                 _ => None,
             };
         }

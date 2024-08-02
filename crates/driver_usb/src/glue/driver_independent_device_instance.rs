@@ -3,7 +3,7 @@ use core::hash::Hash;
 use crate::{
     abstractions::PlatformAbstractions,
     host::data_structures::{host_controllers::ControllerArc, MightBeInited},
-    usb::descriptors::TopologicalUSBDescriptorRoot,
+    usb::descriptors::topological_desc::TopologicalUSBDescriptorRoot,
 };
 
 #[derive(Clone)]
