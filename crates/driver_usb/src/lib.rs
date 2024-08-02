@@ -215,6 +215,7 @@ where
             if let MightBeInited::Inited(TopologicalUSBDescriptorRoot {
                 device: devices,
                 others,
+                metadata,
             }) = &driver.descriptors
             {
                 self.host_driver_layer

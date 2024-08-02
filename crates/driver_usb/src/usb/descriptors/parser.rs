@@ -143,6 +143,7 @@ where
         TopologicalUSBDescriptorRoot {
             device: vec![self.result.unwrap()],
             others: self.others,
+            metadata: self.metadata,
         }
     }
 

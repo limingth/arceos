@@ -6,6 +6,7 @@ use super::{
     desc_endpoint::Endpoint,
     desc_interface::{Interface, InterfaceAssociation},
     desc_uvc::uvc_endpoints::UVCVideoControlInterruptEndpoint,
+    parser::ParserMetaData,
     USBDescriptor,
 };
 
@@ -36,6 +37,7 @@ pub enum TopologicalUSBDescriptorFunction {
 pub struct TopologicalUSBDescriptorRoot {
     pub device: Vec<TopologicalUSBDescriptorDevice>,
     pub others: Vec<USBDescriptor>,
+    pub metadata: ParserMetaData,
 }
 
 #[derive(Clone, Debug)]
