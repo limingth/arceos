@@ -22,11 +22,16 @@ const CMD_TABLE: &[(&str, CmdHandler)] = &[
     ("ldr", do_ldr),
     ("str", do_str),
     ("iic",do_iic),
+    ("pca",do_pca),
     // ("test_xhci", test_xhci),
 ];
 
 fn do_iic(_args: &str){
     driver_i2c::run_iicoled();
+}
+
+fn do_pca(_args: &str){
+    driver_pca9685::test_pca();
 }
 
 // fn test_xhci(_args: &str) {

@@ -1,97 +1,29 @@
 #![no_std]
 #![no_main]
-use axhal::time::{busy_wait, busy_wait_until};
-use core::hash::Hasher;
+use axhal::time::busy_wait;
+use core::default;
+use core::ptr;
+use core::slice;
 use core::time::Duration;
+use driver_i2c::driver_iic;
 use log::debug;
-use smbus_adapter;
-use smbus_pec::{self, pec, Pec};
-const MIO1_BASE: u32 = 0x000_2801_6000;
-const IC_CON: usize = 0x00;
-const IC_TAR: usize = 0x04;
-const IC_DATA_CMD: usize = 0x10;
-const IC_ENABLE: usize = 0x6C;
-const IC_STATUS: usize = 0x70;
-const CREG_MIO_FUNC_SEL_OFFSET: usize = 0x00;
-const ADDRESS: u8 = 0x5A;
-const REGISTER: u8 = 0x06;
+
+use driver_i2c::driver_iic::i2c::*;
+use driver_i2c::driver_iic::i2c_hw::*;
+use driver_i2c::driver_iic::i2c_intr::*;
+use driver_i2c::driver_iic::i2c_master::*;
+use driver_i2c::driver_iic::i2c_sinit::*;
+use driver_i2c::driver_iic::io::*;
+use driver_i2c::driver_mio::mio::*;
+use driver_i2c::driver_mio::mio_g::*;
+use driver_i2c::driver_mio::mio_hw::*;
+use driver_i2c::driver_mio::mio_sinit::*;
+use driver_i2c::example::*;
 
 const PCA9685_ADDRESS: u8 = 0x60;
 const MODE1: u8 = 0x00;
 const PRE_SCALE: u8 = 0xFE;
 const LED0_ON_L: u8 = 0x06;
-
-unsafe fn write_reg(addr: u32, value: u32) {
-    debug!("Writing value {:#X} to address {:#X}", value, addr);
-    *(addr as *mut u32) = value;
-}
-
-unsafe fn read_reg(addr: u32) -> u32 {
-    let value = *(addr as *const u32);
-    debug!("Read value {:#X} from address {:#X}", value, addr);
-    value
-}
-
-unsafe fn configure_mio_for_i2c(mio_base: u32) {
-    let creg_mio_func_sel = mio_base + CREG_MIO_FUNC_SEL_OFFSET as u32;
-
-    debug!("Configuring MIO for I2C at base {:#X}", mio_base);
-    write_reg(creg_mio_func_sel, 0x00);
-}
-
-unsafe fn wait_send_fifo_not_full(mio_base: u32) {
-    let ic_status = mio_base + IC_STATUS as u32;
-    while (read_reg(ic_status) & (1 << 1)) == 0 {}
-}
-
-unsafe fn i2c_init(mio_base: u32, slave_address: u8) {
-    let ic_enable = mio_base + IC_ENABLE as u32;
-    let ic_con = mio_base + IC_CON as u32;
-    let ic_tar = mio_base + IC_TAR as u32;
-
-    debug!(
-        "Initializing I2C at base {:#X} with slave address {:#X}",
-        mio_base, slave_address
-    );
-    write_reg(ic_enable, 0x00);
-    write_reg(ic_con, 0x63);
-    write_reg(ic_tar, slave_address as u32);
-    write_reg(ic_enable, 0x01);
-}
-
-unsafe fn i2c_send_data(mio_base: u32, data: &[u8]) {
-    let ic_status = mio_base + IC_STATUS as u32;
-    let ic_data_cmd = mio_base + IC_DATA_CMD as u32;
-
-    debug!("Sending I2C data: {:?}", data);
-
-    for (i, &byte) in data.iter().enumerate() {
-        wait_send_fifo_not_full(mio_base);
-        if i == data.len() - 1 {
-            debug!("writing end!");
-            write_reg(ic_data_cmd, (byte as u32) | (1 << 9));
-        } else {
-            write_reg(ic_data_cmd, byte as u32);
-        }
-    }
-}
-
-unsafe fn i2c_receive_data(mio_base: u32, buffer: &mut [u8]) {
-    let ic_status = mio_base + IC_STATUS as u32;
-    let ic_data_cmd = mio_base + IC_DATA_CMD as u32;
-    debug!("Receiving I2C data into buffer of length {}", buffer.len());
-    for i in 0..buffer.len() {
-        if i == buffer.len() - 1 {
-            write_reg(ic_data_cmd, (1 << 8) | (1 << 9));
-        } else {
-            write_reg(ic_data_cmd, (1 << 8));
-        }
-    }
-    for (i, byte) in buffer.iter_mut().enumerate() {
-        while (read_reg(ic_status) & (1 << 3)) == 0 {}
-        *byte = read_reg(ic_data_cmd) as u8;
-    }
-}
 
 // ##################################################################
 
@@ -182,24 +114,30 @@ unsafe fn GS_run(L_speed: u16, R_speed: u16) {
     set_pwm(L_speed, R_speed, L_speed, R_speed);
 }
 
-unsafe fn write_byte_data(address: u8, register: u8, value: u16) {
-    i2c_send_data(MIO1_BASE, &[address]);
-    i2c_send_data(MIO1_BASE, &[register]);
-    i2c_send_data(MIO1_BASE, &[(value & 0xFF) as u8]);
-    i2c_send_data(MIO1_BASE, &[(value >> 8) as u8]);
+unsafe fn write_byte_data(address:u8,offset:u8,value:u16){
+    let mut high_byte = (value >> 8) as u8; // 高8位
+    let mut low_byte = (value & 0xFF) as u8; // 低8位
+    FI2cMasterWrite(&mut [high_byte],1,offset as u32);
+    FI2cMasterWrite(&mut [low_byte],1,offset as u32);
 }
 
-unsafe fn read_byte_data(address: u8, register: u8) -> u16 {
-    i2c_send_data(MIO1_BASE, &[address]);
-    i2c_send_data(MIO1_BASE, &[register]);
-    let mut buffer = [0u8; 2];
-    i2c_receive_data(MIO1_BASE, &mut buffer);
-    (buffer[1] as u16) << 8 | buffer[0] as u16
+unsafe fn read_byte_data(address:u8, offset:u8) -> u16{
+    let mut high_byte:u8 = 0x00; // 高8位
+    let mut low_byte:u8 = 0x00; 
+    FI2cMasterRead(&mut [high_byte], 1, offset as u32);
+    FI2cMasterRead(&mut [low_byte], 1, offset as u32);
+    ((high_byte as u16) << 8) | (low_byte as u16)
 }
 
 unsafe fn pca_init(d1: u16, d2: u16, d3: u16, d4: u16) {
-    configure_mio_for_i2c(MIO1_BASE);
-    i2c_init(MIO1_BASE, PCA9685_ADDRESS);
+    let mut ret: bool = true;
+    let address: u32 = PCA9685_ADDRESS as u32;
+    let mut speed_rate: u32 = 100000; /*kb/s*/
+    FIOPadCfgInitialize(&mut iopad_ctrl, &FIOPadLookupConfig(0).unwrap());
+    ret = FI2cMioMasterInit(address, speed_rate);
+    if ret != true {
+        debug!("FI2cMioMasterInit mio_id {:?} is error!", 1);
+    }
     set_pwm_frequency(50);
     set_pwm(d1, d2, d3, d4);
     Stop();
