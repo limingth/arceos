@@ -266,7 +266,7 @@ where
         independent_dev: &DriverIndependentDeviceInstance<O>,
         config: Arc<SpinNoIrq<USBSystemConfig<O>>>,
     ) -> Option<Vec<Arc<SpinNoIrq<dyn USBSystemDriverModuleInstance<'a, O>>>>> {
-        if let MightBeInited::Inited(inited) = &independent_dev.descriptors {
+        if let MightBeInited::Inited(inited) = &*independent_dev.descriptors {
             let device = inited.device.first().unwrap();
             return match (
                 StandardUSBDeviceClassCode::from(device.data.class),

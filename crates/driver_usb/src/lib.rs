@@ -140,7 +140,7 @@ where
 
     pub fn new_device(&mut self, mut driver: DriverIndependentDeviceInstance<O>) {
         'label: {
-            if let MightBeInited::Uninit = driver.descriptors {
+            if let MightBeInited::Uninit = *driver.descriptors {
                 let buffer_device = DMA::new_vec(
                     0u8,
                     O::PAGE_SIZE,
@@ -201,7 +201,7 @@ where
                                     parser.append_config(buffer);
                                 });
                         }
-                        driver.descriptors = MightBeInited::Inited(parser.summarize());
+                        driver.descriptors = Arc::new(MightBeInited::Inited(parser.summarize()));
                     }
                     Err(err) => {
                         error!("err! {:?}", err);
@@ -216,7 +216,7 @@ where
                 device: devices,
                 others,
                 metadata,
-            }) = &driver.descriptors
+            }) = &*driver.descriptors
             {
                 self.host_driver_layer
                     .urb_request(URB::new(
