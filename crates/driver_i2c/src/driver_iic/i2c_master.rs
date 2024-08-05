@@ -185,7 +185,7 @@ pub unsafe fn FI2cMasterWritePoll(
         if input_32(base_addr.try_into().unwrap(), 0x80) != 0 {
             return false;
         }
-
+        //计算传输限制 tx_limit，表示可写入 FIFO 的字节数。
         let mut tx_limit = 8 - input_32(base_addr.try_into().unwrap(), 0x74);
         let mut i = 0;
         while tx_limit > 0 && buf_idx > 0 {
