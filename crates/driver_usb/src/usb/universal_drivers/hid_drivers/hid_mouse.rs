@@ -18,9 +18,10 @@ use crate::usb::descriptors::topological_desc::{
 use crate::usb::descriptors::USBStandardDescriptorTypes;
 use crate::usb::operation::ExtraStep;
 use crate::usb::trasnfer::control::{
-    bRequest, bmRequestType, ControlTransfer, DataTransferType, Recipient,
+    bmRequestType, ControlTransfer, DataTransferType, Recipient, StandardbRequest,
 };
 use crate::usb::trasnfer::interrupt::InterruptTransfer;
+use crate::usb::universal_drivers::BasicSendReceiveStateMachine;
 use crate::usb::urb::{RequestedOperation, URB};
 use crate::USBSystemConfig;
 use crate::{
@@ -57,13 +58,8 @@ where
     interface_alternative_value: usize,
     config_value: usize, // same
     report_descriptor: Option<ReportDescState<O>>,
-    driver_state_machine: HidMouseStateMachine,
+    driver_state_machine: BasicSendReceiveStateMachine,
     receiption_buffer: Option<SpinNoIrq<DMA<[u8], O::DMA>>>,
-}
-
-pub enum HidMouseStateMachine {
-    Waiting,
-    Sending,
 }
 
 impl<'a, O> HidMouseDriver<O>
@@ -105,7 +101,7 @@ where
             interface_alternative_value: alternative_val,
             bootable: bootable as usize,
             report_descriptor: None,
-            driver_state_machine: HidMouseStateMachine::Sending,
+            driver_state_machine: BasicSendReceiveStateMachine::Sending,
             receiption_buffer: None,
         }))
     }
@@ -117,9 +113,9 @@ where
 {
     fn gather_urb(&mut self) -> Option<Vec<crate::usb::urb::URB<'a, O>>> {
         match self.driver_state_machine {
-            HidMouseStateMachine::Waiting => None,
-            HidMouseStateMachine::Sending => {
-                self.driver_state_machine = HidMouseStateMachine::Waiting;
+            BasicSendReceiveStateMachine::Waiting => None,
+            BasicSendReceiveStateMachine::Sending => {
+                self.driver_state_machine = BasicSendReceiveStateMachine::Waiting;
                 match &self.receiption_buffer {
                     Some(buffer) => buffer.lock().fill_with(|| 0u8),
                     None => {
@@ -158,7 +154,7 @@ where
                     .inspect(|a| {
                         trace!("current buffer:{:?}", a);
                     });
-                self.driver_state_machine = HidMouseStateMachine::Sending
+                self.driver_state_machine = BasicSendReceiveStateMachine::Sending
             }
             other => panic!("received {:?}", other),
         }
@@ -176,7 +172,7 @@ where
                     DataTransferType::Standard,
                     Recipient::Device,
                 ),
-                request: bRequest::SetConfiguration,
+                request: StandardbRequest::SetConfiguration.into(),
                 index: self.interface_value as u16,
                 value: self.config_value as u16,
                 data: None,
@@ -190,7 +186,7 @@ where
                     DataTransferType::Standard,
                     Recipient::Interface,
                 ),
-                request: bRequest::SetInterfaceSpec,
+                request: StandardbRequest::SetInterface.into(),
                 index: self.interface_alternative_value as u16,
                 value: self.interface_value as u16,
                 data: None,
@@ -206,7 +202,7 @@ where
                         DataTransferType::Class,
                         Recipient::Interface,
                     ),
-                    request: bRequest::SetInterfaceSpec, //actually set protocol
+                    request: StandardbRequest::SetInterface.into(), //actually set protocol
                     index: if self.bootable == 2 { 1 } else { 0 },
                     value: self.interface_value as u16,
                     data: None,
@@ -229,7 +225,7 @@ where
                         DataTransferType::Standard,
                         Recipient::Interface,
                     ),
-                    request: bRequest::GetDescriptor,
+                    request: StandardbRequest::GetDescriptor.into(),
                     index: self.interface_alternative_value as u16,
                     value: crate::usb::descriptors::construct_control_transfer_type(
                         HIDDescriptorTypes::HIDReport as u8,
@@ -263,7 +259,7 @@ where
 {
     fn should_active(
         &self,
-        independent_dev: &DriverIndependentDeviceInstance<O>,
+        independent_dev: &mut DriverIndependentDeviceInstance<O>,
         config: Arc<SpinNoIrq<USBSystemConfig<O>>>,
     ) -> Option<Vec<Arc<SpinNoIrq<dyn USBSystemDriverModuleInstance<'a, O>>>>> {
         if let MightBeInited::Inited(inited) = &*independent_dev.descriptors {

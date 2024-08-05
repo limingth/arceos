@@ -29,7 +29,7 @@ use usb::{
         topological_desc::TopologicalUSBDescriptorRoot, USBStandardDescriptorTypes,
     },
     operation,
-    trasnfer::control::{bRequest, bmRequestType, ControlTransfer, DataTransferType},
+    trasnfer::control::{bmRequestType, ControlTransfer, DataTransferType, StandardbRequest},
     urb::{RequestedOperation, URB},
     USBDriverSystem,
 };
@@ -156,7 +156,7 @@ where
                             DataTransferType::Standard,
                             usb::trasnfer::control::Recipient::Device,
                         ),
-                        request: bRequest::GetDescriptor,
+                        request: StandardbRequest::GetDescriptor.into(),
                         index: 0,
                         value: construct_control_transfer_type(
                             USBStandardDescriptorTypes::Device as u8,
@@ -187,7 +187,7 @@ where
                                             DataTransferType::Standard,
                                             usb::trasnfer::control::Recipient::Device,
                                         ),
-                                        request: bRequest::GetDescriptor,
+                                        request: StandardbRequest::GetDescriptor.into(),
                                         index: 0,
                                         value: construct_control_transfer_type(
                                             USBStandardDescriptorTypes::Configuration as u8,
