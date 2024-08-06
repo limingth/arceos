@@ -1,4 +1,7 @@
-use alloc::vec::Vec;
+use alloc::{
+    collections::{btree_map::BTreeMap, btree_set::BTreeSet},
+    vec::Vec,
+};
 
 use crate::{
     err,
@@ -11,7 +14,9 @@ use crate::{
             uvc_interfaces::{
                 UVCControlInterface, UVCControlInterfaceExtensionUnit, UVCControlInterfaceHeader,
                 UVCControlInterfaceInputTerminal, UVCControlInterfaceOutputTerminal,
-                UVCControlInterfaceProcessingUnit, UVCInterface,
+                UVCControlInterfaceProcessingUnit, UVCInterface, UVCStreamingFormartInterface,
+                UVCStreamingFrameInterface, UVCStreamingInterface, UVCVSInterfaceFormatMJPEG,
+                UVCVSInterfaceInputHeader,
             },
         },
         topological_desc::TopologicalUSBDescriptorEndpoint,
@@ -116,3 +121,85 @@ impl UVCControlInterfaceModelParser {
  * TODO:
  * StatusPacket-fetch from Interrupt endpoint, variable size, should refer page 30 to determine rest structure
 */
+
+pub struct UVCVSInterfaceModel {
+    pub interface0_stream_desca: Interface,
+    pub input_header: UVCVSInterfaceInputHeader,
+    pub output_header: (), //todo!
+    pub formarts: Vec<(
+        UVCStreamingFormartInterface,
+        Vec<UVCStreamingFrameInterface>,
+    )>,
+    pub still_frames: Vec<UVCStreamingFrameInterface>,
+    pub colorformart: Vec<UVCStreamingFormartInterface>,
+}
+
+impl UVCVSInterfaceModel {
+    pub fn new(
+        (interface, controls, _): &(
+            Interface,
+            Vec<USBDescriptor>,
+            Vec<TopologicalUSBDescriptorEndpoint>,
+        ),
+    ) -> Self {
+        let mut ret = Self {
+            interface0_stream_desca: interface.clone(),
+            input_header: controls
+                .iter()
+                .find_map(|a| match a {
+                    USBDescriptor::UVCInterface(UVCInterface::Streaming(
+                        UVCStreamingInterface::InputHeader(head),
+                    )) => Some(head.clone()),
+                    _ => None,
+                })
+                .unwrap(),
+            output_header: (),
+            formarts: controls
+                .iter()
+                .filter_map(|a| match a {
+                    USBDescriptor::UVCInterface(UVCInterface::Streaming(any)) => Some(any),
+                    _ => None,
+                })
+                .filter_map(UVCStreamingFormartInterface::filter_out_self)
+                .map(|formart| (formart, Vec::new()))
+                .collect(),
+            still_frames: Vec::new(),
+            colorformart: Vec::new(),
+        };
+
+        controls
+            .iter()
+            .filter_map(|a| match a {
+                USBDescriptor::UVCInterface(UVCInterface::Streaming(any)) => Some(any),
+                _ => None,
+            })
+            .filter_map(UVCStreamingFrameInterface::filter_out_self)
+            .for_each(|any| {
+                ret.formarts.iter_mut().for_each(|(interface, v)| {
+                    if interface.ismatch(&any) {
+                        v.push(any.clone())
+                    }
+                })
+            });
+
+        controls
+            .iter()
+            .filter_map(|a| match a {
+                USBDescriptor::UVCInterface(UVCInterface::Streaming(any)) => Some(any),
+                _ => None,
+            })
+            .filter_map(UVCStreamingFrameInterface::filter_out_still)
+            .collect_into(&mut ret.still_frames);
+
+        controls
+            .iter()
+            .filter_map(|a| match a {
+                USBDescriptor::UVCInterface(UVCInterface::Streaming(any)) => Some(any),
+                _ => None,
+            })
+            .filter_map(UVCStreamingFormartInterface::filter_out_color_formart)
+            .collect_into(&mut ret.colorformart);
+
+        ret
+    }
+}

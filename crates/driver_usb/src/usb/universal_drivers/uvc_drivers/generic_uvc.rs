@@ -1,6 +1,6 @@
 use core::{fmt::Debug, mem::MaybeUninit};
 
-use alloc::{sync::Arc, vec, vec::Vec};
+use alloc::{collections::btree_map::BTreeMap, sync::Arc, vec, vec::Vec};
 use log::trace;
 use spinlock::SpinNoIrq;
 use xhci::{context::EndpointType, ring::trb::transfer::Direction};
@@ -32,7 +32,10 @@ use crate::{
     USBSystemConfig,
 };
 
-use super::{uvc_device_model::UVCControlInterfaceModelParser, uvc_spec_transfer::UVCSpecBRequest};
+use super::{
+    uvc_device_model::{UVCControlInterfaceModelParser, UVCVSInterfaceModel},
+    uvc_spec_transfer::UVCSpecBRequest,
+};
 
 pub struct GenericUVCDriverModule; //TODO: Create annotations to register
 pub struct GenericUVCDriver<O>
@@ -149,6 +152,56 @@ where
                 )| UVCControlInterfaceModelParser::new(control).parse(),
             )
             .expect("no control interface exist, is this broken?");
+
+        let uvc_stream_interface_model = function
+            .iter()
+            .find_map(|a| {
+                a.iter().find(|b| {
+                    b.1.iter().any(|interface| {
+                        if let USBDescriptor::UVCInterface(UVCInterface::Streaming(_)) = interface {
+                            true
+                        } else {
+                            false
+                        }
+                    })
+                })
+            })
+            .map(
+                |control: &(
+                    Interface,
+                    Vec<USBDescriptor>,
+                    Vec<TopologicalUSBDescriptorEndpoint>,
+                )| UVCVSInterfaceModel::new(control),
+            )
+            .expect("no streaming interface exist, is this broken?");
+
+        let mut alternative_interface_endpoint: BTreeMap<u32, Vec<(Interface, Endpoint)>> =
+            BTreeMap::new();
+
+        function
+            .iter()
+            .filter_map(|a| {
+                a.iter().find(|(i, o, e)| {
+                    o.is_empty() //yeah, this is a special point of uvc
+                })
+            })
+            .for_each(|(interface, _, endpoints)| {
+                endpoints
+                    .iter()
+                    .filter_map(|e| {
+                        if let TopologicalUSBDescriptorEndpoint::Standard(ep) = e {
+                            Some(ep)
+                        } else {
+                            None
+                        }
+                    })
+                    .for_each(|ep| {
+                        alternative_interface_endpoint
+                            .entry(ep.doorbell_value_aka_dci())
+                            .or_insert(Vec::new())
+                            .push((interface.clone(), ep.clone()))
+                    })
+            });
 
         // trace!("goted function:{:#?}", function);
         Arc::new(SpinNoIrq::new(Self {
