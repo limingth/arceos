@@ -10,7 +10,7 @@ use crate::PlatformAbstractions;
 use super::{
     drivers::driverapi::{USBSystemDriverModule, USBSystemDriverModuleInstance},
     operation::{Configuration, ExtraStep},
-    trasnfer::{control::ControlTransfer, interrupt::InterruptTransfer},
+    trasnfer::{control::ControlTransfer, interrupt::InterruptTransfer, isoch::IsochTransfer},
 };
 
 #[derive(Clone)]
@@ -46,6 +46,6 @@ pub enum RequestedOperation<'a> {
     Control(ControlTransfer),
     Bulk,
     Interrupt(InterruptTransfer),
-    Isoch,
+    Isoch(IsochTransfer),
     ConfigureDevice(Configuration<'a>),
 }

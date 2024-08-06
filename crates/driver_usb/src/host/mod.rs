@@ -105,7 +105,10 @@ where
                 .controller
                 .lock()
                 .interrupt_transfer(request.device_slot_id, interrupt_transfer),
-            usb::urb::RequestedOperation::Isoch => todo!(),
+            usb::urb::RequestedOperation::Isoch(isoch_transfer) => self
+                .controller
+                .lock()
+                .isoch_transfer(request.device_slot_id, isoch_transfer),
             usb::urb::RequestedOperation::ConfigureDevice(configure) => self
                 .controller
                 .lock()

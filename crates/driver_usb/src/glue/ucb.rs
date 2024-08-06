@@ -35,4 +35,5 @@ pub enum TransferEventCompleteCode {
     Success,
     Halt,
     Unknown(u8),
+    IsochComplete,
 }

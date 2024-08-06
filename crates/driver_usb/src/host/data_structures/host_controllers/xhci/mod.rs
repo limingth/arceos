@@ -1,4 +1,5 @@
 use alloc::{borrow::ToOwned, boxed::Box, sync::Arc, vec, vec::Vec};
+use axhal::time;
 use context::{DeviceContextList, ScratchpadBufferArray};
 use core::{
     mem::{self, MaybeUninit},
@@ -17,7 +18,7 @@ use xhci::{
     ring::trb::{
         command,
         event::{self, CommandCompletion, CompletionCode, HostController},
-        transfer::{self, Direction, Normal, TransferType},
+        transfer::{self, Direction, Isoch, Normal, TransferType},
     },
     ExtendedCapability,
 };
@@ -491,6 +492,16 @@ where
         device_slot_id: usize,
         configure: &TopologicalUSBDescriptorConfiguration,
     ) -> crate::err::Result<UCB<O>> {
+        /**
+        A device can support multiple configurations. Within each configuration can be multiple
+        interfaces, each possibly having alternate settings. These interfaces can pertain to different
+        functions that co-reside in the same composite device. Several independent video functions can
+        exist in the same device. Interfaces that belong to the same video function are grouped into a
+        Video Interface Collection described by an Interface Association Descriptor. If the device
+        contains multiple independent video functions, there must be multiple Video Interface
+        Collections (and hence multiple Interface Association Descriptors), each providing full access to
+        their associated video function.
+                        */
         configure.child.iter().for_each(|func| match func {
             TopologicalUSBDescriptorFunction::InterfaceAssociation(assoc) => {
                 // todo!("enumrate complex device!")
@@ -749,7 +760,7 @@ where
         let mut normal = transfer::Normal::default();
         normal.set_cycle_bit();
         let ring = self.ep_ring_mut(device_slot_id, dci);
-        ring.enque_trbs(vec![normal.into_raw(); 31]) //the 32 is link trb
+        ring.enque_trbs(vec![normal.into_raw(); 31]); //the 32 is link trb
     }
 }
 
@@ -1127,7 +1138,8 @@ where
         urb_req: trasnfer::interrupt::InterruptTransfer,
     ) -> crate::err::Result<UCB<O>> {
         let (addr, len) = urb_req.buffer_addr_len;
-        self.ep_ring_mut(dev_slot_id, urb_req.endpoint_id as _)
+        let enqued_transfer = self
+            .ep_ring_mut(dev_slot_id, urb_req.endpoint_id as _)
             .enque_transfer(transfer::Allowed::Normal(
                 *Normal::new()
                     .set_data_buffer_pointer(addr as _)
@@ -1140,7 +1152,7 @@ where
             r.set_doorbell_target(urb_req.endpoint_id as _);
         });
 
-        let transfer_event = self.event_busy_wait_transfer(addr as _).unwrap();
+        let transfer_event = self.event_busy_wait_transfer(enqued_transfer as _).unwrap();
         match transfer_event.completion_code() {
             Ok(complete) => match complete {
                 CompletionCode::Success | CompletionCode::ShortPacket => {
@@ -1169,6 +1181,86 @@ where
                     Err(Error::DontDoThatOnControlPipe)
                 }
             }
+        }
+    }
+
+    fn isoch_transfer(
+        &mut self,
+        dev_slot_id: usize,
+        urb_req: trasnfer::isoch::IsochTransfer,
+    ) -> crate::err::Result<UCB<O>> {
+        let mut request_times = urb_req.request_times;
+        let (buffer_addr, total_len) = urb_req.buffer_addr_len;
+        let isoch_id = urb_req.endpoint_id;
+        let mut packet_size = urb_req.packet_size;
+        let mut remain = None;
+
+        assert!(packet_size * request_times <= total_len);
+
+        let max_packet_size = self
+            .dev_ctx
+            .device_out_context_list
+            .get(dev_slot_id)
+            .unwrap()
+            .endpoint(urb_req.endpoint_id)
+            .max_packet_size() as usize;
+        if max_packet_size < packet_size {
+            let total = packet_size * request_times;
+            remain = Some((total % max_packet_size));
+            request_times = total / max_packet_size;
+            packet_size = max_packet_size;
+        }
+
+        assert!(request_times < 32 || (request_times < 31 && remain.is_some())); //HARDCODE ring size is 32, should not over flap previous enqueued trb.
+
+        if remain.is_none() {
+            request_times -= 1;
+            remain = Some(packet_size)
+        }
+
+        let mut collect = (0..request_times)
+            .map(|i| i * packet_size + buffer_addr)
+            .enumerate()
+            .map(|(i, addr)| {
+                transfer::Allowed::Isoch({
+                    let mut isoch = Isoch::new();
+                    isoch
+                        .set_start_isoch_asap()
+                        .set_data_buffer_pointer(addr as _)
+                        .set_trb_transfer_length(packet_size as _)
+                        .set_td_size_or_tbc((request_times - 1 - i) as _);
+                    isoch
+                })
+            })
+            .collect::<Vec<_>>();
+        collect.push(transfer::Allowed::Isoch(
+            *Isoch::new()
+                .set_start_isoch_asap()
+                .set_data_buffer_pointer((buffer_addr + request_times * packet_size) as _)
+                .set_trb_transfer_length(remain.unwrap() as _)
+                .set_td_size_or_tbc(0)
+                .set_interrupt_on_completion(),
+        ));
+
+        let enqued_trbs = self
+            .ep_ring_mut(dev_slot_id, isoch_id as _)
+            .enque_trbs(collect.iter().map(|a| a.into_raw()).collect());
+
+        let transfer_event = self.event_busy_wait_transfer(enqued_trbs as _).unwrap();
+
+        match transfer_event.completion_code() {
+            Ok(complete) => match complete {
+                CompletionCode::Success | CompletionCode::ShortPacket => {
+                    trace!("ok! return a success ucb!");
+                    Ok(UCB::new(CompleteCode::Event(
+                        TransferEventCompleteCode::Success,
+                    )))
+                }
+                err => panic!("{:?}", err),
+            },
+            Err(fail) => Ok(UCB::new(CompleteCode::Event(
+                TransferEventCompleteCode::Unknown(fail),
+            ))),
         }
     }
 }

@@ -15,7 +15,7 @@ use crate::{
     glue::ucb::UCB,
     usb::{
         operation::{Configuration, ExtraStep},
-        trasnfer::{control::ControlTransfer, interrupt::InterruptTransfer},
+        trasnfer::{control::ControlTransfer, interrupt::InterruptTransfer, isoch::IsochTransfer},
     },
     USBSystemConfig,
 };
@@ -40,6 +40,12 @@ where
         &mut self,
         dev_slot_id: usize,
         urb_req: InterruptTransfer,
+    ) -> crate::err::Result<UCB<O>>;
+
+    fn isoch_transfer(
+        &mut self,
+        dev_slot_id: usize,
+        urb_req: IsochTransfer,
     ) -> crate::err::Result<UCB<O>>;
 
     fn configure_device(

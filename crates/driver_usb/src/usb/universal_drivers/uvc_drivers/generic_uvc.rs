@@ -14,6 +14,7 @@ use crate::{
             self,
             desc_endpoint::Endpoint,
             desc_interface::Interface,
+            desc_uvc::uvc_interfaces::UVCInterface,
             parser::ParserMetaData,
             topological_desc::{
                 TopologicalUSBDescriptorEndpoint, TopologicalUSBDescriptorFunction,
@@ -31,7 +32,7 @@ use crate::{
     USBSystemConfig,
 };
 
-use super::uvc_spec_transfer::UVCSpecBRequest;
+use super::{uvc_device_model::UVCControlInterfaceModelParser, uvc_spec_transfer::UVCSpecBRequest};
 
 pub struct GenericUVCDriverModule; //TODO: Create annotations to register
 pub struct GenericUVCDriver<O>
@@ -127,6 +128,28 @@ where
         config_value: usize,
         descriptors: Arc<MightBeInited<TopologicalUSBDescriptorRoot>>,
     ) -> Arc<SpinNoIrq<dyn USBSystemDriverModuleInstance<'a, O>>> {
+        let uvccontrol_interface_model = function
+            .iter()
+            .find_map(|a| {
+                a.iter().find(|b| {
+                    b.1.iter().any(|interface| {
+                        if let USBDescriptor::UVCInterface(UVCInterface::Control(_)) = interface {
+                            true
+                        } else {
+                            false
+                        }
+                    })
+                })
+            })
+            .map(
+                |control: &(
+                    Interface,
+                    Vec<USBDescriptor>,
+                    Vec<TopologicalUSBDescriptorEndpoint>,
+                )| UVCControlInterfaceModelParser::new(control).parse(),
+            )
+            .expect("no control interface exist, is this broken?");
+
         // trace!("goted function:{:#?}", function);
         Arc::new(SpinNoIrq::new(Self {
             config,
