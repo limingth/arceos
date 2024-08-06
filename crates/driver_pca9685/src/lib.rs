@@ -145,23 +145,23 @@ unsafe fn pca_init(d1: u16, d2: u16, d3: u16, d4: u16) {
 }
 
 unsafe fn set_pwm_frequency(freq: u16) {
-    let prescale_val = (25000000.0 / ((4096 * freq) as f64) - 1.0) as u16;
+    let prescale_val = (25000000.0 / ((4096 * freq) as f64) - 1.0) as u16;//计算预分频器值 prescale_val
     let old_mode = read_byte_data(PCA9685_ADDRESS, MODE1);
     let new_mode = (old_mode & 0x7F) | 0x10;
-    write_byte_data(PCA9685_ADDRESS, MODE1, new_mode);
-    write_byte_data(PCA9685_ADDRESS, PRE_SCALE, prescale_val);
-    write_byte_data(PCA9685_ADDRESS, MODE1, old_mode);
-    busy_wait(Duration::from_millis(5));
-    write_byte_data(PCA9685_ADDRESS, MODE1, old_mode | 0x80);
-    write_byte_data(PCA9685_ADDRESS, MODE1, 0x00);
+    write_byte_data(PCA9685_ADDRESS, MODE1, new_mode);//休眠模式
+    write_byte_data(PCA9685_ADDRESS, PRE_SCALE, prescale_val);//设置PWM频率
+    write_byte_data(PCA9685_ADDRESS, MODE1, old_mode);//退出休眠模式
+    busy_wait(Duration::from_millis(5));//等待至少500us，以确保OSC稳定
+    write_byte_data(PCA9685_ADDRESS, MODE1, old_mode | 0x80);//重启pca
+    write_byte_data(PCA9685_ADDRESS, MODE1, 0x00);//
 }
 
 unsafe fn set_pwm(Duty_channel1: u16, Duty_channel2: u16, Duty_channel3: u16, Duty_channel4: u16) {
-    let duty_channel1 = Duty_channel1.max(0).min(4095);
+    let duty_channel1 = Duty_channel1.max(0).min(4095);  //限制off_time在0-4095之间
     let duty_channel2 = Duty_channel2.max(0).min(4095);
     let duty_channel3 = Duty_channel3.max(0).min(4095);
     let duty_channel4 = Duty_channel4.max(0).min(4095);
-
+    
     write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 0, 0 & 0xFF);
     write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 0 + 1, 0 >> 8);
     write_byte_data(
@@ -174,7 +174,7 @@ unsafe fn set_pwm(Duty_channel1: u16, Duty_channel2: u16, Duty_channel3: u16, Du
         LED0_ON_L + 4 * 0 + 3,
         (duty_channel1 >> 8) as u16,
     );
-
+    
     write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 5, 0 & 0xFF);
     write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 5 + 1, 0 >> 8);
     write_byte_data(
@@ -187,7 +187,7 @@ unsafe fn set_pwm(Duty_channel1: u16, Duty_channel2: u16, Duty_channel3: u16, Du
         LED0_ON_L + 4 * 5 + 3,
         (duty_channel2 >> 8) as u16,
     );
-
+    
     write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 6, 0 & 0xFF);
     write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 6 + 1, 0 >> 8);
     write_byte_data(
@@ -200,7 +200,7 @@ unsafe fn set_pwm(Duty_channel1: u16, Duty_channel2: u16, Duty_channel3: u16, Du
         LED0_ON_L + 4 * 6 + 3,
         (duty_channel3 >> 8) as u16,
     );
-
+    
     write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 11, 0 & 0xFF);
     write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 11 + 1, 0 >> 8);
     write_byte_data(
@@ -425,8 +425,29 @@ pub fn test_pca() {
         debug!("start");
         loop {
             Car_run_Task(1);
-            Advance();
-            busy_wait(Duration::from_millis(3000));
+            busy_wait(Duration::from_millis(5000));
+            Car_run_Task(2);
+            busy_wait(Duration::from_millis(5000));
+            Car_run_Task(3);
+            busy_wait(Duration::from_millis(5000));
+            Car_run_Task(4);
+            busy_wait(Duration::from_millis(5000));
+            Car_run_Task(5);
+            busy_wait(Duration::from_millis(5000));
+            Car_run_Task(6);
+            busy_wait(Duration::from_millis(5000));
+            Car_run_Task(7);
+            busy_wait(Duration::from_millis(5000));
+            Car_run_Task(8);
+            busy_wait(Duration::from_millis(5000));
+            Car_run_Task(9);
+            busy_wait(Duration::from_millis(5000));
+            Car_run_Task(10);
+            busy_wait(Duration::from_millis(5000));
+            Car_run_Task(11);
+            busy_wait(Duration::from_millis(5000));
+            Car_run_Task(12);
+            busy_wait(Duration::from_millis(5000));
         }
     }
 }
