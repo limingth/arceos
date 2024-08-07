@@ -1,0 +1,11 @@
+[package]
+name = "ch341"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = []
+
+[dependencies]
+axstd = { path = "../../ulib/axstd" }
+axalloc = { path = "../../modules/axalloc"}
