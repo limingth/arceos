@@ -62,17 +62,17 @@ impl<A: Access> PciRootComplex<A> {
         ep.bar(slot)
     }
 
-    fn read<T>(&self, bdf: PciAddress, offset: usize) -> T {
+    fn read<T>(&self, bdf: PciAddress, offset: usize)->T{
         let cfg_addr = A::map_conf(self.mmio_base, bdf).unwrap();
-        unsafe {
+        unsafe{
             let addr = cfg_addr + offset;
             (addr as *const T).read_volatile()
         }
     }
 
-    fn write<T>(&self, bdf: PciAddress, offset: usize, value: T) {
+    fn write<T>(&self, bdf: PciAddress, offset: usize, value: T){
         let cfg_addr = A::map_conf(self.mmio_base, bdf).unwrap();
-        unsafe {
+        unsafe{
             let addr = cfg_addr + offset;
             (addr as *mut T).write_volatile(value)
         }
@@ -93,11 +93,8 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
     type Item = (PciAddress, DeviceFunctionInfo, ConfigSpace);
 
     fn next(&mut self) -> Option<Self::Item> {
-        debug!("into next!");
         loop {
-            // debug!("looped");
             if self.next.function >= MAX_FUNCTIONS {
-                debug!("added");
                 self.next.function = 0;
                 self.next.device += 1;
             }
@@ -113,7 +110,6 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
                     trace!("Bridge {} set subordinate: {:X}", parent, sub);
                     bridge.set_subordinate_bus_number(sub as _);
                 } else {
-                    debug!("none!");
                     return None;
                 }
             }
@@ -123,7 +119,6 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
             let cfg_addr = match A::map_conf(self.root.mmio_base, current.clone()) {
                 Some(c) => c,
                 None => {
-                    debug!("no conf");
                     if current.function == 0 {
                         self.next.device += 1;
                     } else {
@@ -136,7 +131,7 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
             // debug!("begin: {} @ 0x{:X}", current, cfg_addr);
             let header = PciHeader::new(cfg_addr);
             let (vid, did) = header.vendor_id_and_device_id();
-            debug!("vid {:X}, did {:X}", vid, did);
+            // debug!("vid {:X}, did {:X}", vid, did);
 
             if vid == 0xffff {
                 if current.function == 0 {
@@ -159,7 +154,6 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
             info.header_type = header_type;
             info.prog_if = interface;
             let config_space;
-            debug!("header_type:{:?}", header_type);
             match header_type {
                 HeaderType::PciPciBridge => {
                     let bridge = ConifgPciPciBridge::new(cfg_addr);
@@ -192,7 +186,6 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
                     }
                 }
                 _ => {
-                    debug!("no_header");
                     if current.function == 0 && !multi {
                         self.next.device += 1;
                     } else {
@@ -206,7 +199,6 @@ impl<A: Access> Iterator for BusDeviceIterator<A> {
             return Some(out);
         }
 
-        debug!("isnone...");
         None
     }
 }

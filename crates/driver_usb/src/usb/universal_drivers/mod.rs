@@ -1,0 +1,13 @@
+pub mod hid_drivers;
+pub mod uvc_drivers;
+pub enum BasicSendReceiveStateMachine {
+    Waiting,
+    Sending,
+}
+
+pub enum BasicDriverLifeCycleStateMachine {
+    BeforeFirstSendAkaPreparingForDrive,
+    Driving,
+    Ending,
+    Sleeping,
+}

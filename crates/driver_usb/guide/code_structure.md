@@ -137,7 +137,7 @@ where O: OsDep
 设备描述符有许多种类，不同的种类描述了不同的信息，比如 device 就可能会包含设备的厂家/设备的类型等信息，[参考](../src/host/usb/descriptors/mod.rs):
 
 ```rust
-#[derive(FromPrimitive, ToPrimitive, Copy, Clone, Debug)]
+#[derive(ConstEnum, Copy, Clone, Debug)]
 #[allow(non_camel_case_types)]
 pub(crate) enum Type {
     //USB 1.1: 9.4 Standard Device Requests, Table 9-5. Descriptor Types

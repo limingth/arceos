@@ -56,7 +56,10 @@ pub enum DevError {
 pub type DevResult<T = ()> = Result<T, DevError>;
 
 /// Common operations that require all device drivers to implement.
+<<<<<<< HEAD
 //#[const_trait]
+=======
+>>>>>>> usb-camera-dbydd
 pub trait BaseDriverOps: Send + Sync {
     /// The name of the device.
     fn device_name(&self) -> &str;

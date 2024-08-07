@@ -8,9 +8,11 @@
 
 #![no_std]
 #![allow(warnings)]
+#![feature(cfg_match)]
 
+#[cfg(feature = "bcm2711")]
+mod bcm2711;
 extern crate alloc;
-pub mod device_types;
 pub mod err;
 mod root_complex;
 pub mod types;
@@ -18,10 +20,6 @@ use core::ops::Range;
 
 pub use root_complex::*;
 use types::ConifgPciPciBridge;
-// #[cfg(feature = "phytiym_pci")]
-// mod bcm2711;
-mod phytium;
-
 // pub use virtio_drivers::transport::pci::bus::{BarInfo};
 
 #[derive(Clone, Copy)]
@@ -36,12 +34,24 @@ impl core::fmt::Display for PciAddress {
     }
 }
 
-// #[cfg(platform = "aarch64-raspi4")]
-// #[cfg(feature = "bcm2711")]
-#[cfg(feature = "phytium-pci")]
-pub type RootComplex = PciRootComplex<phytium::PhytiumPCIeDummy>;
+cfg_match! {
+    cfg(feature = "bcm2711")=>{
+        pub type RootComplex = PciRootComplex<bcm2711::BCM2711>;
+    }
+    _=>{
+        struct DummyPciRoot;
+        pub type RootComplex = PciRootComplex<DummyPciRoot>;
+        impl Access for DummyPciRoot {
+            fn setup(mmio_base: usize) {}
 
-// pub type RootComplex = PciRootComplex<phytium::Phytium>;
+            fn probe_bridge(mmio_base: usize, bridge_header: &ConifgPciPciBridge) {}
+
+            fn map_conf(mmio_base: usize, addr: PciAddress) -> Option<usize> {
+                None
+            }
+        }
+    }
+}
 
 pub type PciRoot = RootComplex;
 pub type DeviceFunction = PciAddress;

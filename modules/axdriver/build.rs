@@ -1,7 +1,7 @@
 const NET_DEV_FEATURES: &[&str] = &["ixgbe", "virtio-net", "phytium"];
 const BLOCK_DEV_FEATURES: &[&str] = &["ramdisk", "bcm2835-sdhci", "virtio-blk"];
 const DISPLAY_DEV_FEATURES: &[&str] = &["virtio-gpu"];
-const USB_HOST_DEV_FEATURES: &[&str] = &["phytium-xhci"];
+const USB_HOST_DEV_FEATURES: &[&str] = &["phytium-xhci", "vl805"];
 
 fn has_feature(feature: &str) -> bool {
     std::env::var(format!(

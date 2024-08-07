@@ -56,7 +56,10 @@ pub type PagingResult<T = ()> = Result<T, PagingError>;
 
 /// The **architecture-dependent** metadata that must be provided for
 /// [`PageTable64`].
+<<<<<<< HEAD
 //#[const_trait]
+=======
+>>>>>>> usb-camera-dbydd
 pub trait PagingMetaData: Sync + Send + Sized {
     /// The number of levels of the hardware page table.
     const LEVELS: usize;

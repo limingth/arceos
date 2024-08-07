@@ -12,9 +12,6 @@ pub type AxBlockDevice = Box<dyn BlockDriverOps>;
 /// The unified type of the graphics display devices.
 #[cfg(feature = "display")]
 pub type AxDisplayDevice = Box<dyn DisplayDriverOps>;
-#[cfg(feature = "usb_host")]
-/// The unified type of the usb host devices.
-pub type AxUSBHostDevice = Box<dyn USBHostDriverOps>;
 
 impl super::AxDeviceEnum {
     /// Constructs a network device.
@@ -33,11 +30,6 @@ impl super::AxDeviceEnum {
     #[cfg(feature = "display")]
     pub fn from_display(dev: impl DisplayDriverOps + 'static) -> Self {
         Self::Display(Box::new(dev))
-    }
-    /// Constructs a display device.
-    #[cfg(feature = "usb_host")]
-    pub fn from_display(dev: impl XhciDriverOps + 'static) -> Self {
-        Self::USBHost(Box::new(dev))
     }
 }
 

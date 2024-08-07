@@ -1,40 +1,25 @@
-pub mod device;
-pub mod usb;
-pub mod xhci;
-use ::xhci::ring::trb::{
-    command,
-    event::CommandCompletion,
-    transfer::{DataStage, SetupStage, StatusStage},
-};
-use alloc::{boxed::Box, sync::Arc, vec::Vec};
-use core::alloc::Allocator;
-use num_derive::FromPrimitive;
-use num_traits::FromPrimitive;
+use alloc::{boxed::Box, collections::binary_heap::Iter, sync::Arc, vec::Vec};
+use data_structures::host_controllers::{xhci::XHCI, Controller, ControllerArc};
+use log::trace;
 use spinlock::SpinNoIrq;
-use xhci::{
-    xhci_device::{self, DeviceAttached},
-    Xhci,
+use xhci::ring::trb::event;
+
+use crate::{
+    abstractions::PlatformAbstractions,
+    err,
+    glue::{driver_independent_device_instance::DriverIndependentDeviceInstance, ucb::UCB},
+    usb::{self, operation::Configuration, trasnfer::control::ControlTransfer, urb::URB},
+    USBSystemConfig,
 };
 
-use crate::{addr::VirtAddr, err::*, OsDep};
+pub mod data_structures;
 
-#[derive(Clone)]
-pub struct USBHostConfig<O>
+impl<O> USBSystemConfig<O>
 where
-    O: OsDep,
-{
-    pub(crate) base_addr: VirtAddr,
-    pub(crate) irq_num: u32,
-    pub(crate) irq_priority: u32,
-    pub(crate) os: O,
-}
-
-impl<O> USBHostConfig<O>
-where
-    O: OsDep,
+    O: PlatformAbstractions,
 {
     pub fn new(mmio_base_addr: usize, irq_num: u32, irq_priority: u32, os_dep: O) -> Self {
-        let base_addr = VirtAddr::from(mmio_base_addr);
+        let base_addr = O::VirtAddr::from(mmio_base_addr);
         Self {
             base_addr,
             irq_num,
@@ -44,83 +29,108 @@ where
     }
 }
 
-pub trait Controller<O>: Send
-where
-    O: OsDep,
-{
-    fn new(config: USBHostConfig<O>) -> Result<Self>
-    where
-        Self: Sized;
-    fn poll(&mut self, arc: ControllerArc<O>) -> Result<Vec<xhci_device::DeviceAttached<O>>>;
-
-    fn post_cmd(&mut self, trb: command::Allowed) -> Result<CommandCompletion>;
-
-    fn post_transfer(
-        &mut self,
-        setup: SetupStage,
-        data: Option<DataStage>,
-        status: StatusStage,
-        device: &DeviceAttached<O>,
-        dci: u8,
-    ) -> Result;
-
-    fn post_transfer_normal(
-        &mut self,
-        data: &mut [u8],
-        device: &DeviceAttached<O>,
-        dci: u8,
-    ) -> Result;
-}
-
-pub(crate) type ControllerArc<O> = Arc<SpinNoIrq<Box<dyn Controller<O>>>>;
-
 #[derive(Clone)]
-pub struct USBHost<O>
+pub struct USBHostSystem<O>
 where
-    O: OsDep,
+    O: PlatformAbstractions,
 {
-    pub(crate) config: USBHostConfig<O>,
-    pub(crate) controller: ControllerArc<O>,
-    device_list: Arc<SpinNoIrq<Vec<DeviceAttached<O>>>>,
+    config: Arc<SpinNoIrq<USBSystemConfig<O>>>,
+    controller: ControllerArc<O>,
 }
 
-impl<O> USBHost<O>
+impl<O> USBHostSystem<O>
 where
-    O: OsDep,
+    O: PlatformAbstractions + 'static,
 {
-    pub fn new<C: Controller<O> + 'static>(config: USBHostConfig<O>) -> Result<Self> {
-        let controller: Box<dyn Controller<O>> = Box::new(C::new(config.clone())?);
+    pub fn new(config: Arc<SpinNoIrq<USBSystemConfig<O>>>) -> crate::err::Result<Self> {
+        let controller = Arc::new(SpinNoIrq::new({
+            let xhciregisters: Box<(dyn Controller<O> + 'static)> = {
+                if cfg!(feature = "xhci") {
+                    Box::new(XHCI::new(config.clone()))
+                } else {
+                    panic!("no host controller defined")
+                }
+            };
+            xhciregisters
+        }));
+        Ok(Self { config, controller })
+    }
 
-        let controller = Arc::new(SpinNoIrq::new(controller));
-        // let controller = Arc::new( SpinNoIrq::new(controller));
-        Ok(Self {
-            config,
-            controller,
-            device_list: Default::default(),
+    pub fn init(&self) {
+        self.controller.lock().init();
+        trace!("controller init complete");
+    }
+
+    pub fn probe<F>(&self, consumer: F)
+    where
+        F: FnMut(DriverIndependentDeviceInstance<O>),
+    {
+        let mut probe = self.controller.lock().probe();
+        probe
+            .iter()
+            .map(|slot_id| {
+                DriverIndependentDeviceInstance::new(slot_id.clone(), self.controller.clone())
+            })
+            .for_each(consumer);
+    }
+
+    pub fn control_transfer(
+        &mut self,
+        dev_slot_id: usize,
+        urb_req: ControlTransfer,
+    ) -> crate::err::Result<UCB<O>> {
+        self.controller
+            .lock()
+            .control_transfer(dev_slot_id, urb_req)
+    }
+
+    pub fn configure_device(
+        &mut self,
+        dev_slot_id: usize,
+        urb_req: Configuration,
+    ) -> crate::err::Result<UCB<O>> {
+        self.controller
+            .lock()
+            .configure_device(dev_slot_id, urb_req)
+    }
+
+    pub fn urb_request(&mut self, request: URB<O>) -> crate::err::Result<UCB<O>> {
+        match request.operation {
+            usb::urb::RequestedOperation::Control(control) => {
+                trace!("request transfer!");
+                self.control_transfer(request.device_slot_id, control)
+            }
+            usb::urb::RequestedOperation::Bulk => todo!(),
+            usb::urb::RequestedOperation::Interrupt(interrupt_transfer) => self
+                .controller
+                .lock()
+                .interrupt_transfer(request.device_slot_id, interrupt_transfer),
+            usb::urb::RequestedOperation::Isoch(isoch_transfer) => self
+                .controller
+                .lock()
+                .isoch_transfer(request.device_slot_id, isoch_transfer),
+            usb::urb::RequestedOperation::ConfigureDevice(configure) => self
+                .controller
+                .lock()
+                .configure_device(request.device_slot_id, configure),
+            usb::urb::RequestedOperation::ExtraStep(step) => self
+                .controller
+                .lock()
+                .extra_step(request.device_slot_id, step),
+        }
+    }
+
+    pub fn tock(&mut self, todo_list_list: Vec<Vec<URB<O>>>) {
+        trace!("tock! check deadlock!");
+        todo_list_list.iter().for_each(|list| {
+            list.iter().for_each(|todo| {
+                if let Ok(ok) = self.urb_request(todo.clone())
+                    && let Some(sender) = &todo.sender
+                {
+                    trace!("tock! check deadlock! 2");
+                    sender.lock().receive_complete_event(ok);
+                };
+            })
         })
     }
-
-    pub fn poll(&self) -> Result {
-        let controller = self.controller.clone();
-        let mut g = self.controller.lock();
-        let mut device_list = g.poll(controller)?;
-
-        let mut dl = self.device_list.lock();
-        dl.append(&mut device_list);
-        Ok(())
-    }
-
-    pub fn device_list(&self) -> Vec<DeviceAttached<O>> {
-        let g = self.device_list.lock();
-        g.clone()
-    }
-}
-
-#[derive(Copy, Clone, FromPrimitive)]
-pub enum PortSpeed {
-    FullSpeed = 1,
-    LowSpeed = 2,
-    HighSpeed = 3,
-    SuperSpeed = 4,
-    SuperSpeedPlus = 5,
 }

@@ -10,8 +10,9 @@ documentation = "https://rcore-os.github.io/arceos/driver_usb/index.html"
 
 
 [features]
-default = []
-arceos = []
+default = ["xhci","packed_drivers"]
+packed_drivers=[]
+xhci=[]
 
 [dependencies]
 xhci = "0.9"
@@ -23,6 +24,9 @@ bit_field = "0.10"
 num-derive = "0.4.0"
 num-traits = { version = "0.2.16", default-features = false }
 byteorder = { version = "1.4.3", default-features = false }
+const-enum = {git = "https://github.com/dbydd/const-enum-new.git"}
+# hidreport = {path = "../../crates/hidreport"}
+
 
 
 # arceos

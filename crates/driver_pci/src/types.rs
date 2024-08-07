@@ -235,9 +235,10 @@ impl ConifgPciPciBridge {
         self.regs().cache_line_size.set(size);
     }
 
-    pub fn set_control(&self, ctl: u8) {
+    pub fn set_control(&self, ctl: u8){
         self.regs().control.set(ctl);
     }
+
 }
 
 pub struct ConifgEndpoint {
@@ -411,3 +412,4 @@ pub enum ConfigKind {
     Endpoint { inner: ConifgEndpoint },
     PciPciBridge { inner: ConifgPciPciBridge },
 }
+

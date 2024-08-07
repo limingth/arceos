@@ -18,10 +18,12 @@
 
 #![cfg_attr(not(test), no_std)]
 #![feature(doc_auto_cfg)]
+#![allow(unused_imports)]
+#![allow(unexpected_cfgs)]
+#![allow(dead_code)]
 
 #[macro_use]
 extern crate axlog;
-use core::ptr;
 
 #[cfg(all(target_os = "none", not(test)))]
 mod lang_items;
@@ -94,10 +96,13 @@ fn is_init_ok() -> bool {
 }
 
 unsafe extern "C" fn put_debug_paged3() {
-    let state = (0xFFFF00002800D018 as usize) as *mut u8;
-    let put = (0xFFFF00002800D000 as usize) as *mut u8;
-    while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
-    *put = b'c';
+    #[cfg(platform_family = "aarch64-phytium-pi")]
+    {
+        let state = (0xFFFF00002800D018 as usize) as *mut u8;
+        let put = (0xFFFF00002800D000 as usize) as *mut u8;
+        while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
+        *put = b'c';
+    }
 }
 
 /// The main entry point of the ArceOS runtime.

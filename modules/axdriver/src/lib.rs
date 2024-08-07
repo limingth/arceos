@@ -57,6 +57,7 @@
 #![no_std]
 #![feature(doc_auto_cfg)]
 #![feature(associated_type_defaults)]
+#![feature(cfg_match)]
 
 #[macro_use]
 extern crate log;
@@ -90,8 +91,6 @@ pub use self::structs::AxBlockDevice;
 pub use self::structs::AxDisplayDevice;
 #[cfg(feature = "net")]
 pub use self::structs::AxNetDevice;
-#[cfg(feature = "usb_host")]
-pub use self::structs::AxUSBHostDevice;
 
 /// A structure that contains all device drivers, organized by their category.
 #[derive(Default)]
@@ -105,8 +104,6 @@ pub struct AllDevices {
     /// All graphics device drivers.
     #[cfg(feature = "display")]
     pub display: AxDeviceContainer<AxDisplayDevice>,
-    #[cfg(feature = "usb_host")]
-    pub usb_host: AxDeviceContainer<AxUSBHostDevice>,
 }
 
 impl AllDevices {
@@ -134,6 +131,7 @@ impl AllDevices {
             }
         });
 
+        #[cfg(bus = "pci")]
         self.probe_bus_devices();
     }
 
@@ -147,8 +145,6 @@ impl AllDevices {
             AxDeviceEnum::Block(dev) => self.block.push(dev),
             #[cfg(feature = "display")]
             AxDeviceEnum::Display(dev) => self.display.push(dev),
-            #[cfg(feature = "usb_host")]
-            AxDeviceEnum::USBHost(dev) => self.usb_host.push(dev),
         }
     }
 }
@@ -183,14 +179,6 @@ pub fn init_drivers() -> AllDevices {
         for (i, dev) in all_devs.display.iter().enumerate() {
             assert_eq!(dev.device_type(), DeviceType::Display);
             debug!("  graphics device {}: {:?}", i, dev.device_name());
-        }
-    }
-    #[cfg(feature = "usb_host")]
-    {
-        debug!("number of usb host controller: {}", all_devs.usb_host.len());
-        for (i, dev) in all_devs.usb_host.iter().enumerate() {
-            assert_eq!(dev.device_type(), DeviceType::USBHost);
-            debug!("  usb host controller {}: {:?}", i, dev.device_name());
         }
     }
 

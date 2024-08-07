@@ -151,22 +151,28 @@ unsafe extern "C" fn _start() -> ! {
     )
 }
 
-#[cfg(all(target_arch = "aarch64", platform_family = "aarch64-phytium-pi"))]
+#[cfg(all(target_arch = "aarch64"))]
 #[no_mangle]
 unsafe extern "C" fn put_debug() {
-    let state = (0x2800D018 as usize) as *mut u8;
-    let put = (0x2800D000 as usize) as *mut u8;
-    while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
-    *put = b'a';
+    #[cfg(platform_family = "aarch64-phytium-pi")]
+    {
+        let state = (0x2800D018 as usize) as *mut u8;
+        let put = (0x2800D000 as usize) as *mut u8;
+        while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
+        *put = b'a';
+    }
 }
 
-#[cfg(all(target_arch = "aarch64", platform_family = "aarch64-phytium-pi"))]
+#[cfg(all(target_arch = "aarch64"))]
 #[no_mangle]
 unsafe extern "C" fn put_debug_paged() {
-    let state = (0xFFFF00002800D018 as usize) as *mut u8;
-    let put = (0xFFFF00002800D000 as usize) as *mut u8;
-    while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
-    *put = b'a';
+    #[cfg(platform_family = "aarch64-phytium-pi")]
+    {
+        let state = (0xFFFF00002800D018 as usize) as *mut u8;
+        let put = (0xFFFF00002800D000 as usize) as *mut u8;
+        while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
+        *put = b'a';
+    }
 }
 
 /// The earliest entry point for the secondary CPUs.

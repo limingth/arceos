@@ -1,0 +1,2637 @@
+ 
+## Total Size      = 0x00046040 = 286784 Bytes
+## Start Addr      = 0x90100000
+Phytium-Pi#go 0x90100000
+## Starting application at 0x90100000 ...
+aaaaaaaaaaaaarch = aarch64
+platform = aarch64-phytium-pi
+target = aarch64-unknown-none-softfloat
+smp = 1
+build_mode = release
+log_level = trace
+
+[131.147185 0 axruntime:143] Logging is enabled.
+[131.152913 0 axruntime:144] Primary CPU 512 started, dtb = 0x1.
+[131.160030 0 axruntime:146] Found physcial memory regions:
+[131.166715 0 axruntime:149]   [PA:0x90100000, PA:0x90139000) .text (READ | EXECUTE | RESERVED)
+[131.176522 0 axruntime:149]   [PA:0x90139000, PA:0x90143000) .rodata (READ | RESERVED)
+[131.185636 0 axruntime:149]   [PA:0x90143000, PA:0x90147000) .data .tdata .tbss .percpu (READ | WRITE | RESERVED)
+[131.197094 0 axruntime:149]   [PA:0x90147000, PA:0x90187000) boot stack (READ | WRITE | RESERVED)
+[131.207163 0 axruntime:149]   [PA:0x90187000, PA:0x901ad000) .bss (READ | WRITE | RESERVED)
+[131.216711 0 axruntime:149]   [PA:0x0, PA:0x1000) spintable (READ | WRITE | RESERVED)
+[131.225738 0 axruntime:149]   [PA:0x901ad000, PA:0x908ad000) nocache memory (READ | WRITE | DEVICE)
+[131.235980 0 axruntime:149]   [PA:0x908ad000, PA:0xff900000) free memory (READ | WRITE | FREE)
+[131.245789 0 axruntime:149]   [PA:0x2800c000, PA:0x2800d000) mmio (READ | WRITE | DEVICE | RESERVED)
+[131.256118 0 axruntime:149]   [PA:0x2800d000, PA:0x2800e000) mmio (READ | WRITE | DEVICE | RESERVED)
+[131.266447 0 axruntime:149]   [PA:0x2800e000, PA:0x2800f000) mmio (READ | WRITE | DEVICE | RESERVED)
+[131.276776 0 axruntime:149]   [PA:0x2800f000, PA:0x28010000) mmio (READ | WRITE | DEVICE | RESERVED)
+[131.287106 0 axruntime:149]   [PA:0x30000000, PA:0x38000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[131.297435 0 axruntime:149]   [PA:0x40000000, PA:0x80000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[131.307764 0 axruntime:149]   [PA:0x1000000000, PA:0x3000000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[131.318440 0 axruntime:228] Initialize global memory allocator...
+[131.325732 0 axruntime:229]   use TLSF allocator.
+[131.331636 0 axalloc:284] initialize global allocator at: free-[0xffff0000908ad000, 0xffff0000ff900000)
+[131.342547 0 axruntime:163] Initialize kernel page table...
+[131.348999 0 page_table::bits64:159] map_region(PA:0x908b5000): [VA:0xffff000090100000, VA:0xffff000090139000) -> [PA:0x90100000, PA:0x90139000) MappingFlags(READ | EXECUTE)
+[131.365669 0 page_table::bits64:159] map_region(PA:0x908b5000): [VA:0xffff000090139000, VA:0xffff000090143000) -> [PA:0x90139000, PA:0x90143000) MappingFlags(READ)
+[131.381458 0 page_table::bits64:159] map_region(PA:0x908b5000): [VA:0xffff000090143000, VA:0xffff000090147000) -> [PA:0x90143000, PA:0x90147000) MappingFlags(READ | WRITE)
+[131.397949 0 page_table::bits64:159] map_region(PA:0x908b5000): [VA:0xffff000090147000, VA:0xffff000090187000) -> [PA:0x90147000, PA:0x90187000) MappingFlags(READ | WRITE)
+[131.414444 0 page_table::bits64:159] map_region(PA:0x908b5000): [VA:0xffff000090187000, VA:0xffff0000901ad000) -> [PA:0x90187000, PA:0x901ad000) MappingFlags(READ | WRITE)
+[131.430935 0 page_table::bits64:159] map_region(PA:0x908b5000): [VA:0xffff000000000000, VA:0xffff000000001000) -> [PA:0x0, PA:0x1000) MappingFlags(READ | WRITE)
+[131.446473 0 page_table::bits64:159] map_region(PA:0x908b5000): [VA:0x901ad000, VA:0x908ad000) -> [PA:0x901ad000, PA:0x908ad000) MappingFlags(READ | WRITE | DEVICE)
+[131.462368 0 page_table::bits64:159] map_region(PA:0x908b5000): [VA:0xffff0000908ad000, VA:0xffff0000ff900000) -> [PA:0x908ad000, PA:0xff900000) MappingFlags(READ | WRITE)
+[131.478913 0 page_table::bits64:159] map_region(PA:0x908b5000): [VA:0xffff00002800c000, VA:0xffff00002800d000) -> [PA:0x2800c000, PA:0x2800d000) MappingFlags(READ | WRITE | DEVICE)
+[131.496121 0 page_table::bits64:159] map_region(PA:0x908b5000): [VA:0xffff00002800d000, VA:0xffff00002800e000) -> [PA:0x2800d000, PA:0x2800e000) MappingFlags(READ | WRITE | DEVICE)
+[131.513393 0 page_table::bits64:159] map_region(PA:0x908b5000): [VA:0xffff00002800e000, VA:0xffff00002800f000) -> [PA:0x2800e000, PA:0x2800f000) MappingFlags(READ | WRITE | DEVICE)
+[131.530666 0 page_table::bits64:159] map_region(PA:0x908b5000): [VA:0xffff00002800f000, VA:0xffff000028010000) -> [PA:0x2800f000, PA:0x28010000) MappingFlags(READ | WRITE | DEVICE)
+[131.547940 0 page_table::bits64:159] map_region(PA:0x908b5000): [VA:0xffff000030000000, VA:0xffff000038000000) -> [PA:0x30000000, PA:0x38000000) MappingFlags(READ | WRITE | DEVICE)
+[131.565215 0 page_table::bits64:159] map_region(PA:0x908b5000): [VA:0xffff000040000000, VA:0xffff000080000000) -> [PA:0x40000000, PA:0x80000000) MappingFlags(READ | WRITE | DEVICE)
+[131.582486 0 page_table::bits64:159] map_region(PA:0x908b5000): [VA:0xffff001000000000, VA:0xffff003000000000) -> [PA:0x1000000000, PA:0x3000000000) MappingFlags(READ | WRITE | DEVICE)
+[131.600111 0 axhal::arch::aarch64:67] set page table root: PA:0x90143000 => PA:0x908b5000
+[131.609481 0 axruntime:263] Initialize global no cache memory allocator...
+[131.617554 0 axalloc:300] initialize global allocator at: nocache-[0x901ad000,0x908ad000)
+[131.626930 0 axruntime:170] Initialize platform devices...
+[131.633611 0 axhal::platform::aarch64_common::gic:51] Initialize GICv2...
+[131.641597 0 axhal::platform::aarch64_common::gic:27] GICD set enable: 30 true
+[131.650017 0 axhal::platform::aarch64_common::gic:27] GICD set enable: 56 true
+[131.658436 0 axtask::api:66] Initialize scheduling...
+[131.664689 0 axtask::task:146] new task: Task(1, "idle")
+[131.671199 0 axtask::task:146] new task: Task(3, "gc")
+[131.677536 0 axalloc:126] expand heap memory: [0xffff0000908bf000, 0xffff0000908ff000)
+[131.686653 0 axalloc:126] expand heap memory: [0xffff0000908ff000, 0xffff00009097f000)
+[131.695763 0 axtask::api:72]   use Round-robin scheduler.
+[131.702357 0 axruntime:196] Initialize interrupt handlers...
+[131.709214 0 axhal::platform::aarch64_common::gic:36] register handler irq 30
+[131.717547 0 axhal::platform::aarch64_common::gic:27] GICD set enable: 30 true
+[131.725967 0 axruntime:206] Primary CPU 512 init OK.
+[131.732134 0:2 driver_usb::host::data_structures::host_controllers::xhci:788] [XHCI] Max_slots: 16, max_ports: 2, max_irqs: 1, page size: 1
+[131.746772 0:2 driver_usb::host::data_structures::host_controllers::xhci:801] [XHCI] ring size 256
+[131.756001 0:2 driver_usb:84] initializing!
+[131.761381 0:2 driver_usb::host::data_structures::host_controllers::xhci:113] [XHCI] Reset begin
+[131.771363 0:2 driver_usb::host::data_structures::host_controllers::xhci:114] [XHCI] Stop
+[131.780738 0:2 driver_usb::host::data_structures::host_controllers::xhci:119] [XHCI] Until halt
+[131.790633 0:2 driver_usb::host::data_structures::host_controllers::xhci:121] [XHCI] Halted
+[131.800180 0:2 driver_usb::host::data_structures::host_controllers::xhci:126] [XHCI] Wait for ready...
+[131.810684 0:2 driver_usb::host::data_structures::host_controllers::xhci:128] [XHCI] Ready
+[131.820146 0:2 driver_usb::host::data_structures::host_controllers::xhci:136] [XHCI] Reset HC
+[131.829867 0:2 driver_usb::host::data_structures::host_controllers::xhci:152] [XHCI] XCHI reset ok
+[131.840022 0:2 driver_usb::host::data_structures::host_controllers::xhci:158] [XHCI] Setting enabled slots to 16.
+[131.851480 0:2 driver_usb::host::data_structures::host_controllers::xhci:167] [XHCI] Writing DCBAAP: 901AE000
+[131.862590 0:2 driver_usb::host::data_structures::host_controllers::xhci:180] [XHCI] Writing CRCR: 901CE880
+[131.873527 0:2 driver_usb::host::data_structures::host_controllers::xhci:213] [XHCI] Disable interrupts
+[131.884117 0:2 driver_usb::host::data_structures::host_controllers::xhci:222] [XHCI] Writing ERSTZ
+[131.894272 0:2 driver_usb::host::data_structures::host_controllers::xhci:226] [XHCI] Writing ERDP: 901CF900
+[131.905209 0:2 driver_usb::host::data_structures::host_controllers::xhci:233] [XHCI] Writing ERSTBA: 901CF8C0
+[131.916320 0:2 driver_usb::host::data_structures::host_controllers::xhci:243] [XHCI] Enabling primary interrupter.
+[131.927864 0:2 driver_usb::host::data_structures::host_controllers::xhci:322] [XHCI] Scratch buf count: 0
+[131.938627 0:2 driver_usb::host::data_structures::host_controllers::xhci:326] buf count=0,is it a error?
+[131.949303 0:2 driver_usb::host::data_structures::host_controllers::xhci:195] [XHCI] Start run
+[131.959112 0:2 driver_usb::host::data_structures::host_controllers::xhci:202] [XHCI] Is running
+[131.969007 0:2 driver_usb::host::data_structures::host_controllers::xhci:348] [XHCI] Test command ring
+[131.979510 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 0 @0x901CE880
+0
+0
+0
+5c01
+------------------------------------------------
+[131.995915 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:61] [CMD] >> Noop(Noop { cycle_bit: true }) @901CE880
+[132.009022 0:2 driver_usb::host::data_structures::host_controllers::xhci:383] Wait result
+[132.018397 0:2 driver_usb::host::data_structures::host_controllers::xhci:408] event: PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 1, cycle_bit: true })
+[132.035756 0:2 driver_usb::host::data_structures::host_controllers::xhci:394] [CMD] << Success @901CE880 got result, cycle true
+[132.048429 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 1 @0x901CE890
+0
+0
+0
+5c01
+------------------------------------------------
+[132.064833 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:61] [CMD] >> Noop(Noop { cycle_bit: true }) @901CE890
+[132.077941 0:2 driver_usb::host::data_structures::host_controllers::xhci:383] Wait result
+[132.087316 0:2 driver_usb::host::data_structures::host_controllers::xhci:394] [CMD] << Success @901CE890 got result, cycle true
+[132.099988 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 2 @0x901CE8A0
+0
+0
+0
+5c01
+------------------------------------------------
+[132.116393 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:61] [CMD] >> Noop(Noop { cycle_bit: true }) @901CE8A0
+[132.129500 0:2 driver_usb::host::data_structures::host_controllers::xhci:383] Wait result
+[132.138874 0:2 driver_usb::host::data_structures::host_controllers::xhci:394] [CMD] << Success @901CE8A0 got result, cycle true
+[132.151548 0:2 driver_usb::host::data_structures::host_controllers::xhci:354] [XHCI] Command ring ok
+[132.161876 0:2 driver_usb::host::data_structures::host_controllers::xhci:295] [XHCI] Port 0 start reset
+[132.230308 0:2 driver_usb::host::data_structures::host_controllers::xhci:308] [XHCI] Port 0 reset ok
+[132.237766 0:2 driver_usb::host::data_structures::host_controllers::xhci:295] [XHCI] Port 1 start reset
+[132.248361 0:2 driver_usb::host::data_structures::host_controllers::xhci:308] [XHCI] Port 1 reset ok
+[132.258685 0:2 driver_usb::host:61] controller init complete
+[132.265543 0:2 driver_usb::usb:56] usb system driver modules load complete!
+[132.273701 0:2 driver_usb:87] usb system init complete
+[132.280040 0:2 driver_usb::host::data_structures::host_controllers::xhci:838] [XHCI] Port 0: Enabled: true, Connected: true, Speed 3, Power true
+[132.294188 0:2 driver_usb::host::data_structures::host_controllers::xhci:838] [XHCI] Port 1: Enabled: false, Connected: false, Speed 0, Power true
+[132.308508 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 3 @0x901CE8B0
+0
+0
+0
+2401
+------------------------------------------------
+[132.324913 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:61] [CMD] >> EnableSlot(EnableSlot { slot_type: 0, cycle_bit: true }) @901CE8B0
+[132.340277 0:2 driver_usb::host::data_structures::host_controllers::xhci:383] Wait result
+[132.349652 0:2 driver_usb::host::data_structures::host_controllers::xhci:408] event: PortStatusChange(PortStatusChange { completion_code: Ok(Success), port_id: 1, cycle_bit: true })
+[132.367012 0:2 driver_usb::host::data_structures::host_controllers::xhci:394] [CMD] << Success @901CE8B0 got result, cycle true
+[132.379685 0:2 driver_usb::host::data_structures::host_controllers::xhci:1009] assigned slot id: 1
+[132.389992 0:2 driver_usb::host::data_structures::host_controllers::xhci:859] assign complete!
+[132.399650 0:2 driver_usb::host::data_structures::host_controllers::xhci:439] fetch transfer ring at slot1-dci1
+[132.410932 0:2 driver_usb::host::data_structures::host_controllers::xhci:439] fetch transfer ring at slot1-dci1
+[132.422219 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 4 @0x901CE8C0
+901b2000
+0
+0
+1002c01
+------------------------------------------------
+[132.439489 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:61] [CMD] >> AddressDevice(AddressDevice { input_context_pointer: 2417696768, block_set_address_request: false, slot_id: 1, cycle_bit: true }) @901CE8C0
+[132.461190 0:2 driver_usb::host::data_structures::host_controllers::xhci:383] Wait result
+[132.470564 0:2 driver_usb::host::data_structures::host_controllers::xhci:394] [CMD] << Success @901CE8C0 got result, cycle true
+[132.483237 0:2 driver_usb::host::data_structures::host_controllers::xhci:1078] address slot [1] ok
+[132.493392 0:2 driver_usb::host::data_structures::host_controllers::xhci:416] slot 1 Addressed
+[132.503200 0:2 driver_usb::host::data_structures::host_controllers::xhci:421] device context state:Device {
+    slot: Slot {
+        route_string: 1,
+        speed: 3,
+        multi_tt: false,
+        hub: false,
+        context_entries: 1,
+        max_exit_latency: 0,
+        root_hub_port_number: 1,
+        number_of_ports: 0,
+        parent_hub_slot_id: 0,
+        parent_port_number: 0,
+        tt_think_time: 0,
+        interrupter_target: 0,
+        usb_device_address: 1,
+        slot_state: Addressed,
+    },
+    endpoints: [
+        Endpoint {
+            endpoint_state: Running,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 3,
+            endpoint_type: Control,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 64,
+            dequeue_cycle_state: true,
+            tr_dequeue_pointer: 2417822017,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+    ],
+}
+[134.206477 0:2 driver_usb::host::data_structures::host_controllers::xhci:1082] control_fetch_control_point_packet_size
+[134.218370 0:2 driver_usb::host::data_structures::host_controllers::xhci:914] SetupStage {
+    interrupt_on_completion: false,
+    request_type: 128,
+    request: 6,
+    value: 256,
+    index: 0,
+    length: 8,
+    interrupt_on_completion: false,
+    transfer_type: In,
+    cycle_bit: false,
+}
+[134.246319 0:2 driver_usb::host::data_structures::host_controllers::xhci:439] fetch transfer ring at slot1-dci1
+[134.257602 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 0 @0x901D0940
+1000680
+80000
+8
+30841
+------------------------------------------------
+[134.274962 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 1 @0x901D0950
+901d5140
+0
+8
+10c01
+------------------------------------------------
+[134.292061 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 2 @0x901D0960
+0
+0
+0
+1021
+------------------------------------------------
+[134.308467 0:2 driver_usb::host::data_structures::host_controllers::xhci:943] [Transfer] >> setup@0x901D0940, data@0x901D0950, status@0x901D0960
+[134.322616 0:2 driver_usb::host::data_structures::host_controllers::xhci:454] Wait result @0x901D0960
+[134.333033 0:2 driver_usb::host::data_structures::host_controllers::xhci:463] [Transfer] << Success @0x901D0960 got result1, cycle true, len 0
+[134.347006 0:2 driver_usb::host::data_structures::host_controllers::xhci:476] code:Success,pointer:901d0960
+[134.357944 0:2 driver_usb::host::data_structures::host_controllers::xhci:1106] got [18, 1, 0, 2, 239, 2, 1, 64]
+[134.369228 0:2 driver_usb::host::data_structures::host_controllers::xhci:865] packet_size0: 64
+[134.379035 0:2 driver_usb::host::data_structures::host_controllers::xhci:1120] CMD: evaluating context for set endpoint0 packet size 64
+[134.392402 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 5 @0x901CE8D0
+901b2000
+0
+0
+1003401
+------------------------------------------------
+[134.409675 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:61] [CMD] >> EvaluateContext(EvaluateContext { input_context_pointer: 2417696768, slot_id: 1, cycle_bit: true }) @901CE8D0
+[134.428772 0:2 driver_usb::host::data_structures::host_controllers::xhci:383] Wait result
+[134.438146 0:2 driver_usb::host::data_structures::host_controllers::xhci:394] [CMD] << Success @901CE8D0 got result, cycle true
+[134.451098 0:2 driver_usb::host::data_structures::host_controllers::xhci:914] SetupStage {
+    interrupt_on_completion: false,
+    request_type: 128,
+    request: 6,
+    value: 256,
+    index: 0,
+    length: 4096,
+    interrupt_on_completion: false,
+    transfer_type: In,
+    cycle_bit: false,
+}
+[134.479029 0:2 driver_usb::host::data_structures::host_controllers::xhci:439] fetch transfer ring at slot1-dci1
+[134.490313 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 3 @0x901D0970
+1000680
+10000000
+8
+30841
+------------------------------------------------
+[134.507933 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 4 @0x901D0980
+901d6000
+0
+1000
+10c01
+------------------------------------------------
+[134.525293 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 5 @0x901D0990
+0
+0
+0
+1021
+------------------------------------------------
+[134.541698 0:2 driver_usb::host::data_structures::host_controllers::xhci:943] [Transfer] >> setup@0x901D0970, data@0x901D0980, status@0x901D0990
+[134.555847 0:2 driver_usb::host::data_structures::host_controllers::xhci:454] Wait result @0x901D0990
+[134.566264 0:2 driver_usb::host::data_structures::host_controllers::xhci:463] [Transfer] << Success @0x901D0990 got result1, cycle true, len 0
+[134.580237 0:2 driver_usb::host::data_structures::host_controllers::xhci:476] code:Success,pointer:901d0990
+[134.591175 0:2 driver_usb::usb::descriptors::parser:216] parse single device desc!
+[134.599942 0:2 driver_usb::usb::descriptors::parser:397] peeked type:Some(Device)
+[134.608621 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current0! type:Some(Device)
+[134.619128 0:2 driver_usb::usb::descriptors::parser:156] state change:NotReady
+[134.627818 0:2 driver_usb::host::data_structures::host_controllers::xhci:914] SetupStage {
+    interrupt_on_completion: false,
+    request_type: 128,
+    request: 6,
+    value: 512,
+    index: 0,
+    length: 4096,
+    interrupt_on_completion: false,
+    transfer_type: In,
+    cycle_bit: false,
+}
+[134.655753 0:2 driver_usb::host::data_structures::host_controllers::xhci:439] fetch transfer ring at slot1-dci1
+[134.667037 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 6 @0x901D09A0
+2000680
+10000000
+8
+30841
+------------------------------------------------
+[134.684658 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 7 @0x901D09B0
+901d8000
+0
+1000
+10c01
+------------------------------------------------
+[134.702018 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 8 @0x901D09C0
+0
+0
+0
+1021
+------------------------------------------------
+[134.718423 0:2 driver_usb::host::data_structures::host_controllers::xhci:943] [Transfer] >> setup@0x901D09A0, data@0x901D09B0, status@0x901D09C0
+[134.732572 0:2 driver_usb::host::data_structures::host_controllers::xhci:454] Wait result @0x901D09C0
+[134.752673 0:2 driver_usb::host::data_structures::host_controllers::xhci:463] [Transfer] << Success @0x901D09C0 got result1, cycle true, len 0
+[134.763776 0:2 driver_usb::host::data_structures::host_controllers::xhci:476] code:Success,pointer:901d09c0
+[134.774714 0:2 driver_usb::usb::descriptors::parser:185] state change:Config(0)
+[134.783220 0:2 driver_usb::usb::descriptors::parser:237] parse config desc!
+[134.791381 0:2 driver_usb::usb::descriptors::parser:252] max num of interface num:2
+[134.800233 0:2 driver_usb::usb::descriptors::parser:273] parse function desc!
+[134.808565 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(InterfaceAssociation)
+[134.818808 0:2 driver_usb::usb::descriptors::parser:333] parse InterfaceAssociation desc!
+[134.828182 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(InterfaceAssociation)
+[134.838424 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current9! type:Some(InterfaceAssociation)
+[134.850145 0:2 driver_usb::usb::descriptors::parser:344] parsing 0th interface!
+[134.858649 0:2 driver_usb::usb::descriptors::parser:273] parse function desc!
+[134.866982 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[134.876269 0:2 driver_usb::usb::descriptors::parser:278] parse single interface desc! current state:Config(0)
+[134.887380 0:2 driver_usb::usb::descriptors::parser:286] loop! state:Config(0)
+[134.895800 0:2 driver_usb::usb::descriptors::parser:425] peek at 17,value:9
+[134.903959 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[134.913246 0:2 driver_usb::usb::descriptors::parser:435] len9,from17,to25
+[134.921233 0:2 driver_usb::usb::descriptors::parser:438] got:Interface { len: 9, descriptor_type: 4, interface_number: 0, alternate_setting: 0, num_endpoints: 1, interface_class: 14, interface_subclass: 1, interface_protocol: 0, interface: 5 }
+[134.943974 0:2 driver_usb::usb::descriptors::parser:293] state change:Inetrface(0, 0)
+[134.953000 0:2 driver_usb::usb::descriptors::parser:286] loop! state:Inetrface(0, 0)
+[134.961941 0:2 driver_usb::usb::descriptors::parser:296] state interface!
+[134.969926 0:2 driver_usb::usb::descriptors::parser:425] peek at 17,value:9
+[134.978086 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[134.987373 0:2 driver_usb::usb::descriptors::parser:435] len9,from17,to25
+[134.995360 0:2 driver_usb::usb::descriptors::parser:438] got:Interface { len: 9, descriptor_type: 4, interface_number: 0, alternate_setting: 0, num_endpoints: 1, interface_class: 14, interface_subclass: 1, interface_protocol: 0, interface: 5 }
+[135.018101 0:2 driver_usb::usb::descriptors::parser:301] equal!
+[135.025218 0:2 driver_usb::usb::descriptors::parser:302] current:0
+[135.032596 0:2 driver_usb::usb::descriptors::parser:449] parse interfaces,metadata:UVC(0)
+[135.041971 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[135.051258 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current17! type:Some(Interface)
+[135.062111 0:2 driver_usb::usb::descriptors::parser:304] got interface Interface { len: 9, descriptor_type: 4, interface_number: 0, alternate_setting: 0, num_endpoints: 1, interface_class: 14, interface_subclass: 1, interface_protocol: 0, interface: 5 }
+[135.085718 0:2 driver_usb::usb::descriptors::parser:472] parse additional data for interface with metadata:UVC(1)
+[135.097176 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[135.105508 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[135.113494 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[135.121826 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current26! type:None
+[135.131724 0:2 driver_usb::usb::descriptors:106] from slice uvc![13, 36, 1, 0, 1, 79, 0, 192, 225, 228, 0, 1, 1]
+[135.143093 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:314] buffer:[13, 36, 1, 0, 1, 79, 0, 192, 225, 228, 0, 1, 1]
+[135.156026 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:318] subtypeHEADER
+[135.165314 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:326] header!
+[135.174082 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[135.182413 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[135.190399 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[135.198731 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current39! type:None
+[135.208628 0:2 driver_usb::usb::descriptors:106] from slice uvc![9, 36, 3, 4, 1, 1, 0, 3, 0]
+[135.218261 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:314] buffer:[9, 36, 3, 4, 1, 1, 0, 3, 0]
+[135.229458 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:318] subtypeOUTPUT_TERMINAL
+[135.239528 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[135.247860 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[135.255846 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[135.264178 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current48! type:None
+[135.274075 0:2 driver_usb::usb::descriptors:106] from slice uvc![28, 36, 6, 3, 112, 51, 240, 40, 17, 99, 46, 74, 186, 44, 104, 144, 235, 51, 64, 22, 24, 1, 2, 3, 159, 0, 7, 0]
+[135.290913 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:314] buffer:[28, 36, 6, 3, 112, 51, 240, 40, 17, 99, 46, 74, 186, 44, 104, 144, 235, 51, 64, 22, 24, 1, 2, 3, 159, 0, 7, 0]
+[135.309314 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:318] subtypeEXTENSION_UNIT
+[135.319298 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[135.327629 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[135.335615 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[135.343947 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current76! type:None
+[135.353846 0:2 driver_usb::usb::descriptors:106] from slice uvc![18, 36, 2, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3, 14, 96, 0]
+[135.366082 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:314] buffer:[18, 36, 2, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3, 14, 96, 0]
+[135.379883 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:318] subtypeINPUT_TERMINAL
+[135.389866 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[135.398198 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[135.406183 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[135.414516 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current94! type:None
+[135.424413 0:2 driver_usb::usb::descriptors:106] from slice uvc![11, 36, 5, 2, 1, 0, 0, 2, 127, 23, 0]
+[135.434914 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:314] buffer:[11, 36, 5, 2, 1, 0, 0, 2, 127, 23, 0]
+[135.446979 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:318] subtypePROCESSING_UNIT
+[135.457049 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[135.466249 0:2 driver_usb::usb::descriptors::parser:306] got additional data [UVCInterface(Control(Header(UVCControlInterfaceHeader { length: 13, descriptor_type: 36, descriptor_sub_type: 1, bcd_uvc: 256, total_length: 79, clock_frequency: 15000000, in_collection: 1, interface_nr: [1] }))), UVCInterface(Control(OutputTerminal(UVCControlInterfaceOutputTerminal { length: 9, descriptor_type: 36, descriptor_sub_type: 3, terminal_id: 4, terminal_type: 257, associated_terminal: 0, source_id: 3, string_index_terminal: 0, reserved: [] }))), UVCInterface(Control(ExtensionUnit(UVCControlInterfaceExtensionUnit { length: 28, descriptor_type: 36, descriptor_sub_type: 6, unit_id: 3, guid_extension_code: [112, 51, 240, 40, 17, 99, 46, 74, 186, 44, 104, 144, 235, 51, 64, 22], num_controls: 24, nr_in_pins: 1, source_ids: [1], control_size: 2, controls: [2, 3], extension: 159 }))), UVCInterface(Control(InputTerminal(UVCControlInterfaceInputTerminal { length: 18, descriptor_type: 36, descriptor_sub_type: 2, terminal_id: 1, terminal_type: 513, associated_terminal: 0, string_index_terminal: 0, reserved: [0, 0, 0, 0, 0, 0, 3, 14, 96, 0] }))), UVCInterface(Control(ProcessingUnit(UVCControlInterfaceProcessingUnit { length: 5, descriptor_type: 2, descriptor_sub_type: 1, unit_id: 0, source_id: 0, max_multiplier: 9227, control_size: 2, controls: [127, 23, 0], processing: 0, video_standards: 0 })))]
+[135.588897 0:2 driver_usb::usb::descriptors::parser:499] parse enedpoints, metadata:UVC(1)
+[135.598359 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[135.607559 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[135.616760 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current105! type:Some(Endpoint)
+[135.627612 0:2 driver_usb::usb::descriptors::parser:506] parsed endpoint:Endpoint { len: 7, descriptor_type: 5, endpoint_address: 131, attributes: 3, max_packet_size: 16, interval: 6, ssc: None }
+[135.646186 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[135.654518 0:2 driver_usb::usb::descriptors::parser:413] peek uvc type!
+[135.662330 0:2 driver_usb::usb::descriptors::parser:519] uvc interrupt endpoint!
+[135.670923 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[135.679256 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current112! type:None
+[135.689239 0:2 driver_usb::usb::descriptors:106] from slice uvc![5, 37, 3, 128, 0]
+[135.698005 0:2 driver_usb::usb::descriptors::parser:522] got UVCVideoControlInterruptEndpoint { len: 3, descriptor_type: 128, descriptor_sub_type: 0, max_transfer_size: 9477 }
+[135.714844 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[135.724132 0:2 driver_usb::usb::descriptors::parser:413] peek uvc type!
+[135.731944 0:2 driver_usb::usb::descriptors::parser:531] not uvc data!
+[135.739669 0:2 driver_usb::usb::descriptors::parser:308] got endpoints [Standard(Endpoint { len: 7, descriptor_type: 5, endpoint_address: 131, attributes: 3, max_packet_size: 16, interval: 6, ssc: None }), UNVVideoControlInterruptEndpoint(UVCVideoControlInterruptEndpoint { len: 3, descriptor_type: 128, descriptor_sub_type: 0, max_transfer_size: 9477 })]
+[135.772132 0:2 driver_usb::usb::descriptors::parser:286] loop! state:Inetrface(0, 0)
+[135.781072 0:2 driver_usb::usb::descriptors::parser:296] state interface!
+[135.789058 0:2 driver_usb::usb::descriptors::parser:425] peek at 117,value:9
+[135.797304 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[135.806592 0:2 driver_usb::usb::descriptors::parser:435] len9,from117,to125
+[135.814752 0:2 driver_usb::usb::descriptors::parser:438] got:Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 0, num_endpoints: 0, interface_class: 14, interface_subclass: 2, interface_protocol: 0, interface: 0 }
+[135.837493 0:2 driver_usb::usb::descriptors::parser:314] not equal!
+[135.844957 0:2 driver_usb::usb::descriptors::parser:319] state change:Inetrface(0, 1)
+[135.853985 0:2 driver_usb::usb::descriptors::parser:344] parsing 1th interface!
+[135.862491 0:2 driver_usb::usb::descriptors::parser:273] parse function desc!
+[135.870824 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[135.880111 0:2 driver_usb::usb::descriptors::parser:278] parse single interface desc! current state:Inetrface(0, 1)
+[135.891742 0:2 driver_usb::usb::descriptors::parser:286] loop! state:Inetrface(0, 1)
+[135.900683 0:2 driver_usb::usb::descriptors::parser:296] state interface!
+[135.908668 0:2 driver_usb::usb::descriptors::parser:425] peek at 117,value:9
+[135.916915 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[135.926202 0:2 driver_usb::usb::descriptors::parser:435] len9,from117,to125
+[135.934362 0:2 driver_usb::usb::descriptors::parser:438] got:Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 0, num_endpoints: 0, interface_class: 14, interface_subclass: 2, interface_protocol: 0, interface: 0 }
+[135.957103 0:2 driver_usb::usb::descriptors::parser:301] equal!
+[135.964220 0:2 driver_usb::usb::descriptors::parser:302] current:1
+[135.971598 0:2 driver_usb::usb::descriptors::parser:449] parse interfaces,metadata:UVC(1)
+[135.980973 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[135.990260 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current117! type:Some(Interface)
+[136.001199 0:2 driver_usb::usb::descriptors::parser:304] got interface Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 0, num_endpoints: 0, interface_class: 14, interface_subclass: 2, interface_protocol: 0, interface: 0 }
+[136.024807 0:2 driver_usb::usb::descriptors::parser:472] parse additional data for interface with metadata:UVC(2)
+[136.036265 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.044597 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[136.052583 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.060916 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current126! type:None
+[136.070900 0:2 driver_usb::usb::descriptors:106] from slice uvc![15, 36, 1, 2, 219, 1, 129, 0, 4, 2, 1, 1, 1, 0, 0]
+[136.082529 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[15, 36, 1, 2, 219, 1, 129, 0, 4, 2, 1, 1, 1, 0, 0]
+[136.095723 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeINPUT_HEADER
+[136.105533 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.113864 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[136.121849 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.130182 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current141! type:None
+[136.140166 0:2 driver_usb::usb::descriptors:106] from slice uvc![11, 36, 6, 1, 8, 0, 1, 0, 0, 0, 0]
+[136.150406 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[11, 36, 6, 1, 8, 0, 1, 0, 0, 0, 0]
+[136.162211 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeFORMAT_MJPEG
+[136.172020 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.180352 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[136.188338 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.196671 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current152! type:None
+[136.206654 0:2 driver_usb::usb::descriptors:106] from slice uvc![30, 36, 7, 1, 0, 128, 2, 224, 1, 0, 0, 202, 8, 0, 0, 202, 8, 77, 98, 9, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[136.223058 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[30, 36, 7, 1, 0, 128, 2, 224, 1, 0, 0, 202, 8, 0, 0, 202, 8, 77, 98, 9, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[136.241026 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeFRAME_MJPEG
+[136.250749 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.259080 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[136.267066 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.275398 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current182! type:None
+[136.285385 0:2 driver_usb::usb::descriptors:106] from slice uvc![30, 36, 7, 2, 0, 128, 7, 56, 4, 0, 128, 83, 59, 0, 128, 83, 59, 77, 74, 63, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[136.302133 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[30, 36, 7, 2, 0, 128, 7, 56, 4, 0, 128, 83, 59, 0, 128, 83, 59, 77, 74, 63, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[136.320448 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeFRAME_MJPEG
+[136.330170 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.338502 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[136.346488 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.354820 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current212! type:None
+[136.364807 0:2 driver_usb::usb::descriptors:106] from slice uvc![30, 36, 7, 3, 0, 0, 5, 192, 3, 0, 0, 40, 35, 0, 0, 40, 35, 77, 130, 37, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[136.381208 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[30, 36, 7, 3, 0, 0, 5, 192, 3, 0, 0, 40, 35, 0, 0, 40, 35, 77, 130, 37, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[136.399175 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeFRAME_MJPEG
+[136.408898 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.417230 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[136.425215 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.433548 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current242! type:None
+[136.443534 0:2 driver_usb::usb::descriptors:106] from slice uvc![30, 36, 7, 4, 0, 0, 5, 208, 2, 0, 0, 94, 26, 0, 0, 94, 26, 77, 34, 28, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[136.459848 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[30, 36, 7, 4, 0, 0, 5, 208, 2, 0, 0, 94, 26, 0, 0, 94, 26, 77, 34, 28, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[136.477729 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeFRAME_MJPEG
+[136.487452 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.495784 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[136.503769 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.512102 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current272! type:None
+[136.522086 0:2 driver_usb::usb::descriptors:106] from slice uvc![30, 36, 7, 5, 0, 0, 4, 64, 2, 0, 0, 224, 16, 0, 0, 224, 16, 77, 2, 18, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[136.538402 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[30, 36, 7, 5, 0, 0, 4, 64, 2, 0, 0, 224, 16, 0, 0, 224, 16, 77, 2, 18, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[136.556283 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeFRAME_MJPEG
+[136.566006 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.574338 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[136.582323 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.590656 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current302! type:None
+[136.600642 0:2 driver_usb::usb::descriptors:106] from slice uvc![30, 36, 7, 6, 0, 32, 3, 88, 2, 0, 160, 187, 13, 0, 160, 187, 13, 77, 168, 14, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[136.617564 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[30, 36, 7, 6, 0, 32, 3, 88, 2, 0, 160, 187, 13, 0, 160, 187, 13, 77, 168, 14, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[136.636052 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeFRAME_MJPEG
+[136.645775 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.654107 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[136.662093 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.670425 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current332! type:None
+[136.680411 0:2 driver_usb::usb::descriptors:106] from slice uvc![30, 36, 7, 7, 0, 128, 2, 104, 1, 0, 128, 151, 6, 0, 128, 151, 6, 77, 10, 7, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[136.697160 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[30, 36, 7, 7, 0, 128, 2, 104, 1, 0, 128, 151, 6, 0, 128, 151, 6, 77, 10, 7, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[136.715474 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeFRAME_MJPEG
+[136.725197 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.733529 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[136.741515 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.749847 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current362! type:None
+[136.759833 0:2 driver_usb::usb::descriptors:106] from slice uvc![30, 36, 7, 8, 0, 128, 2, 224, 1, 0, 0, 202, 8, 0, 0, 202, 8, 77, 98, 9, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[136.776234 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[30, 36, 7, 8, 0, 128, 2, 224, 1, 0, 0, 202, 8, 0, 0, 202, 8, 77, 98, 9, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[136.794202 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeFRAME_MJPEG
+[136.803924 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.812256 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[136.820242 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.828575 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current392! type:None
+[136.838558 0:2 driver_usb::usb::descriptors:106] from slice uvc![22, 36, 3, 0, 4, 128, 2, 224, 1, 128, 7, 56, 4, 0, 5, 208, 2, 96, 1, 32, 1, 0]
+[136.852618 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[22, 36, 3, 0, 4, 128, 2, 224, 1, 128, 7, 56, 4, 0, 5, 208, 2, 96, 1, 32, 1, 0]
+[136.868242 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeSTILL_IMAGE_FRAME
+[136.878486 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.886818 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[136.894803 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.903136 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current414! type:None
+[136.913122 0:2 driver_usb::usb::descriptors:106] from slice uvc![27, 36, 4, 2, 5, 89, 85, 89, 50, 0, 0, 16, 0, 128, 0, 0, 170, 0, 56, 155, 113, 16, 1, 0, 0, 0, 0]
+[136.928829 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[27, 36, 4, 2, 5, 89, 85, 89, 50, 0, 0, 16, 0, 128, 0, 0, 170, 0, 56, 155, 113, 16, 1, 0, 0, 0, 0]
+[136.946102 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeFORMAT_UNCOMPRESSED
+[136.956519 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.964851 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[136.972837 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[136.981169 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current441! type:None
+[136.991155 0:2 driver_usb::usb::descriptors:106] from slice uvc![30, 36, 5, 1, 0, 128, 2, 224, 1, 0, 0, 202, 8, 0, 0, 202, 8, 0, 96, 9, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[137.007470 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[30, 36, 5, 1, 0, 128, 2, 224, 1, 0, 0, 202, 8, 0, 0, 202, 8, 0, 96, 9, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[137.025350 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeFRAME_UNCOMPRESSED
+[137.035681 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[137.044012 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[137.051998 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[137.060331 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current471! type:None
+[137.070317 0:2 driver_usb::usb::descriptors:106] from slice uvc![30, 36, 5, 2, 0, 128, 7, 56, 4, 0, 64, 227, 9, 0, 64, 227, 9, 0, 72, 63, 0, 128, 132, 30, 0, 1, 128, 132, 30, 0]
+[137.087326 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[30, 36, 5, 2, 0, 128, 7, 56, 4, 0, 64, 227, 9, 0, 64, 227, 9, 0, 72, 63, 0, 128, 132, 30, 0, 1, 128, 132, 30, 0]
+[137.105901 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeFRAME_UNCOMPRESSED
+[137.116231 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[137.124563 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[137.132549 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[137.140881 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current501! type:None
+[137.150868 0:2 driver_usb::usb::descriptors:106] from slice uvc![34, 36, 5, 3, 0, 0, 5, 208, 2, 0, 0, 101, 4, 0, 0, 202, 8, 0, 32, 28, 0, 64, 66, 15, 0, 2, 64, 66, 15, 0, 128, 132, 30, 0]
+[137.168744 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[34, 36, 5, 3, 0, 0, 5, 208, 2, 0, 0, 101, 4, 0, 0, 202, 8, 0, 32, 28, 0, 64, 66, 15, 0, 2, 64, 66, 15, 0, 128, 132, 30, 0]
+[137.188187 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeFRAME_UNCOMPRESSED
+[137.198517 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[137.206849 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[137.214835 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[137.223168 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current535! type:None
+[137.233154 0:2 driver_usb::usb::descriptors:106] from slice uvc![30, 36, 5, 4, 0, 128, 2, 104, 1, 0, 128, 151, 6, 0, 128, 151, 6, 0, 8, 7, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[137.249728 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[30, 36, 5, 4, 0, 128, 2, 104, 1, 0, 128, 151, 6, 0, 128, 151, 6, 0, 8, 7, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[137.267870 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeFRAME_UNCOMPRESSED
+[137.278200 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[137.286532 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[137.294517 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[137.302850 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current565! type:None
+[137.312836 0:2 driver_usb::usb::descriptors:106] from slice uvc![30, 36, 5, 5, 0, 128, 2, 224, 1, 0, 0, 202, 8, 0, 0, 202, 8, 0, 96, 9, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[137.329150 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[30, 36, 5, 5, 0, 128, 2, 224, 1, 0, 0, 202, 8, 0, 0, 202, 8, 0, 96, 9, 0, 21, 22, 5, 0, 1, 21, 22, 5, 0]
+[137.347031 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeFRAME_UNCOMPRESSED
+[137.357362 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[137.365693 0:2 driver_usb::usb::descriptors::parser:485] parse misc desc!
+[137.373679 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[137.382012 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current595! type:None
+[137.391995 0:2 driver_usb::usb::descriptors:106] from slice uvc![6, 36, 13, 1, 1, 4]
+[137.400934 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:411] buffer:[6, 36, 13, 1, 1, 4]
+[137.411437 0:2 driver_usb::usb::descriptors::desc_uvc::uvc_interfaces:415] subtypeCOLORFORMAT
+[137.421159 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[137.430446 0:2 driver_usb::usb::descriptors::parser:306] got additional data [UVCInterface(Streaming(InputHeader(UVCVSInterfaceInputHeader { length: 15, descriptor_type: 36, descriptor_sub_type: 1, num_formats: 2, total_length: 475, endpoint_address: 129, info: 0, terminal_link: 4, still_capture_method: 2, trigger_support: 1, trigger_useage: 1, control_size: 1, interface_nr: [0, 0] }))), UVCInterface(Streaming(FormatMjpeg(UVCVSInterfaceFormatMJPEG { length: 11, descriptor_type: 36, descriptor_sub_type: 6, format_index: 1, num_frame_descriptors: 8, flags: 0, default_frame_index: 1, aspect_ratio_x: 0, aspect_ratio_y: 0, interlace_flags: 0, is_copy_protect: 0 }))), UVCInterface(Streaming(FrameMjpeg(UVCVSInterfaceFrameMJPEG { length: 30, descriptor_type: 36, descriptor_sub_type: 7, frame_index: 1, capabilities: 0, width: 640, height: 480, min_bit_rate: 147456000, max_bit_rate: 147456000, max_video_frame_buffer_size: 614989, default_frame_interval: 333333, frame_interval_type: 1, frame_interval: Discrete([333333]) }))), UVCInterface(Streaming(FrameMjpeg(UVCVSInterfaceFrameMJPEG { length: 30, descriptor_type: 36, descriptor_sub_type: 7, frame_index: 2, capabilities: 0, width: 1920, height: 1080, min_bit_rate: 995328000, max_bit_rate: 995328000, max_video_frame_buffer_size: 4147789, default_frame_interval: 333333, frame_interval_type: 1, frame_interval: Discrete([333333]) }))), UVCInterface(Streaming(FrameMjpeg(UVCVSInterfaceFrameMJPEG { length: 30, descriptor_type: 36, descriptor_sub_type: 7, frame_index: 3, capabilities: 0, width: 1280, height: 960, min_bit_rate: 589824000, max_bit_rate: 589824000, max_video_frame_buffer_size: 2458189, default_frame_interval: 333333, frame_interval_type: 1, frame_interval: Discrete([333333]) }))), UVCInterface(Streaming(FrameMjpeg(UVCVSInterfaceFrameMJPEG { length: 30, descriptor_type: 36, descriptor_sub_type: 7, frame_index: 4, capabilities: 0, width: 1280, height: 720, min_bit_rate: 442368000, max_bit_rate: 442368000, max_video_frame_buffer_size: 1843789, default_frame_interval: 333333, frame_interval_type: 1, frame_interval: Discrete([333333]) }))), UVCInterface(Streaming(FrameMjpeg(UVCVSInterfaceFrameMJPEG { length: 30, descriptor_type: 36, descriptor_sub_type: 7, frame_index: 5, capabilities: 0, width: 1024, height: 576, min_bit_rate: 283115520, max_bit_rate: 283115520, max_video_frame_buffer_size: 1180237, default_frame_interval: 333333, frame_interval_type: 1, frame_interval: Discrete([333333]) }))), UVCInterface(Streaming(FrameMjpeg(UVCVSInterfaceFrameMJPEG { length: 30, descriptor_type: 36, descriptor_sub_type: 7, frame_index: 6, capabilities: 0, width: 800, height: 600, min_bit_rate: 230400000, max_bit_rate: 230400000, max_video_frame_buffer_size: 960589, default_frame_interval: 333333, frame_interval_type: 1, frame_interval: Discrete([333333]) }))), UVCInterface(Streaming(FrameMjpeg(UVCVSInterfaceFrameMJPEG { length: 30, descriptor_type: 36, descriptor_sub_type: 7, frame_index: 7, capabilities: 0, width: 640, height: 360, min_bit_rate: 110592000, max_bit_rate: 110592000, max_video_frame_buffer_size: 461389, default_frame_interval: 333333, frame_interval_type: 1, frame_interval: Discrete([333333]) }))), UVCInterface(Streaming(FrameMjpeg(UVCVSInterfaceFrameMJPEG { length: 30, descriptor_type: 36, descriptor_sub_type: 7, frame_index: 8, capabilities: 0, width: 640, height: 480, min_bit_rate: 147456000, max_bit_rate: 147456000, max_video_frame_buffer_size: 614989, default_frame_interval: 333333, frame_interval_type: 1, frame_interval: Discrete([333333]) }))), UVCInterface(Streaming(StillImageFrame(UVCVSInterfaceStillImageFrame { length: 22, descriptor_type: 36, descriptor_sub_type: 3, endpoint_address: 0, num_image_size_paterns: 4, width_heights: [(640, 480), (1920, 1080), (1280, 720), (352, 288)], num_compression_pattern: 0, compressions: [] }))), UVCInterface(Streaming(FormatUncompressed(UVCVSInterfaceFormatUncompressed { length: 170, descriptor_type: 0, descriptor_sub_type: 56, format_index: 155, number_frame_descriptor: 113, guid_format: [27, 36, 4, 2, 5, 89, 85, 89, 50, 0, 0, 16, 0, 128, 0, 0], bits_per_pixel: 16, default_frame_index: 1, aspect_ratio_x: 0, aspect_ratio_y: 0, m_interlace_flags: 0, is_copy_protect: 0 }))), UVCInterface(Streaming(FrameUncompressed(UVCVSInterfaceFrameUncompressed { length: 30, descriptor_type: 36, descriptor_sub_type: 5, frame_index: 1, capabilities: 0, width: 640, height: 480, min_bit_rate: 147456000, max_bit_rate: 147456000, max_video_frame_buffer_size: 614400, default_frame_interval: 333333, frame_interval_type: 1, frame_interval: Discrete([333333]) }))), UVCInterface(Streaming(FrameUncompressed(UVCVSInterfaceFrameUncompressed { length: 30, descriptor_type: 36, descriptor_sub_type: 5, frame_index: 2, capabilities: 0, width: 1920, height: 1080, min_bit_rate: 165888000, max_bit_rate: 165888000, max_video_frame_buffer_size: 4147200, default_frame_interval: 2000000, frame_interval_type: 1, frame_interval: Discrete([2000000]) }))), UVCInterface(Streaming(FrameUncompressed(UVCVSInterfaceFrameUncompressed { length: 34, descriptor_type: 36, descriptor_sub_type: 5, frame_index: 3, capabilities: 0, width: 1280, height: 720, min_bit_rate: 73728000, max_bit_rate: 147456000, max_video_frame_buffer_size: 1843200, default_frame_interval: 1000000, frame_interval_type: 2, frame_interval: Discrete([1000000, 2000000]) }))), UVCInterface(Streaming(FrameUncompressed(UVCVSInterfaceFrameUncompressed { length: 30, descriptor_type: 36, descriptor_sub_type: 5, frame_index: 4, capabilities: 0, width: 640, height: 360, min_bit_rate: 110592000, max_bit_rate: 110592000, max_video_frame_buffer_size: 460800, default_frame_interval: 333333, frame_interval_type: 1, frame_interval: Discrete([333333]) }))), UVCInterface(Streaming(FrameUncompressed(UVCVSInterfaceFrameUncompressed { length: 30, descriptor_type: 36, descriptor_sub_type: 5, frame_index: 5, capabilities: 0, width: 640, height: 480, min_bit_rate: 147456000, max_bit_rate: 147456000, max_video_frame_buffer_size: 614400, default_frame_interval: 333333, frame_interval_type: 1, frame_interval: Discrete([333333]) }))), UVCInterface(Streaming(COLORFORMAT(UVCVSInterfaceColorFormat { length: 6, descriptor_type: 36, descriptor_sub_type: 13, color_primaries: 1, transfer_characteristics: 1, matrix_coefficients: 4 })))]
+[137.981018 0:2 driver_usb::usb::descriptors::parser:499] parse enedpoints, metadata:UVC(2)
+[137.990480 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[137.999767 0:2 driver_usb::usb::descriptors::parser:413] peek uvc type!
+[138.007579 0:2 driver_usb::usb::descriptors::parser:531] not uvc data!
+[138.015304 0:2 driver_usb::usb::descriptors::parser:308] got endpoints []
+[138.023290 0:2 driver_usb::usb::descriptors::parser:286] loop! state:Inetrface(0, 1)
+[138.032230 0:2 driver_usb::usb::descriptors::parser:296] state interface!
+[138.040216 0:2 driver_usb::usb::descriptors::parser:425] peek at 601,value:9
+[138.048462 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[138.057750 0:2 driver_usb::usb::descriptors::parser:435] len9,from601,to609
+[138.065910 0:2 driver_usb::usb::descriptors::parser:438] got:Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 1, num_endpoints: 1, interface_class: 14, interface_subclass: 2, interface_protocol: 0, interface: 0 }
+[138.088651 0:2 driver_usb::usb::descriptors::parser:301] equal!
+[138.095768 0:2 driver_usb::usb::descriptors::parser:302] current:1
+[138.103146 0:2 driver_usb::usb::descriptors::parser:449] parse interfaces,metadata:UVC(2)
+[138.112521 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[138.121808 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current601! type:Some(Interface)
+[138.132747 0:2 driver_usb::usb::descriptors::parser:304] got interface Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 1, num_endpoints: 1, interface_class: 14, interface_subclass: 2, interface_protocol: 0, interface: 0 }
+[138.156354 0:2 driver_usb::usb::descriptors::parser:472] parse additional data for interface with metadata:UVC(2)
+[138.167812 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[138.177013 0:2 driver_usb::usb::descriptors::parser:306] got additional data []
+[138.185519 0:2 driver_usb::usb::descriptors::parser:499] parse enedpoints, metadata:UVC(2)
+[138.194981 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[138.204181 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[138.213382 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current610! type:Some(Endpoint)
+[138.224234 0:2 driver_usb::usb::descriptors::parser:506] parsed endpoint:Endpoint { len: 7, descriptor_type: 5, endpoint_address: 129, attributes: 5, max_packet_size: 128, interval: 1, ssc: None }
+[138.242895 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[138.252182 0:2 driver_usb::usb::descriptors::parser:413] peek uvc type!
+[138.259994 0:2 driver_usb::usb::descriptors::parser:531] not uvc data!
+[138.267719 0:2 driver_usb::usb::descriptors::parser:308] got endpoints [Standard(Endpoint { len: 7, descriptor_type: 5, endpoint_address: 129, attributes: 5, max_packet_size: 128, interval: 1, ssc: None })]
+[138.287249 0:2 driver_usb::usb::descriptors::parser:286] loop! state:Inetrface(0, 1)
+[138.296189 0:2 driver_usb::usb::descriptors::parser:296] state interface!
+[138.304175 0:2 driver_usb::usb::descriptors::parser:425] peek at 617,value:9
+[138.312421 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[138.321709 0:2 driver_usb::usb::descriptors::parser:435] len9,from617,to625
+[138.329869 0:2 driver_usb::usb::descriptors::parser:438] got:Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 2, num_endpoints: 1, interface_class: 14, interface_subclass: 2, interface_protocol: 0, interface: 0 }
+[138.352609 0:2 driver_usb::usb::descriptors::parser:301] equal!
+[138.359727 0:2 driver_usb::usb::descriptors::parser:302] current:1
+[138.367105 0:2 driver_usb::usb::descriptors::parser:449] parse interfaces,metadata:UVC(2)
+[138.376479 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[138.385767 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current617! type:Some(Interface)
+[138.396705 0:2 driver_usb::usb::descriptors::parser:304] got interface Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 2, num_endpoints: 1, interface_class: 14, interface_subclass: 2, interface_protocol: 0, interface: 0 }
+[138.420313 0:2 driver_usb::usb::descriptors::parser:472] parse additional data for interface with metadata:UVC(2)
+[138.431771 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[138.440972 0:2 driver_usb::usb::descriptors::parser:306] got additional data []
+[138.449478 0:2 driver_usb::usb::descriptors::parser:499] parse enedpoints, metadata:UVC(2)
+[138.458940 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[138.468140 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[138.477341 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current626! type:Some(Endpoint)
+[138.488192 0:2 driver_usb::usb::descriptors::parser:506] parsed endpoint:Endpoint { len: 7, descriptor_type: 5, endpoint_address: 129, attributes: 5, max_packet_size: 256, interval: 1, ssc: None }
+[138.506853 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[138.516140 0:2 driver_usb::usb::descriptors::parser:413] peek uvc type!
+[138.523953 0:2 driver_usb::usb::descriptors::parser:531] not uvc data!
+[138.531678 0:2 driver_usb::usb::descriptors::parser:308] got endpoints [Standard(Endpoint { len: 7, descriptor_type: 5, endpoint_address: 129, attributes: 5, max_packet_size: 256, interval: 1, ssc: None })]
+[138.551208 0:2 driver_usb::usb::descriptors::parser:286] loop! state:Inetrface(0, 1)
+[138.560148 0:2 driver_usb::usb::descriptors::parser:296] state interface!
+[138.568134 0:2 driver_usb::usb::descriptors::parser:425] peek at 633,value:9
+[138.576380 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[138.585667 0:2 driver_usb::usb::descriptors::parser:435] len9,from633,to641
+[138.593828 0:2 driver_usb::usb::descriptors::parser:438] got:Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 3, num_endpoints: 1, interface_class: 14, interface_subclass: 2, interface_protocol: 0, interface: 0 }
+[138.616568 0:2 driver_usb::usb::descriptors::parser:301] equal!
+[138.623686 0:2 driver_usb::usb::descriptors::parser:302] current:1
+[138.631064 0:2 driver_usb::usb::descriptors::parser:449] parse interfaces,metadata:UVC(2)
+[138.640438 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[138.649726 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current633! type:Some(Interface)
+[138.660664 0:2 driver_usb::usb::descriptors::parser:304] got interface Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 3, num_endpoints: 1, interface_class: 14, interface_subclass: 2, interface_protocol: 0, interface: 0 }
+[138.684272 0:2 driver_usb::usb::descriptors::parser:472] parse additional data for interface with metadata:UVC(2)
+[138.695730 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[138.704930 0:2 driver_usb::usb::descriptors::parser:306] got additional data []
+[138.713437 0:2 driver_usb::usb::descriptors::parser:499] parse enedpoints, metadata:UVC(2)
+[138.722898 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[138.732099 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[138.741300 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current642! type:Some(Endpoint)
+[138.752151 0:2 driver_usb::usb::descriptors::parser:506] parsed endpoint:Endpoint { len: 7, descriptor_type: 5, endpoint_address: 129, attributes: 5, max_packet_size: 800, interval: 1, ssc: None }
+[138.770812 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[138.780099 0:2 driver_usb::usb::descriptors::parser:413] peek uvc type!
+[138.787911 0:2 driver_usb::usb::descriptors::parser:531] not uvc data!
+[138.795636 0:2 driver_usb::usb::descriptors::parser:308] got endpoints [Standard(Endpoint { len: 7, descriptor_type: 5, endpoint_address: 129, attributes: 5, max_packet_size: 800, interval: 1, ssc: None })]
+[138.815166 0:2 driver_usb::usb::descriptors::parser:286] loop! state:Inetrface(0, 1)
+[138.824107 0:2 driver_usb::usb::descriptors::parser:296] state interface!
+[138.832092 0:2 driver_usb::usb::descriptors::parser:425] peek at 649,value:9
+[138.840339 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[138.849626 0:2 driver_usb::usb::descriptors::parser:435] len9,from649,to657
+[138.857786 0:2 driver_usb::usb::descriptors::parser:438] got:Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 4, num_endpoints: 1, interface_class: 14, interface_subclass: 2, interface_protocol: 0, interface: 0 }
+[138.880527 0:2 driver_usb::usb::descriptors::parser:301] equal!
+[138.887644 0:2 driver_usb::usb::descriptors::parser:302] current:1
+[138.895022 0:2 driver_usb::usb::descriptors::parser:449] parse interfaces,metadata:UVC(2)
+[138.904397 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[138.913684 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current649! type:Some(Interface)
+[138.924623 0:2 driver_usb::usb::descriptors::parser:304] got interface Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 4, num_endpoints: 1, interface_class: 14, interface_subclass: 2, interface_protocol: 0, interface: 0 }
+[138.948231 0:2 driver_usb::usb::descriptors::parser:472] parse additional data for interface with metadata:UVC(2)
+[138.959689 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[138.968889 0:2 driver_usb::usb::descriptors::parser:306] got additional data []
+[138.977396 0:2 driver_usb::usb::descriptors::parser:499] parse enedpoints, metadata:UVC(2)
+[138.986857 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[138.996058 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[139.005258 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current658! type:Some(Endpoint)
+[139.016110 0:2 driver_usb::usb::descriptors::parser:506] parsed endpoint:Endpoint { len: 7, descriptor_type: 5, endpoint_address: 129, attributes: 5, max_packet_size: 2848, interval: 1, ssc: None }
+[139.034858 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[139.044145 0:2 driver_usb::usb::descriptors::parser:413] peek uvc type!
+[139.051957 0:2 driver_usb::usb::descriptors::parser:531] not uvc data!
+[139.059682 0:2 driver_usb::usb::descriptors::parser:308] got endpoints [Standard(Endpoint { len: 7, descriptor_type: 5, endpoint_address: 129, attributes: 5, max_packet_size: 2848, interval: 1, ssc: None })]
+[139.079299 0:2 driver_usb::usb::descriptors::parser:286] loop! state:Inetrface(0, 1)
+[139.088239 0:2 driver_usb::usb::descriptors::parser:296] state interface!
+[139.096225 0:2 driver_usb::usb::descriptors::parser:425] peek at 665,value:9
+[139.104471 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[139.113759 0:2 driver_usb::usb::descriptors::parser:435] len9,from665,to673
+[139.121919 0:2 driver_usb::usb::descriptors::parser:438] got:Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 5, num_endpoints: 1, interface_class: 14, interface_subclass: 2, interface_protocol: 0, interface: 0 }
+[139.144659 0:2 driver_usb::usb::descriptors::parser:301] equal!
+[139.151777 0:2 driver_usb::usb::descriptors::parser:302] current:1
+[139.159155 0:2 driver_usb::usb::descriptors::parser:449] parse interfaces,metadata:UVC(2)
+[139.168529 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[139.177817 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current665! type:Some(Interface)
+[139.188756 0:2 driver_usb::usb::descriptors::parser:304] got interface Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 5, num_endpoints: 1, interface_class: 14, interface_subclass: 2, interface_protocol: 0, interface: 0 }
+[139.212363 0:2 driver_usb::usb::descriptors::parser:472] parse additional data for interface with metadata:UVC(2)
+[139.223821 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[139.233022 0:2 driver_usb::usb::descriptors::parser:306] got additional data []
+[139.241528 0:2 driver_usb::usb::descriptors::parser:499] parse enedpoints, metadata:UVC(2)
+[139.250989 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[139.260190 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[139.269391 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current674! type:Some(Endpoint)
+[139.280242 0:2 driver_usb::usb::descriptors::parser:506] parsed endpoint:Endpoint { len: 7, descriptor_type: 5, endpoint_address: 129, attributes: 5, max_packet_size: 4896, interval: 1, ssc: None }
+[139.298990 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[139.308277 0:2 driver_usb::usb::descriptors::parser:413] peek uvc type!
+[139.316089 0:2 driver_usb::usb::descriptors::parser:531] not uvc data!
+[139.323814 0:2 driver_usb::usb::descriptors::parser:308] got endpoints [Standard(Endpoint { len: 7, descriptor_type: 5, endpoint_address: 129, attributes: 5, max_packet_size: 4896, interval: 1, ssc: None })]
+[139.343431 0:2 driver_usb::usb::descriptors::parser:286] loop! state:Inetrface(0, 1)
+[139.352372 0:2 driver_usb::usb::descriptors::parser:296] state interface!
+[139.360357 0:2 driver_usb::usb::descriptors::parser:425] peek at 681,value:9
+[139.368603 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[139.377891 0:2 driver_usb::usb::descriptors::parser:435] len9,from681,to689
+[139.386051 0:2 driver_usb::usb::descriptors::parser:438] got:Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 6, num_endpoints: 1, interface_class: 14, interface_subclass: 2, interface_protocol: 0, interface: 0 }
+[139.408792 0:2 driver_usb::usb::descriptors::parser:301] equal!
+[139.415909 0:2 driver_usb::usb::descriptors::parser:302] current:1
+[139.423287 0:2 driver_usb::usb::descriptors::parser:449] parse interfaces,metadata:UVC(2)
+[139.432662 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Interface)
+[139.441949 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current681! type:Some(Interface)
+[139.452888 0:2 driver_usb::usb::descriptors::parser:304] got interface Interface { len: 9, descriptor_type: 4, interface_number: 1, alternate_setting: 6, num_endpoints: 1, interface_class: 14, interface_subclass: 2, interface_protocol: 0, interface: 0 }
+[139.476496 0:2 driver_usb::usb::descriptors::parser:472] parse additional data for interface with metadata:UVC(2)
+[139.487953 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[139.497154 0:2 driver_usb::usb::descriptors::parser:306] got additional data []
+[139.505660 0:2 driver_usb::usb::descriptors::parser:499] parse enedpoints, metadata:UVC(2)
+[139.515122 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[139.524323 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:Some(Endpoint)
+[139.533523 0:2 driver_usb::usb::descriptors::parser:364] parse any desc at current690! type:Some(Endpoint)
+[139.544375 0:2 driver_usb::usb::descriptors::parser:506] parsed endpoint:Endpoint { len: 7, descriptor_type: 5, endpoint_address: 129, attributes: 5, max_packet_size: 5120, interval: 1, ssc: None }
+[139.563122 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[139.571455 0:2 driver_usb::usb::descriptors::parser:413] peek uvc type!
+[139.579267 0:2 driver_usb::usb::descriptors::parser:531] not uvc data!
+[139.586992 0:2 driver_usb::usb::descriptors::parser:308] got endpoints [Standard(Endpoint { len: 7, descriptor_type: 5, endpoint_address: 129, attributes: 5, max_packet_size: 5120, interval: 1, ssc: None })]
+[139.606609 0:2 driver_usb::usb::descriptors::parser:286] loop! state:Inetrface(0, 1)
+[139.615549 0:2 driver_usb::usb::descriptors::parser:296] state interface!
+[139.623535 0:2 driver_usb::usb::descriptors::parser:425] peek at 697,value:0
+[139.631781 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[139.640114 0:2 driver_usb::usb::descriptors::parser:273] parse function desc!
+[139.648447 0:2 driver_usb::usb::descriptors::parser:404] peeked std type:None
+[139.656780 0:2 driver_usb::usb::descriptors::parser:176] state change:Config(1)
+[139.665286 0:2 driver_usb::usb::descriptors::parser:166] state change:END
+[139.673275 0:2 driver_usb:213] parsed descriptor:Inited(
+    TopologicalUSBDescriptorRoot {
+        device: [
+            TopologicalUSBDescriptorDevice {
+                data: Device {
+                    len: 18,
+                    descriptor_type: 1,
+                    cd_usb: 512,
+                    class: 239,
+                    subclass: 2,
+                    protocol: 1,
+                    max_packet_size0: 64,
+                    vendor: 12943,
+                    product_id: 115,
+                    device: 256,
+                    manufacture: 2,
+                    product: 1,
+                    serial_number: 3,
+                    num_configurations: 1,
+                },
+                child: [
+                    TopologicalUSBDescriptorConfiguration {
+                        data: Configuration {
+                            length: 9,
+                            ty: 2,
+                            total_length: 697,
+                            num_interfaces: 2,
+                            config_val: 1,
+                            config_string: 0,
+                            attributes: 128,
+                            max_power: 250,
+                        },
+                        child: [
+                            InterfaceAssociation(
+                                (
+                                    InterfaceAssociation {
+                                        len: 8,
+                                        descriptor_type: 11,
+                                        first_interface: 0,
+                                        interface_count: 2,
+                                        function_class: 14,
+                                        function_subclass: 3,
+                                        function_protocol: 0,
+                                        function: 5,
+                                    },
+                                    [
+                                        Interface(
+                                            [
+                                                (
+                                                    Interface {
+                                                        len: 9,
+                                                        descriptor_type: 4,
+                                                        interface_number: 0,
+                                                        alternate_setting: 0,
+                                                        num_endpoints: 1,
+                                                        interface_class: 14,
+                                                        interface_subclass: 1,
+                                                        interface_protocol: 0,
+                                                        interface: 5,
+                                                    },
+                                                    [
+                                                        UVCInterface(
+                                                            Control(
+                                                                Header(
+                                                                    UVCControlInterfaceHeader {
+                                                                        length: 13,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 1,
+                                                                        bcd_uvc: 256,
+                                                                        total_length: 79,
+                                                                        clock_frequency: 15000000,
+                                                                        in_collection: 1,
+                                                                        interface_nr: [
+                                                                            1,
+                                                                        ],
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Control(
+                                                                OutputTerminal(
+                                                                    UVCControlInterfaceOutputTerminal {
+                                                                        length: 9,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 3,
+                                                                        terminal_id: 4,
+                                                                        terminal_type: 257,
+                                                                        associated_terminal: 0,
+                                                                        source_id: 3,
+                                                                        string_index_terminal: 0,
+                                                                        reserved: [],
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Control(
+                                                                ExtensionUnit(
+                                                                    UVCControlInterfaceExtensionUnit {
+                                                                        length: 28,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 6,
+                                                                        unit_id: 3,
+                                                                        guid_extension_code: [
+                                                                            112,
+                                                                            51,
+                                                                            240,
+                                                                            40,
+                                                                            17,
+                                                                            99,
+                                                                            46,
+                                                                            74,
+                                                                            186,
+                                                                            44,
+                                                                            104,
+                                                                            144,
+                                                                            235,
+                                                                            51,
+                                                                            64,
+                                                                            22,
+                                                                        ],
+                                                                        num_controls: 24,
+                                                                        nr_in_pins: 1,
+                                                                        source_ids: [
+                                                                            1,
+                                                                        ],
+                                                                        control_size: 2,
+                                                                        controls: [
+                                                                            2,
+                                                                            3,
+                                                                        ],
+                                                                        extension: 159,
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Control(
+                                                                InputTerminal(
+                                                                    UVCControlInterfaceInputTerminal {
+                                                                        length: 18,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 2,
+                                                                        terminal_id: 1,
+                                                                        terminal_type: 513,
+                                                                        associated_terminal: 0,
+                                                                        string_index_terminal: 0,
+                                                                        reserved: [
+                                                                            0,
+                                                                            0,
+                                                                            0,
+                                                                            0,
+                                                                            0,
+                                                                            0,
+                                                                            3,
+                                                                            14,
+                                                                            96,
+                                                                            0,
+                                                                        ],
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Control(
+                                                                ProcessingUnit(
+                                                                    UVCControlInterfaceProcessingUnit {
+                                                                        length: 5,
+                                                                        descriptor_type: 2,
+                                                                        descriptor_sub_type: 1,
+                                                                        unit_id: 0,
+                                                                        source_id: 0,
+                                                                        max_multiplier: 9227,
+                                                                        control_size: 2,
+                                                                        controls: [
+                                                                            127,
+                                                                            23,
+                                                                            0,
+                                                                        ],
+                                                                        processing: 0,
+                                                                        video_standards: 0,
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                    ],
+                                                    [
+                                                        Standard(
+                                                            Endpoint {
+                                                                len: 7,
+                                                                descriptor_type: 5,
+                                                                endpoint_address: 131,
+                                                                attributes: 3,
+                                                                max_packet_size: 16,
+                                                                interval: 6,
+                                                                ssc: None,
+                                                            },
+                                                        ),
+                                                        UNVVideoControlInterruptEndpoint(
+                                                            UVCVideoControlInterruptEndpoint {
+                                                                len: 3,
+                                                                descriptor_type: 128,
+                                                                descriptor_sub_type: 0,
+                                                                max_transfer_size: 9477,
+                                                            },
+                                                        ),
+                                                    ],
+                                                ),
+                                            ],
+                                        ),
+                                        Interface(
+                                            [
+                                                (
+                                                    Interface {
+                                                        len: 9,
+                                                        descriptor_type: 4,
+                                                        interface_number: 1,
+                                                        alternate_setting: 0,
+                                                        num_endpoints: 0,
+                                                        interface_class: 14,
+                                                        interface_subclass: 2,
+                                                        interface_protocol: 0,
+                                                        interface: 0,
+                                                    },
+                                                    [
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                InputHeader(
+                                                                    UVCVSInterfaceInputHeader {
+                                                                        length: 15,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 1,
+                                                                        num_formats: 2,
+                                                                        total_length: 475,
+                                                                        endpoint_address: 129,
+                                                                        info: 0,
+                                                                        terminal_link: 4,
+                                                                        still_capture_method: 2,
+                                                                        trigger_support: 1,
+                                                                        trigger_useage: 1,
+                                                                        control_size: 1,
+                                                                        interface_nr: [
+                                                                            0,
+                                                                            0,
+                                                                        ],
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                FormatMjpeg(
+                                                                    UVCVSInterfaceFormatMJPEG {
+                                                                        length: 11,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 6,
+                                                                        format_index: 1,
+                                                                        num_frame_descriptors: 8,
+                                                                        flags: 0,
+                                                                        default_frame_index: 1,
+                                                                        aspect_ratio_x: 0,
+                                                                        aspect_ratio_y: 0,
+                                                                        interlace_flags: 0,
+                                                                        is_copy_protect: 0,
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                FrameMjpeg(
+                                                                    UVCVSInterfaceFrameMJPEG {
+                                                                        length: 30,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 7,
+                                                                        frame_index: 1,
+                                                                        capabilities: 0,
+                                                                        width: 640,
+                                                                        height: 480,
+                                                                        min_bit_rate: 147456000,
+                                                                        max_bit_rate: 147456000,
+                                                                        max_video_frame_buffer_size: 614989,
+                                                                        default_frame_interval: 333333,
+                                                                        frame_interval_type: 1,
+                                                                        frame_interval: Discrete(
+                                                                            [
+                                                                                333333,
+                                                                            ],
+                                                                        ),
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                FrameMjpeg(
+                                                                    UVCVSInterfaceFrameMJPEG {
+                                                                        length: 30,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 7,
+                                                                        frame_index: 2,
+                                                                        capabilities: 0,
+                                                                        width: 1920,
+                                                                        height: 1080,
+                                                                        min_bit_rate: 995328000,
+                                                                        max_bit_rate: 995328000,
+                                                                        max_video_frame_buffer_size: 4147789,
+                                                                        default_frame_interval: 333333,
+                                                                        frame_interval_type: 1,
+                                                                        frame_interval: Discrete(
+                                                                            [
+                                                                                333333,
+                                                                            ],
+                                                                        ),
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                FrameMjpeg(
+                                                                    UVCVSInterfaceFrameMJPEG {
+                                                                        length: 30,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 7,
+                                                                        frame_index: 3,
+                                                                        capabilities: 0,
+                                                                        width: 1280,
+                                                                        height: 960,
+                                                                        min_bit_rate: 589824000,
+                                                                        max_bit_rate: 589824000,
+                                                                        max_video_frame_buffer_size: 2458189,
+                                                                        default_frame_interval: 333333,
+                                                                        frame_interval_type: 1,
+                                                                        frame_interval: Discrete(
+                                                                            [
+                                                                                333333,
+                                                                            ],
+                                                                        ),
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                FrameMjpeg(
+                                                                    UVCVSInterfaceFrameMJPEG {
+                                                                        length: 30,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 7,
+                                                                        frame_index: 4,
+                                                                        capabilities: 0,
+                                                                        width: 1280,
+                                                                        height: 720,
+                                                                        min_bit_rate: 442368000,
+                                                                        max_bit_rate: 442368000,
+                                                                        max_video_frame_buffer_size: 1843789,
+                                                                        default_frame_interval: 333333,
+                                                                        frame_interval_type: 1,
+                                                                        frame_interval: Discrete(
+                                                                            [
+                                                                                333333,
+                                                                            ],
+                                                                        ),
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                FrameMjpeg(
+                                                                    UVCVSInterfaceFrameMJPEG {
+                                                                        length: 30,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 7,
+                                                                        frame_index: 5,
+                                                                        capabilities: 0,
+                                                                        width: 1024,
+                                                                        height: 576,
+                                                                        min_bit_rate: 283115520,
+                                                                        max_bit_rate: 283115520,
+                                                                        max_video_frame_buffer_size: 1180237,
+                                                                        default_frame_interval: 333333,
+                                                                        frame_interval_type: 1,
+                                                                        frame_interval: Discrete(
+                                                                            [
+                                                                                333333,
+                                                                            ],
+                                                                        ),
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                FrameMjpeg(
+                                                                    UVCVSInterfaceFrameMJPEG {
+                                                                        length: 30,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 7,
+                                                                        frame_index: 6,
+                                                                        capabilities: 0,
+                                                                        width: 800,
+                                                                        height: 600,
+                                                                        min_bit_rate: 230400000,
+                                                                        max_bit_rate: 230400000,
+                                                                        max_video_frame_buffer_size: 960589,
+                                                                        default_frame_interval: 333333,
+                                                                        frame_interval_type: 1,
+                                                                        frame_interval: Discrete(
+                                                                            [
+                                                                                333333,
+                                                                            ],
+                                                                        ),
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                FrameMjpeg(
+                                                                    UVCVSInterfaceFrameMJPEG {
+                                                                        length: 30,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 7,
+                                                                        frame_index: 7,
+                                                                        capabilities: 0,
+                                                                        width: 640,
+                                                                        height: 360,
+                                                                        min_bit_rate: 110592000,
+                                                                        max_bit_rate: 110592000,
+                                                                        max_video_frame_buffer_size: 461389,
+                                                                        default_frame_interval: 333333,
+                                                                        frame_interval_type: 1,
+                                                                        frame_interval: Discrete(
+                                                                            [
+                                                                                333333,
+                                                                            ],
+                                                                        ),
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                FrameMjpeg(
+                                                                    UVCVSInterfaceFrameMJPEG {
+                                                                        length: 30,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 7,
+                                                                        frame_index: 8,
+                                                                        capabilities: 0,
+                                                                        width: 640,
+                                                                        height: 480,
+                                                                        min_bit_rate: 147456000,
+                                                                        max_bit_rate: 147456000,
+                                                                        max_video_frame_buffer_size: 614989,
+                                                                        default_frame_interval: 333333,
+                                                                        frame_interval_type: 1,
+                                                                        frame_interval: Discrete(
+                                                                            [
+                                                                                333333,
+                                                                            ],
+                                                                        ),
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                StillImageFrame(
+                                                                    UVCVSInterfaceStillImageFrame {
+                                                                        length: 22,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 3,
+                                                                        endpoint_address: 0,
+                                                                        num_image_size_paterns: 4,
+                                                                        width_heights: [
+                                                                            (
+                                                                                640,
+                                                                                480,
+                                                                            ),
+                                                                            (
+                                                                                1920,
+                                                                                1080,
+                                                                            ),
+                                                                            (
+                                                                                1280,
+                                                                                720,
+                                                                            ),
+                                                                            (
+                                                                                352,
+                                                                                288,
+                                                                            ),
+                                                                        ],
+                                                                        num_compression_pattern: 0,
+                                                                        compressions: [],
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                FormatUncompressed(
+                                                                    UVCVSInterfaceFormatUncompressed {
+                                                                        length: 170,
+                                                                        descriptor_type: 0,
+                                                                        descriptor_sub_type: 56,
+                                                                        format_index: 155,
+                                                                        number_frame_descriptor: 113,
+                                                                        guid_format: [
+                                                                            27,
+                                                                            36,
+                                                                            4,
+                                                                            2,
+                                                                            5,
+                                                                            89,
+                                                                            85,
+                                                                            89,
+                                                                            50,
+                                                                            0,
+                                                                            0,
+                                                                            16,
+                                                                            0,
+                                                                            128,
+                                                                            0,
+                                                                            0,
+                                                                        ],
+                                                                        bits_per_pixel: 16,
+                                                                        default_frame_index: 1,
+                                                                        aspect_ratio_x: 0,
+                                                                        aspect_ratio_y: 0,
+                                                                        m_interlace_flags: 0,
+                                                                        is_copy_protect: 0,
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                FrameUncompressed(
+                                                                    UVCVSInterfaceFrameUncompressed {
+                                                                        length: 30,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 5,
+                                                                        frame_index: 1,
+                                                                        capabilities: 0,
+                                                                        width: 640,
+                                                                        height: 480,
+                                                                        min_bit_rate: 147456000,
+                                                                        max_bit_rate: 147456000,
+                                                                        max_video_frame_buffer_size: 614400,
+                                                                        default_frame_interval: 333333,
+                                                                        frame_interval_type: 1,
+                                                                        frame_interval: Discrete(
+                                                                            [
+                                                                                333333,
+                                                                            ],
+                                                                        ),
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                FrameUncompressed(
+                                                                    UVCVSInterfaceFrameUncompressed {
+                                                                        length: 30,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 5,
+                                                                        frame_index: 2,
+                                                                        capabilities: 0,
+                                                                        width: 1920,
+                                                                        height: 1080,
+                                                                        min_bit_rate: 165888000,
+                                                                        max_bit_rate: 165888000,
+                                                                        max_video_frame_buffer_size: 4147200,
+                                                                        default_frame_interval: 2000000,
+                                                                        frame_interval_type: 1,
+                                                                        frame_interval: Discrete(
+                                                                            [
+                                                                                2000000,
+                                                                            ],
+                                                                        ),
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                FrameUncompressed(
+                                                                    UVCVSInterfaceFrameUncompressed {
+                                                                        length: 34,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 5,
+                                                                        frame_index: 3,
+                                                                        capabilities: 0,
+                                                                        width: 1280,
+                                                                        height: 720,
+                                                                        min_bit_rate: 73728000,
+                                                                        max_bit_rate: 147456000,
+                                                                        max_video_frame_buffer_size: 1843200,
+                                                                        default_frame_interval: 1000000,
+                                                                        frame_interval_type: 2,
+                                                                        frame_interval: Discrete(
+                                                                            [
+                                                                                1000000,
+                                                                                2000000,
+                                                                            ],
+                                                                        ),
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                FrameUncompressed(
+                                                                    UVCVSInterfaceFrameUncompressed {
+                                                                        length: 30,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 5,
+                                                                        frame_index: 4,
+                                                                        capabilities: 0,
+                                                                        width: 640,
+                                                                        height: 360,
+                                                                        min_bit_rate: 110592000,
+                                                                        max_bit_rate: 110592000,
+                                                                        max_video_frame_buffer_size: 460800,
+                                                                        default_frame_interval: 333333,
+                                                                        frame_interval_type: 1,
+                                                                        frame_interval: Discrete(
+                                                                            [
+                                                                                333333,
+                                                                            ],
+                                                                        ),
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                FrameUncompressed(
+                                                                    UVCVSInterfaceFrameUncompressed {
+                                                                        length: 30,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 5,
+                                                                        frame_index: 5,
+                                                                        capabilities: 0,
+                                                                        width: 640,
+                                                                        height: 480,
+                                                                        min_bit_rate: 147456000,
+                                                                        max_bit_rate: 147456000,
+                                                                        max_video_frame_buffer_size: 614400,
+                                                                        default_frame_interval: 333333,
+                                                                        frame_interval_type: 1,
+                                                                        frame_interval: Discrete(
+                                                                            [
+                                                                                333333,
+                                                                            ],
+                                                                        ),
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        UVCInterface(
+                                                            Streaming(
+                                                                COLORFORMAT(
+                                                                    UVCVSInterfaceColorFormat {
+                                                                        length: 6,
+                                                                        descriptor_type: 36,
+                                                                        descriptor_sub_type: 13,
+                                                                        color_primaries: 1,
+                                                                        transfer_characteristics: 1,
+                                                                        matrix_coefficients: 4,
+                                                                    },
+                                                                ),
+                                                            ),
+                                                        ),
+                                                    ],
+                                                    [],
+                                                ),
+                                                (
+                                                    Interface {
+                                                        len: 9,
+                                                        descriptor_type: 4,
+                                                        interface_number: 1,
+                                                        alternate_setting: 1,
+                                                        num_endpoints: 1,
+                                                        interface_class: 14,
+                                                        interface_subclass: 2,
+                                                        interface_protocol: 0,
+                                                        interface: 0,
+                                                    },
+                                                    [],
+                                                    [
+                                                        Standard(
+                                                            Endpoint {
+                                                                len: 7,
+                                                                descriptor_type: 5,
+                                                                endpoint_address: 129,
+                                                                attributes: 5,
+                                                                max_packet_size: 128,
+                                                                interval: 1,
+                                                                ssc: None,
+                                                            },
+                                                        ),
+                                                    ],
+                                                ),
+                                                (
+                                                    Interface {
+                                                        len: 9,
+                                                        descriptor_type: 4,
+                                                        interface_number: 1,
+                                                        alternate_setting: 2,
+                                                        num_endpoints: 1,
+                                                        interface_class: 14,
+                                                        interface_subclass: 2,
+                                                        interface_protocol: 0,
+                                                        interface: 0,
+                                                    },
+                                                    [],
+                                                    [
+                                                        Standard(
+                                                            Endpoint {
+                                                                len: 7,
+                                                                descriptor_type: 5,
+                                                                endpoint_address: 129,
+                                                                attributes: 5,
+                                                                max_packet_size: 256,
+                                                                interval: 1,
+                                                                ssc: None,
+                                                            },
+                                                        ),
+                                                    ],
+                                                ),
+                                                (
+                                                    Interface {
+                                                        len: 9,
+                                                        descriptor_type: 4,
+                                                        interface_number: 1,
+                                                        alternate_setting: 3,
+                                                        num_endpoints: 1,
+                                                        interface_class: 14,
+                                                        interface_subclass: 2,
+                                                        interface_protocol: 0,
+                                                        interface: 0,
+                                                    },
+                                                    [],
+                                                    [
+                                                        Standard(
+                                                            Endpoint {
+                                                                len: 7,
+                                                                descriptor_type: 5,
+                                                                endpoint_address: 129,
+                                                                attributes: 5,
+                                                                max_packet_size: 800,
+                                                                interval: 1,
+                                                                ssc: None,
+                                                            },
+                                                        ),
+                                                    ],
+                                                ),
+                                                (
+                                                    Interface {
+                                                        len: 9,
+                                                        descriptor_type: 4,
+                                                        interface_number: 1,
+                                                        alternate_setting: 4,
+                                                        num_endpoints: 1,
+                                                        interface_class: 14,
+                                                        interface_subclass: 2,
+                                                        interface_protocol: 0,
+                                                        interface: 0,
+                                                    },
+                                                    [],
+                                                    [
+                                                        Standard(
+                                                            Endpoint {
+                                                                len: 7,
+                                                                descriptor_type: 5,
+                                                                endpoint_address: 129,
+                                                                attributes: 5,
+                                                                max_packet_size: 2848,
+                                                                interval: 1,
+                                                                ssc: None,
+                                                            },
+                                                        ),
+                                                    ],
+                                                ),
+                                                (
+                                                    Interface {
+                                                        len: 9,
+                                                        descriptor_type: 4,
+                                                        interface_number: 1,
+                                                        alternate_setting: 5,
+                                                        num_endpoints: 1,
+                                                        interface_class: 14,
+                                                        interface_subclass: 2,
+                                                        interface_protocol: 0,
+                                                        interface: 0,
+                                                    },
+                                                    [],
+                                                    [
+                                                        Standard(
+                                                            Endpoint {
+                                                                len: 7,
+                                                                descriptor_type: 5,
+                                                                endpoint_address: 129,
+                                                                attributes: 5,
+                                                                max_packet_size: 4896,
+                                                                interval: 1,
+                                                                ssc: None,
+                                                            },
+                                                        ),
+                                                    ],
+                                                ),
+                                                (
+                                                    Interface {
+                                                        len: 9,
+                                                        descriptor_type: 4,
+                                                        interface_number: 1,
+                                                        alternate_setting: 6,
+                                                        num_endpoints: 1,
+                                                        interface_class: 14,
+                                                        interface_subclass: 2,
+                                                        interface_protocol: 0,
+                                                        interface: 0,
+                                                    },
+                                                    [],
+                                                    [
+                                                        Standard(
+                                                            Endpoint {
+                                                                len: 7,
+                                                                descriptor_type: 5,
+                                                                endpoint_address: 129,
+                                                                attributes: 5,
+                                                                max_packet_size: 5120,
+                                                                interval: 1,
+                                                                ssc: None,
+                                                            },
+                                                        ),
+                                                    ],
+                                                ),
+                                            ],
+                                        ),
+                                    ],
+                                ),
+                            ),
+                        ],
+                    },
+                ],
+            },
+        ],
+        others: [],
+        metadata: UVC(
+            2,
+        ),
+    },
+)
+[145.450508 0:2 driver_usb::host::data_structures::host_controllers::xhci:439] fetch transfer ring at slot1-dci7
+[145.461790 0:2 driver_usb::host::data_structures::host_controllers::xhci:558] init ep 7 InterruptIn
+[145.472034 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:78] enqueued 6 @0x901CE8E0
+901b2000
+0
+0
+1003001
+------------------------------------------------
+[145.489305 0:2 driver_usb::host::data_structures::host_controllers::xhci::ring:61] [CMD] >> ConfigureEndpoint(ConfigureEndpoint { input_context_pointer: 2417696768, deconfigure: false, slot_id: 1, cycle_bit: true }) @901CE8E0
+[145.510485 0:2 driver_usb::host::data_structures::host_controllers::xhci:383] Wait result
+[145.519860 0:2 driver_usb::host::data_structures::host_controllers::xhci:394] [CMD] << Success @901CE8E0 got result, cycle true
+[145.532533 0:2 driver_usb::host::data_structures::host_controllers::xhci:416] slot 1 Configured
+[145.542427 0:2 driver_usb::host::data_structures::host_controllers::xhci:421] device context state:Device {
+    slot: Slot {
+        route_string: 1,
+        speed: 3,
+        multi_tt: false,
+        hub: false,
+        context_entries: 7,
+        max_exit_latency: 0,
+        root_hub_port_number: 1,
+        number_of_ports: 0,
+        parent_hub_slot_id: 0,
+        parent_port_number: 0,
+        tt_think_time: 0,
+        interrupter_target: 0,
+        usb_device_address: 1,
+        slot_state: Configured,
+    },
+    endpoints: [
+        Endpoint {
+            endpoint_state: Running,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 3,
+            endpoint_type: Control,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 64,
+            dequeue_cycle_state: true,
+            tr_dequeue_pointer: 2417822161,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Running,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 3,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 3,
+            endpoint_type: InterruptIn,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 16,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 2417825472,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 4,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+        Endpoint {
+            endpoint_state: Disabled,
+            mult: 0,
+            max_primary_streams: 0,
+            linear_stream_array: false,
+            interval: 0,
+            max_endpoint_service_time_interval_payload_high: 0,
+            error_count: 0,
+            endpoint_type: NotValid,
+            host_initiate_disable: false,
+            max_burst_size: 0,
+            max_packet_size: 0,
+            dequeue_cycle_state: false,
+            tr_dequeue_pointer: 0,
+            average_trb_length: 0,
+            max_endpoint_service_time_interval_payload_low: 0,
+        },
+    ],
+}
+[147.246833 0:2 driver_usb:101] device probe complete
+[147.253030 0:2 axruntime::lang_items:5] panicked at /home/dbydd/gitProjects/arceos_experiment/crates/driver_usb/src/usb/universal_drivers/uvc_drivers/generic_uvc.rs:188:9:
+not yet implemented
+[147.271310 0:2 axhal::platform::aarch64_phytium_pi::misc:22] Shutting down...
