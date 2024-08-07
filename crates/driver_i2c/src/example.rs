@@ -276,7 +276,7 @@ pub unsafe fn FI2cMasterWrite(buf_p: &mut [u8], buf_len: u32, inchip_offset: u32
     }
 
     status = FI2cMasterWritePoll(&mut master_i2c_instance, inchip_offset, 1, buf_p, buf_len);
-    debug!("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    //debug!("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     if status != true {
         debug!("Write to eeprom failed");
     }

@@ -71,7 +71,7 @@ pub unsafe fn OledDisplayOn() -> bool {
     let mut ret: bool;
     let mut display_data = [0xFF; 128];
 
-    for _ in 0..8 {
+    for _ in 0..5 {
         // SSD1306有8页
         for i in 0..128 {
             ret = FI2cMasterWrite(&mut [display_data[i]], 1, 0);
@@ -82,6 +82,44 @@ pub unsafe fn OledDisplayOn() -> bool {
         }
     }
     return true;
+}
+
+pub unsafe fn oled_set_cursor(y: u8, x: u8) {
+    FI2cMasterWrite(&mut [0xB0 | y],1,0);  // 设置Y位置
+    FI2cMasterWrite(&mut [0x10 | ((x & 0xF0) >> 4)],1,0);  // 设置X位置高4位
+    FI2cMasterWrite(&mut [0x00 | (x & 0x0F)],1,0);  // 设置X位置低4位
+}
+
+pub fn get_char_font(c: char) -> [u8; 8] {
+    match c {
+        'h' => [0x00, 0x7F, 0x08, 0x08, 0x08, 0x08, 0x70, 0x00],
+        'e' => [0x00, 0x3E, 0x49, 0x49, 0x49, 0x41, 0x00, 0x00],
+        'l' => [0x00, 0x41, 0x7F, 0x40, 0x00, 0x00, 0x00, 0x00],
+        'o' => [0x00, 0x3E, 0x41, 0x41, 0x41, 0x3E, 0x00, 0x00],
+        'r' => [0x00, 0x7F, 0x08, 0x08, 0x08, 0x30, 0x00, 0x00],
+        'u' => [0x00, 0x3F, 0x40, 0x40, 0x40, 0x3F, 0x00, 0x00],
+        's' => [0x00, 0x32, 0x49, 0x49, 0x49, 0x26, 0x00, 0x00],
+        't' => [0x00, 0x01, 0x01, 0x7F, 0x01, 0x01, 0x00, 0x00],
+        _ => [0x00; 8], // 默认未定义字符为空
+    }
+}
+
+pub unsafe fn oled_show_char(line: u8, column: u8, char: char) {
+    let font = get_char_font(char);
+    oled_set_cursor((line - 1) * 2, (column - 1) * 8);
+    for i in 0..8 {
+        FI2cMasterWrite(&mut [font[i]],1,0);
+    }
+    oled_set_cursor((line - 1) * 2 + 1, (column - 1) * 8);
+    for i in 0..8 {
+        FI2cMasterWrite(&mut [font[i]],1,0);
+    }
+}
+
+pub unsafe fn oled_show_string(line: u8, column: u8, string: &str) {
+    for (i, char) in string.chars().enumerate() {
+        oled_show_char(line, column + i as u8, char);
+    }
 }
 
 pub fn run_iicoled() {
@@ -96,5 +134,6 @@ pub fn run_iicoled() {
         }
         ret = OledInit();
         ret = OledDisplayOn();
+        // oled_show_string(1,1,"hello rust");
     }
 }
