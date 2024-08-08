@@ -155,7 +155,7 @@ fn SetLineProperties(&mut self,nDataBits:u8,nParity:u8,nStopBits:u8) -> bool{
                 DataTransferType::Vendor,
                 Recipient::Device,
             ),
-            request: StandardbRequest::SetConfiguration.into(),
+            request: StandardbRequest::SetConfiguration.into(),//0xA4
             index: !mcr as u16,
             value: 0 as u16,
             data: None,

@@ -694,7 +694,10 @@ name = "ch341"
 version = "0.1.0"
 dependencies = [
  "axalloc",
+ "axfeat",
+ "axhal",
  "axstd",
+ "driver_usb",
 ]
 
 [[package]]
