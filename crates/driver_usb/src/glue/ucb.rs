@@ -3,7 +3,6 @@ use core::marker::PhantomData;
 use xhci::ring::trb::event::CompletionCode;
 
 use crate::abstractions::PlatformAbstractions;
-
 pub struct UCB<O>
 where
     O: PlatformAbstractions,
@@ -28,12 +27,14 @@ where
 #[derive(Debug)]
 pub enum CompleteCode {
     Event(TransferEventCompleteCode),
+    Debug,
 }
 
 #[derive(Debug)]
 pub enum TransferEventCompleteCode {
     Success,
     Halt,
+    Stall,
     Unknown(u8),
     IsochComplete,
 }
