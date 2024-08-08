@@ -53,7 +53,7 @@ where
             ));
 
             self.managed_modules.load_driver(Box::new(
-                universal_drivers::ch341_drivers::ch341::
+                universal_drivers::ch341_drivers::ch341::CH341driverModule,
             ));
         }
 
