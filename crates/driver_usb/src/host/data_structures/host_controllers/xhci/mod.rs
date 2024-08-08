@@ -16,7 +16,7 @@ use xhci::{
     context::{DeviceHandler, EndpointState, EndpointType, Input, InputHandler, SlotHandler},
     extended_capabilities::XhciSupportedProtocol,
     ring::trb::{
-        command,
+        command::{self, ResetEndpoint},
         event::{self, CommandCompletion, CompletionCode, HostController},
         transfer::{self, Direction, Isoch, Normal, TransferType},
     },
@@ -26,7 +26,10 @@ use xhci::{
 use crate::{
     abstractions::{dma::DMA, PlatformAbstractions},
     err::Error,
-    glue::ucb::{CompleteCode, TransferEventCompleteCode, UCB},
+    glue::{
+        driver_independent_device_instance::DriverIndependentDeviceInstance,
+        ucb::{CompleteCode, TransferEventCompleteCode, UCB},
+    },
     host::data_structures::MightBeInited,
     usb::{
         descriptors::{
@@ -37,10 +40,13 @@ use crate::{
             },
             USBStandardDescriptorTypes,
         },
-        operation::{Configuration, ExtraStep},
+        operation::{Configuration, Debugop, ExtraStep},
         trasnfer::{
             self,
-            control::{bmRequestType, ControlTransfer, DataTransferType, StandardbRequest},
+            control::{
+                bRequest, bmRequestType, ControlTransfer, DataTransferType, Recipient,
+                StandardbRequest,
+            },
         },
         urb,
     },
@@ -487,6 +493,51 @@ where
         }
     }
 
+    fn switch_interface(
+        &mut self,
+        device_slot_id: usize,
+        interface: usize,
+        alternative: usize,
+    ) -> crate::err::Result<UCB<O>> {
+        self.control_transfer(
+            device_slot_id,
+            ControlTransfer {
+                request_type: bmRequestType::new(
+                    Direction::Out,
+                    DataTransferType::Standard,
+                    Recipient::Interface,
+                ),
+                request: bRequest::Generic(StandardbRequest::SetInterface),
+                index: interface as _,
+                value: alternative as _,
+                data: None,
+            },
+        )
+    }
+
+    fn reset_endpoint(&mut self, device_slot_id: usize, dci: usize) -> crate::err::Result<UCB<O>> {
+        let command_completion = self
+            .post_cmd(command::Allowed::ResetEndpoint(
+                *ResetEndpoint::new()
+                    .set_endpoint_id(dci as _)
+                    .set_slot_id(device_slot_id as _),
+            ))
+            .unwrap();
+
+        self.trace_dump_context(device_slot_id);
+        match command_completion.completion_code() {
+            Ok(ok) => match ok {
+                CompletionCode::Success => Ok(UCB::<O>::new(CompleteCode::Event(
+                    TransferEventCompleteCode::Success,
+                ))),
+                other => panic!("err:{:?}", other),
+            },
+            Err(err) => Ok(UCB::new(CompleteCode::Event(
+                TransferEventCompleteCode::Unknown(err),
+            ))),
+        }
+    }
+
     fn setup_device(
         &mut self,
         device_slot_id: usize,
@@ -509,16 +560,14 @@ where
                 // let (interface0, attributes, endpoints) =
                 assoc
                     .1
-                    .first()
-                    .map(|f| match f {
+                    .iter()
+                    .flat_map(|f| match f {
                         TopologicalUSBDescriptorFunction::InterfaceAssociation(_) => {
                             panic!("anyone could help this guy????")
                         }
                         TopologicalUSBDescriptorFunction::Interface(interface) => interface,
                     })
-                    .unwrap()
-                    .iter()
-                    .for_each(|(interface0, extras, endpoints)| {
+                    .for_each(|(_, _, endpoints)| {
                         {
                             let input =
                                 self.dev_ctx.device_input_context_list[device_slot_id].deref_mut();
@@ -548,6 +597,7 @@ where
 
                         for item in endpoints {
                             if let TopologicalUSBDescriptorEndpoint::Standard(ep) = item {
+                                trace!("configuring {:#?}", ep);
                                 let dci = ep.doorbell_value_aka_dci() as usize;
                                 let max_packet_size = ep.max_packet_size;
                                 let ring_addr =
@@ -954,20 +1004,22 @@ where
             r.set_doorbell_target(1);
         });
 
-        let complete = self
-            .event_busy_wait_transfer(*trb_pointers.last().unwrap() as _)
-            .unwrap();
-
-        match complete.completion_code() {
-            Ok(complete) => match complete {
-                CompletionCode::Success => Ok(UCB::new(CompleteCode::Event(
-                    TransferEventCompleteCode::Success,
+        match self.event_busy_wait_transfer(*trb_pointers.last().unwrap() as _) {
+            Ok(complete) => match complete.completion_code() {
+                Ok(complete) => match complete {
+                    CompletionCode::Success => Ok(UCB::new(CompleteCode::Event(
+                        TransferEventCompleteCode::Success,
+                    ))),
+                    err => panic!("{:?}", err),
+                },
+                Err(fail) => Ok(UCB::new(CompleteCode::Event(
+                    TransferEventCompleteCode::Unknown(fail),
                 ))),
-                err => panic!("{:?}", err),
             },
-            Err(fail) => Ok(UCB::new(CompleteCode::Event(
-                TransferEventCompleteCode::Unknown(fail),
-            ))),
+            Err(Error::CMD(err)) if let CompletionCode::StallError = err => Ok(UCB::new(
+                CompleteCode::Event(TransferEventCompleteCode::Stall),
+            )),
+            any => panic!("impossible:{:?}", any),
         }
     }
 
@@ -975,10 +1027,21 @@ where
         &mut self,
         dev_slot_id: usize,
         urb_req: Configuration,
+        dev: Option<&mut DriverIndependentDeviceInstance<O>>,
     ) -> crate::err::Result<UCB<O>> {
         match urb_req {
             Configuration::SetupDevice(config) => self.setup_device(dev_slot_id, &config),
-            Configuration::SwitchInterface(_, _) => todo!(),
+            Configuration::SwitchInterface(interface, alternative) => {
+                let switch_interface = self.switch_interface(dev_slot_id, interface, alternative);
+                if switch_interface.is_ok() && dev.is_some() {
+                    let dev = dev.unwrap();
+                    dev.interface_val = interface;
+                    dev.current_alternative_interface_value = alternative;
+                }
+                switch_interface
+            }
+            Configuration::SwitchConfig(_, _) => todo!(),
+            Configuration::ResetEndpoint(ep) => self.reset_endpoint(dev_slot_id, ep),
         }
     }
 
@@ -1088,7 +1151,7 @@ where
                 request_type: bmRequestType::new(
                     Direction::In,
                     DataTransferType::Standard,
-                    trasnfer::control::Recipient::Device,
+                    Recipient::Device,
                 ),
                 request: StandardbRequest::GetDescriptor.into(),
                 index: 0,
@@ -1195,6 +1258,7 @@ where
         let mut packet_size = urb_req.packet_size;
         let mut remain = None;
 
+        trace!("packet size:{packet_size},request_times:{request_times},total_len:{total_len}");
         assert!(packet_size * request_times <= total_len);
 
         let max_packet_size = self
@@ -1262,5 +1326,18 @@ where
                 TransferEventCompleteCode::Unknown(fail),
             ))),
         }
+    }
+
+    fn debug_op(&mut self, dev_slot_id: usize, debug_op: Debugop) -> crate::err::Result<UCB<O>> {
+        match debug_op {
+            Debugop::DumpDevice => {
+                trace!(
+                    "debug dump device:{:#?}",
+                    &*self.dev_ctx.device_out_context_list[dev_slot_id]
+                );
+            }
+        }
+
+        Ok(UCB::new(CompleteCode::Debug))
     }
 }

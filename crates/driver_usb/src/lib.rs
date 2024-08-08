@@ -106,7 +106,8 @@ where
                 .init_probe(&mut self.driver_independent_devices, &mut preparing_list);
 
             //probe driver modules and load them
-            self.host_driver_layer.tock(preparing_list);
+            self.host_driver_layer
+                .tock(preparing_list, &mut self.driver_independent_devices);
 
             //and do some prepare stuff
         }
@@ -127,7 +128,8 @@ where
             let tick = self.usb_driver_layer.tick();
             if tick.len() != 0 {
                 trace!("tick! {:?}", tick.len());
-                self.host_driver_layer.tock(tick);
+                self.host_driver_layer
+                    .tock(tick, &mut self.driver_independent_devices);
             }
             // trace!("tock!");
         }
@@ -219,17 +221,26 @@ where
             }) = &*driver.descriptors
             {
                 self.host_driver_layer
-                    .urb_request(URB::new(
-                        driver.slotid,
-                        RequestedOperation::ConfigureDevice(operation::Configuration::SetupDevice(
-                            //TODO: fixme
-                            devices.first().unwrap().child.first().unwrap(),
-                        )),
-                    ))
+                    .urb_request(
+                        URB::new(
+                            driver.slotid,
+                            RequestedOperation::ConfigureDevice(
+                                operation::Configuration::SetupDevice(
+                                    //TODO: fixme
+                                    devices.first().unwrap().child.first().unwrap(),
+                                ),
+                            ),
+                        ),
+                        &mut self.driver_independent_devices,
+                    )
                     .unwrap();
             };
 
             self.driver_independent_devices.push(driver);
+            trace!(
+                "pushed new device! {:?}",
+                self.driver_independent_devices.len()
+            )
         }
         //do something
     }

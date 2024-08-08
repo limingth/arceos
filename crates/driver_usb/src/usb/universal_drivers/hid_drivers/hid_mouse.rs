@@ -164,6 +164,12 @@ where
         trace!("hid mouse preparing for drive!");
         let endpoint_in = self.interrupt_in_channels.last().unwrap();
         let mut todo_list = Vec::new();
+
+        trace!(
+            "set interface for {},{}",
+            self.config_value,
+            self.interface_value
+        );
         todo_list.push(URB::new(
             self.device_slot_id,
             RequestedOperation::Control(ControlTransfer {
