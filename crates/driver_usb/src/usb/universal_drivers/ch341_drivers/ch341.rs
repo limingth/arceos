@@ -46,7 +46,7 @@ where
         independent_dev: &mut DriverIndependentDeviceInstance<O>,
         config: Arc<SpinNoIrq<USBSystemConfig<O>>>,
     ) -> Option<Vec<Arc<SpinNoIrq<dyn USBSystemDriverModuleInstance<'a, O>>>>> {
-        if let MightBeInited::Inited(desc) = *independent_dev.descriptors {
+        if let MightBeInited::Inited(desc) = &*independent_dev.descriptors {
             if desc.device.iter().any(|desc| desc.data.class == 255) {
                 if let Some(device1) = desc.device.get(0) {
                     if let Some(child1) = device1.child.get(0) {
@@ -55,7 +55,7 @@ where
                                 TopologicalUSBDescriptorFunction::Interface(interface_data) => {
                                     for (interface, usb_descriptors, endpoints) in interface_data {
                                         if interface.interface_class == 255 {
-                                            Some(
+                                            return Some(
                                                 (vec![CH341driver::new_and_init(
                                                     independent_dev.slotid,
                                                     device1.data.protocol,
@@ -106,11 +106,11 @@ where
                                                         .current_alternative_interface_value,
                                                     independent_dev.configuration_val,
                                                 )]),
-                                            )
-                                        }
+                                            );
+                                        };
                                     }
                                 }
-                                _ => None,
+                                _ => (),
                             }
                         }
                     }
@@ -353,3 +353,4 @@ where
         }
     }
 }
+
