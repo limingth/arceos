@@ -358,7 +358,7 @@ pub fn ch341_open(){
     
 }
 
-pub fn ch341_set_termios() {
+pub fn ch341_set_termios(nDataBits:u8,nParity:u8,nStopBits:u8) {
     let baud_rate:usize = 9600;
     let mut flags = 0u64;
     let mut lcr: u8;
@@ -381,11 +381,11 @@ pub fn ch341_set_termios() {
 
     lcr = 0x80 | 0x40;
 
-    match C_CSIZE(tty) {
-        CS5 => lcr |= 0x00,
-        CS6 => lcr |= 0x01,
-        CS7 => lcr |= 0x02,
-        CS8 => lcr |= 0x03,
+    match nDataBits {
+        5 => lcr |= 0x00,
+        6 => lcr |= 0x01,
+        7 => lcr |= 0x02,
+        8 => lcr |= 0x03,
         _ => (),
     }
 
