@@ -354,3 +354,100 @@ where
     }
 }
 
+pub fn ch341_open(){
+    
+}
+
+pub fn ch341_set_termios() {
+    let baud_rate:usize = 9600;
+    let mut flags = 0u64;
+    let mut lcr: u8;
+
+    let mut factor: u32 = (1532620800 / baud_rate).try_into().unwrap();
+    let mut divisor: u16 = 3;
+    while (factor > 0xfff0) && (divisor > 0) {
+        factor >>= 3;
+        divisor -= 1;
+    }
+    if factor > 0xfff0 {
+        trace!("factor wrror");
+    }
+    factor = 0x10000 - factor;
+    let mut a: u16 = (factor & 0xff00) as u16| divisor;
+    a |= 1 << 7;
+
+    let endpoint_in = last;
+    let mut todo_list = Vec::new();
+
+    lcr = 0x80 | 0x40;
+
+    match C_CSIZE(tty) {
+        CS5 => lcr |= 0x00,
+        CS6 => lcr |= 0x01,
+        CS7 => lcr |= 0x02,
+        CS8 => lcr |= 0x03,
+        _ => (),
+    }
+
+    if C_PARENB(tty) {
+        lcr |= 0x08;
+        if C_PARODD(tty) == 0 {
+            lcr |= 0x10;
+        }
+        if C_CMSPAR(tty) {
+            lcr |= 0x20;
+        }
+    }
+
+    if C_CSTOPB(tty) {
+        lcr |= 0x04;
+    }
+
+    //ch341_set_baudrate_lcr(port.serial.dev, priv, priv.baud_rate, lcr);
+    todo_list.push(URB::new(
+        self.device_slot_id,
+        RequestedOperation::Control(ControlTransfer {
+            request_type: bmRequestType::new(
+                Direction::Out,
+                DataTransferType::Vendor,
+                Recipient::Device,
+            ),
+            request: bRequest::DriverSpec(0x9A),
+            index: a as u16,
+            value: 0x1312 as u16,
+            data: None,
+        }),
+    ));
+
+    todo_list.push(URB::new(
+        self.device_slot_id,
+        RequestedOperation::Control(ControlTransfer {
+            request_type: bmRequestType::new(
+                Direction::Out,
+                DataTransferType::Vendor,
+                Recipient::Device,
+            ),
+            request: bRequest::DriverSpec(0x9A),
+            index: lcr as u16,
+            value: 0x2518 as u16,
+            data: None,
+        }),
+    ));
+
+    let mut mcr = 0;
+    mcr |= ((1 << 5)|(1 << 6));
+    todo_list.push(URB::new(
+        self.device_slot_id,
+        RequestedOperation::Control(ControlTransfer {
+            request_type: bmRequestType::new(
+                Direction::Out,
+                DataTransferType::Vendor,
+                Recipient::Device,
+            ),
+            request: bRequest::DriverSpec(0xA4),
+            index: !mcr as u16,
+            value: 0 as u16,
+            data: None,
+        }),
+    ));
+}
