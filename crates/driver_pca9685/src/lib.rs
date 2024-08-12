@@ -42,6 +42,8 @@ unsafe fn Car_run_Task(proposal: i32) {
         10 => Back_Right(),
         11 => Rotate_Left(),
         12 => Rotate_Right(),
+        13 => test1(),
+        14 => test2(),
         _ => Stop(),
     }
 }
@@ -112,6 +114,14 @@ unsafe fn RX_90D(t_ms: usize) {
 }
 unsafe fn GS_run(L_speed: u16, R_speed: u16) {
     set_pwm(L_speed, R_speed, L_speed, R_speed);
+}
+
+unsafe fn test1(){
+    status_control(1,0,0,0);
+}
+
+unsafe fn test2(){
+    status_control(-1,0,0,0);
 }
 
 unsafe fn write_byte_data(address:u8,offset:u8,value:u16){
@@ -222,18 +232,33 @@ unsafe fn status_control(m1: i16, m2: i16, m3: i16, m4: i16) {
             write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 1 + 1, 0 >> 8);
             write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 1 + 2, 4095 & 0xFF);
             write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 1 + 3, 4095 >> 8);
+
+            write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 2, 0 & 0xFF);
+            write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 2 + 1, 0 >> 8);
+            write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 2 + 2, 0 & 0xFF);
+            write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 2 + 3, 0 >> 8);
         }
         0 => {
             write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 1, 0 & 0xFF);
             write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 1 + 1, 0 >> 8);
             write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 1 + 2, 0 & 0xFF);
             write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 1 + 3, 0 >> 8);
+
+            write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 2, 0 & 0xFF);
+            write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 2 + 1, 0 >> 8);
+            write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 2 + 2, 0 & 0xFF);
+            write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 2 + 3, 0 >> 8);
         }
         1 => {
             write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 1, 0 & 0xFF);
             write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 1 + 1, 0 >> 8);
             write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 1 + 2, 0 & 0xFF);
             write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 1 + 3, 0 >> 8);
+
+            write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 2, 0 & 0xFF);
+            write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 2 + 1, 0 >> 8);
+            write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 2 + 2, 4095 & 0xFF);
+            write_byte_data(PCA9685_ADDRESS, LED0_ON_L + 4 * 2 + 3, 4095 >> 8);
         }
         _ => (),
     }
@@ -424,30 +449,10 @@ pub fn test_pca() {
         pca_init(2500, 2500, 2500, 2500);
         debug!("start");
         loop {
-            Car_run_Task(1);
-            busy_wait(Duration::from_millis(5000));
-            Car_run_Task(2);
-            busy_wait(Duration::from_millis(5000));
-            Car_run_Task(3);
-            busy_wait(Duration::from_millis(5000));
-            Car_run_Task(4);
-            busy_wait(Duration::from_millis(5000));
-            Car_run_Task(5);
-            busy_wait(Duration::from_millis(5000));
-            Car_run_Task(6);
-            busy_wait(Duration::from_millis(5000));
-            Car_run_Task(7);
-            busy_wait(Duration::from_millis(5000));
-            Car_run_Task(8);
-            busy_wait(Duration::from_millis(5000));
-            Car_run_Task(9);
-            busy_wait(Duration::from_millis(5000));
-            Car_run_Task(10);
-            busy_wait(Duration::from_millis(5000));
-            Car_run_Task(11);
-            busy_wait(Duration::from_millis(5000));
-            Car_run_Task(12);
-            busy_wait(Duration::from_millis(5000));
+            Car_run_Task(13);
+            busy_wait(Duration::from_millis(1000));
+            Car_run_Task(14);
+            busy_wait(Duration::from_millis(1000));
         }
     }
 }
