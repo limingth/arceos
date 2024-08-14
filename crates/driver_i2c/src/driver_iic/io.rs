@@ -78,20 +78,14 @@ pub fn FIOPadCfgInitialize(instance_p: &mut FIOPadCtrl, input_config_p: &FIOPadC
         Some(input_config_p.clone()).is_some(),
         "input_config_p should not be null"
     );
-
     let mut ret: bool = true;
-
     if instance_p.is_ready == 0x11111111u32 {
         debug!("Device is already initialized.");
     }
-
     // Set default values and configuration data
     FIOPadDeInitialize(instance_p);
-
     instance_p.config = *input_config_p;
-
     instance_p.is_ready = 0x11111111u32;
-
     ret
 }
 

@@ -212,7 +212,6 @@ pub unsafe  fn FI2cMioMasterInit(address: u32, speed_rate: u32) -> bool {
     let mut input_cfg: FI2cConfig = FI2cConfig::default();
     let mut config_p: FI2cConfig = FI2cConfig::default();
     let mut status: bool = true;
-
     // MIO 初始化
     master_mio_ctrl.config = FMioLookupConfig(1).unwrap();
     status = FMioFuncInit(&mut master_mio_ctrl, 0b00);
@@ -222,7 +221,6 @@ pub unsafe  fn FI2cMioMasterInit(address: u32, speed_rate: u32) -> bool {
     }
     FIOPadSetFunc(&iopad_ctrl, 0x00D0u32, 5); /* scl */
     FIOPadSetFunc(&iopad_ctrl, 0x00D4u32, 5); /* sda */
-
     unsafe {
         core::ptr::write_bytes(&mut master_i2c_instance as *mut FI2c, 0, size_of::<FI2c>());
     }
@@ -232,7 +230,6 @@ pub unsafe  fn FI2cMioMasterInit(address: u32, speed_rate: u32) -> bool {
         debug!("Config of mio instance {} not found.", 1);
         return false;
     }
-
     // 修改配置
     input_cfg = config_p.clone();
     input_cfg.instance_id = 1;
@@ -241,20 +238,16 @@ pub unsafe  fn FI2cMioMasterInit(address: u32, speed_rate: u32) -> bool {
     input_cfg.ref_clk_hz = 50000000;
     input_cfg.slave_addr = address;
     input_cfg.speed_rate = speed_rate;
-
     // 初始化
     status = FI2cCfgInitialize(&mut master_i2c_instance, &input_cfg);
-
     // 处理 FI2C_MASTER_INTR_EVT 中断的回调函数
     master_i2c_instance.master_evt_handlers[0 as usize] = None;
     master_i2c_instance.master_evt_handlers[1 as usize] = None;
     master_i2c_instance.master_evt_handlers[2 as usize] = None;
-
     if status != true {
         debug!("Init mio master failed, ret: {:?}", status);
         return status;
     }
-
     debug!(
         "Set target slave_addr: 0x{:x} with mio-{}",
         input_cfg.slave_addr, 1
