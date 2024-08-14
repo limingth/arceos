@@ -57,4 +57,28 @@ where
             .collect();
         collect
     }
+
+    pub fn create_for_device1(
+        &mut self,
+        device: &mut DriverIndependentDeviceInstance<O>,
+        config: Arc<SpinNoIrq<USBSystemConfig<O>>>,
+        preparing_list: &mut Vec<Vec<URB<'a, O>>>,
+    ) -> Vec<Arc<SpinNoIrq<dyn USBSystemDriverModuleInstance<'a, O>>>> {
+        let collect = self
+            .drivers
+            .iter()
+            .filter_map(|module| module.should_active(device, config.clone()))
+            .flat_map(|a| a)
+            .inspect(|a| {
+                let sender = a.clone();
+                if let Some(mut prep_list) = a.lock().prepare_for_drive1() {
+                    prep_list
+                        .iter_mut()
+                        .for_each(|urb| urb.set_sender(sender.clone()));
+                    preparing_list.push(prep_list)
+                }
+            })
+            .collect();
+        collect
+    }
 }

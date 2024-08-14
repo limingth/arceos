@@ -117,6 +117,35 @@ where
         self
     }
 
+    pub fn init_probe1(mut self) -> Self {
+        // async { //todo:async it!
+        {
+            self.driver_independent_devices.clear(); //need to have a merge algorithm for hot plug
+            let mut after = Vec::new();
+            self.host_driver_layer.probe(|device| after.push(device));
+
+            for driver in after {
+                self.new_device(driver)
+            }
+            trace!("device probe complete");
+        }
+        {
+            let mut preparing_list = Vec::new();
+            self.usb_driver_layer
+                .init_probe1(&mut self.driver_independent_devices, &mut preparing_list);
+
+            //probe driver modules and load them
+            self.host_driver_layer
+                .tock(preparing_list, &mut self.driver_independent_devices);
+
+            //and do some prepare stuff
+        }
+        // }
+        // .await;
+
+        self
+    }
+
     pub fn driver_active(mut self) -> Self {
         self
     }
@@ -126,6 +155,36 @@ where
 
         loop {
             let tick = self.usb_driver_layer.tick();
+            if tick.len() != 0 {
+                trace!("tick! {:?}", tick.len());
+                self.host_driver_layer
+                    .tock(tick, &mut self.driver_independent_devices);
+            }
+            // trace!("tock!");
+        }
+        self
+    }
+
+    pub fn drive_all1(mut self) -> Self {
+        //TODO: Drive All
+
+        loop {
+            let tick = self.usb_driver_layer.tick1();
+            if tick.len() != 0 {
+                trace!("tick! {:?}", tick.len());
+                self.host_driver_layer
+                    .tock(tick, &mut self.driver_independent_devices);
+            }
+            // trace!("tock!");
+        }
+        self
+    }
+
+    pub fn drive_all2(mut self) -> Self {
+        //TODO: Drive All
+
+        loop {
+            let tick = self.usb_driver_layer.tick2();
             if tick.len() != 0 {
                 trace!("tick! {:?}", tick.len());
                 self.host_driver_layer

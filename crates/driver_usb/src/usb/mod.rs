@@ -81,11 +81,55 @@ where
         )
     }
 
+    pub fn init_probe1(
+        &mut self,
+        devices: &mut Vec<DriverIndependentDeviceInstance<O>>,
+        preparing_list: &mut Vec<Vec<URB<'a, O>>>,
+    ) {
+        devices
+            .iter_mut()
+            .flat_map(|device| {
+                self.managed_modules
+                    .create_for_device1(device, self.config.clone(), preparing_list)
+            })
+            .collect_into(&mut self.driver_device_instances);
+        trace!(
+            "current driver managed device num: {}",
+            self.driver_device_instances.len()
+        )
+    }
+
     pub fn tick(&mut self) -> Vec<Vec<URB<'a, O>>> {
         self.driver_device_instances
             .iter()
             .filter_map(|drv_dev| {
                 drv_dev.lock().gather_urb().map(|mut vec| {
+                    vec.iter_mut()
+                        .for_each(|urb| urb.set_sender(drv_dev.clone()));
+                    vec
+                })
+            })
+            .collect()
+    }
+
+    pub fn tick1(&mut self) -> Vec<Vec<URB<'a, O>>> {
+        self.driver_device_instances
+            .iter()
+            .filter_map(|drv_dev| {
+                drv_dev.lock().gather_urb1().map(|mut vec| {
+                    vec.iter_mut()
+                        .for_each(|urb| urb.set_sender(drv_dev.clone()));
+                    vec
+                })
+            })
+            .collect()
+    }
+
+    pub fn tick2(&mut self) -> Vec<Vec<URB<'a, O>>> {
+        self.driver_device_instances
+            .iter()
+            .filter_map(|drv_dev| {
+                drv_dev.lock().gather_urb2().map(|mut vec| {
                     vec.iter_mut()
                         .for_each(|urb| urb.set_sender(drv_dev.clone()));
                     vec

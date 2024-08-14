@@ -255,6 +255,18 @@ where
 
         Some(todo_list)
     }
+
+    fn prepare_for_drive1(&mut self) -> Option<Vec<URB<'a, O>>>{
+        todo!();
+    }
+
+    fn gather_urb1(&mut self) -> Option<Vec<URB<'a, O>>>{
+        todo!();
+    }
+    
+    fn gather_urb2(&mut self) -> Option<Vec<URB<'a, O>>> {
+        todo!();
+    }
 }
 
 pub struct HidMouseDriverModule; //TODO: Create annotations to register

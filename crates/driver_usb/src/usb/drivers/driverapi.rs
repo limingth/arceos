@@ -30,7 +30,13 @@ where
 {
     fn prepare_for_drive(&mut self) -> Option<Vec<URB<'a, O>>>;
 
+    fn prepare_for_drive1(&mut self) -> Option<Vec<URB<'a, O>>>;
+
     fn gather_urb(&mut self) -> Option<Vec<URB<'a, O>>>;
+
+    fn gather_urb1(&mut self) -> Option<Vec<URB<'a, O>>>;
+
+    fn gather_urb2(&mut self) -> Option<Vec<URB<'a, O>>>;
 
     fn receive_complete_event(&mut self, ucb: UCB<O>);
 }

@@ -432,6 +432,18 @@ where
     fn receive_complete_event(&mut self, ucb: crate::glue::ucb::UCB<O>) {
         trace!("received ucb:{:#?}", ucb.code)
     }
+
+    fn gather_urb1(&mut self) -> Option<Vec<URB<'a, O>>> {
+        todo!();
+    }
+
+    fn prepare_for_drive1(&mut self) -> Option<Vec<URB<'a, O>>> {
+        todo!();
+    }
+
+    fn gather_urb2(&mut self) -> Option<Vec<URB<'a, O>>> {
+        todo!();
+    }
 }
 
 enum ExtraLifeCycle {
