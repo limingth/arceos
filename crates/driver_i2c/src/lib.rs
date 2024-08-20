@@ -71,7 +71,7 @@ pub unsafe fn OledDisplayOn() -> bool {
     let mut ret: bool;
     let mut display_data = [0xFF; 128];
 
-    for _ in 0..5 {
+    for _ in 0..8 {
         // SSD1306有8页
         for i in 0..128 {
             ret = FI2cMasterWrite(&mut [display_data[i]], 1, 0);
@@ -126,7 +126,7 @@ pub fn run_iicoled() {
     unsafe {
         let mut ret: bool = true;
         let address: u32 = 0x3c;
-        let mut speed_rate: u32 = 100000; /*kb/s*/
+        let mut speed_rate: u32 = 1000000; /*kb/s*/
         FIOPadCfgInitialize(&mut iopad_ctrl, &FIOPadLookupConfig(0).unwrap());
         ret = FI2cMioMasterInit(address, speed_rate);
         if ret != true {
@@ -134,6 +134,6 @@ pub fn run_iicoled() {
         }
         ret = OledInit();
         ret = OledDisplayOn();
-        // oled_show_string(1,1,"hello rust");
+        //oled_show_string(1,1,"hello rust");
     }
 }

@@ -10,89 +10,90 @@ smp = 1
 build_mode = release
 log_level = debug
 
-ccc[ 39.346095 0 axruntime:138] Logging is enabled.
-[ 39.351824 0 axruntime:139] Primary CPU 512 started, dtb = 0x1.
-[ 39.358941 0 axruntime:141] Found physcial memory regions:
-c[ 39.365713 0 axruntime:144]   [PA:0x90100000, PA:0x90116000) .text (READ | EXECUTE | RESERVED)
-[ 39.375520 0 axruntime:144]   [PA:0x90116000, PA:0x9011b000) .rodata (READ | RESERVED)
-[ 39.384634 0 axruntime:144]   [PA:0x9011b000, PA:0x9011f000) .data .tdata .tbss .percpu (READ | WRITE | RESERVED)
-[ 39.396092 0 axruntime:144]   [PA:0x9011f000, PA:0x9015f000) boot stack (READ | WRITE | RESERVED)
-[ 39.406160 0 axruntime:144]   [PA:0x9015f000, PA:0x90186000) .bss (READ | WRITE | RESERV axruntime:144]   [PA:0x0, PA:0x1000) spintable (READ | WRITE | RESERVED)
-[ 39.424735 0 axruntime:144]   [PA:0x90186000, PA:0x90486000) nocache memory (READ | WRITE | DEVICE)
-[ 39.434978 0 axruntime:144]   [PA:0x90486000, PA:0xffd00000) free memory (READ | WRITE | FREE)
-[ 39.444786 0 axruntime:144]   [PA:0x2800c000, PA:0x2800d000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 39.455116 0 axruntime:144]   [PA:0x2800d000, PA:0x2800e000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 39.465445 0 axruntime:144]   [PA:0x2800e000, PA:0x2800f000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 39.475774 0 axruntime:144]   [PA:0x2800f000, PA:0x28010000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 39.486103 0 axruntime:144]   [PA:0x30000000, PA:0x38000000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 39.496432 0 axruntime:144]   [PA:0x40000000, PA:0x50000000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 39.506761 0 axruntime:144]   [PA:0x28014000, PA:0x28016000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 39.517091 0 axruntime:144]   [PA:0x28016000, PA:0x28018000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 39.527420 0 axruntime:144]   [PA:0x28018000, PA:0x2801a000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 39.537749 0 axruntime:144]   [PA:0x2801a000, PA:0x2801c000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 39.548078 0 axruntime:144]   [PA:0x2801c000, PA:0x2801e000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 39.558407 0 axruntime:144]   [PA:0x28034000, PA:0x28035000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 39.568737 0 axruntime:144]   [PA:0x28035000, PA:0x28036000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 39.579066 0 axruntime:144]   [PA:0x28036000, PA:0x28037000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 39.589395 0 axruntime:144]   [PA:0x28037000, PA:0x28038000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 39.599724 0 axruntime:144]   [PA:0x28038000, PA:0x28039000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 39.610053 0 axruntime:144]   [PA:0x28039000, PA:0x2803a000) mmio (READ | WRITE | DEVICE | RESERVED)
-[ 39.620383 0 axruntime:223] Initialize global memory allocator...
-[ 39.627674 0 axruntime:224]   use TLSF allocator.
-[ 39.633579 0 axalloc:284] initialize global allocator at: free-[0xffff000090486000, 0xffff0000ffd00000)
-[ 39.644490 0 axruntime:158] Initialize kernel page table...
-[ 39.651030 0 axruntime:258] Initialize global no cache memory allocator...
-[ 39.659010 0 axalloc:300] initialize global allocator at: nocache-[0x90186000,0x90486000)
-[ 39.668385 0 axruntime:165] Initialize platform devices...
-[ 39.675067 0 axhal::platform::aarch64_common::gic:51] Initialize GICv2...
-[ 39.683053 0 axtask::api:66] Initialize scheduling...
-[ 39.689305 0 axtask::task:146] new task: Task(1, "idle")
-[ 39.695816 0 axtask::task:146] new task: Task(3, "gc")
-[ 39.702153 0 axalloc:126] expand heap memory: [0xffff000090499000, 0xffff0000904d9000)
-[ 39.711269 0 axalloc:126] expand heap memory: [0xffff0000904d9000, 0xffff000090559000)
-[ 39.720379 0 axtask::api:72]   use Round-robin scheduler.
-[ 39.726973 0 axdriver:158] Initialize device drivers...
-[ 39.733397 0 axdriver:159]   device model: static
-[ 39.739299 0 driver_pci::phytium:18] PCIe link start @0xFFFF000040000000...
-[ 39.747458 0 driver_pci::phytium:19] theroticly, since uboot had already initialized it, we need't to operate it any more!
-[ 39.759697 0 axdriver::bus::pci:14] probing in pci.rs!
-[ 39.766033 0 driver_pci::root_complex:96] into next!
-[ 39.772197 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.779140 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.786084 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.793028 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.799972 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.806916 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.813860 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.820804 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.827748 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.834692 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.841636 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.848580 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.855524 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.862468 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.869412 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.876356 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.883300 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.890244 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.897188 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.904132 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.911076 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.918020 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.924964 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.931908 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.938852 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.945796 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.952740 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.959684 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.966628 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.973572 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.980516 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.987460 0 driver_pci::root_complex:139] vid FFFF, did FFFF
-[ 39.994404 0 driver_pci::root_complex:116] none!
-[ 40.000220 0 axdriver:190] number of usb host controller: 0
-[ 40.006990 0 axruntime:191] Initialize interrupt handlers...
-[ 40.013848 0 axruntime:201] Primary CPU 512 init OK.
+ccc[ 21.048387 0 axruntime:138] Logging is enabled.
+[ 21.054116 0 axruntime:139] Primary CPU 512 started, dtb = 0x1.
+[ 21.061234 0 axruntime:141] Found physcial memory regions:
+c[ 21.068005 0 axruntime:144]   [PA:0x90100000, PA:0x90116000) .text (READ | EXECUTE | RESERVED)
+[ 21.077812 0 axruntime:144]   [PA:0x90116000, PA:0x9011b000) .rodata (READ | RESERVED)
+[ 21.086926 0 axruntime:144]   [PA:0x9011b000, PA:0x9011f000) .data .tdata .tbss .percpu (READ | WRITE | RESERVED)
+[ 21.098384 0 axruntime:144]   [PA:0x9011f000, PA:0x9015f000) boot stack (READ | WRITE | RESERVED)
+[ 21.108453 0 axruntime:144]   [PA:0x9015f000, PA:0x90186000) .bss (READ | WRITE | RESERVED)
+[ 21.118001 0 axruntime:144]   [PA:0x0, PA:0x1000) spintable (READ | WRITE | RESERVED)
+[ 21.127028 0 axruntime:144]   [PA:0x90186000, PA:0x90486000) nocache memory (READ | WRITE | DEVICE)
+[ 21.137270 0 axruntime:144]   [PA:0x90486000, PA:0xffd00000) free memory (READ | WRITE | FREE)
+[ 21.147079 0 axruntime:144]   [PA:0x2800c000, PA:0x2800d000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 21.157408 0 axruntime:144]   [PA:0x2800d000, PA:0x2800e000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 21.167737 0 axruntime:144]   [PA:0x2800e000, PA:0x2800f000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 21.178066 0 axruntime:144]   [PA:0x2800f000, PA:0x28010000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 21.188396 0 axruntime:144]   [PA:0x30000000, PA:0x38000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 21.198725 0 axruntime:144]   [PA:0x40000000, PA:0x50000000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 21.209054 0 axruntime:144]   [PA:0x28014000, PA:0x28016000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 21.219383 0 axruntime:144]   [PA:0x28016000, PA:0x28018000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 21.229712 0 axruntime:144]   [PA:0x28018000, PA:0x2801a000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 21.240042 0 axruntime:144]   [PA:0x2801a000, PA:0x2801c000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 21.250371 0 axruntime:144]   [PA:0x2801c000, PA:0x2801e000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 21.260700 0 axruntime:144]   [PA:0x28034000, PA:0x28035000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 21.271029 0 axruntime:144]   [PA:0x28035000, PA:0x28036000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 21.281358 0 axruntime:144]   [PA:0x28036000, PA:0x28037000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 21.291688 0 axruntime:144]   [PA:0x28037000, PA:0x28038000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 21.302017 0 axruntime:144]   [PA:0x28038000, PA:0x28039000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 21.312346 0 axruntime:144]   [PA:0x28039000, PA:0x2803a000) mmio (READ | WRITE | DEVICE | RESERVED)
+[ 21.322675 0 axruntime:223] Initialize global memory allocator...
+[ 21.329967 0 axruntime:224]   use TLSF allocator.
+[ 21.335871 0 axalloc:284] initialize global allocator at: free-[0xffff000090486000, 0xffff0000ffd00000)
+[ 21.346784 0 axruntime:158] Initialize kernel page table...
+[ 21.353321 0 axruntime:258] Initialize global no cache memory allocator...
+[ 21.361302 0 axalloc:300] initialize global allocator at: nocache-[0x90186000,0x90486000)
+[ 21.370678 0 axruntime:165] Initialize platform devices...
+[ 21.377359 0 axhal::platform::aarch64_common::gic:51] Initialize GICv2...
+[ 21.385346 0 axtask::api:66] Initialize scheduling...
+[ 21.391599 0 axtask::task:146] new task: Task(1, "idle")
+[ 21.398108 0 axtask::task:146] new task: Task(3, "gc")
+[ 21.404445 0 axalloc:126] expand heap memory: [0xffff000090499000, 0xffff0000904d9000)
+[ 21.413562 0 axalloc:126] expand heap memory: [0xffff0000904d9000, 0xffff000090559000)
+[ 21.422671 0 axtask::api:72]   use Round-robin scheduler.
+[ 21.429266 0 axdriver:158] Initialize device drivers...
+[ 21.435689 0 axdriver:159]   device model: static
+[ 21.441591 0 driver_pci::phytium:18] PCIe link start @0xFFFF000040000000...
+[ 21.449750 0 driver_pci::phytium:19] theroticly, since uboot had already initialized it, we need't to operate it any more!
+[ 21.461989 0 axdriver::bus::pci:14] probing in pci.rs!
+[ 21.468326 0 driver_pci::root_complex:96] into next!
+[ 21.474489 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.481433 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.488377 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.495321 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.502265 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.509209 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.516153 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.523097 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.530041 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.536985 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.543929 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.550873 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.557817 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.564761 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.571705 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.578649 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.585593 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.592537 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.599481 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.606425 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.613369 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.620313 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.627257 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.634201 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.641145 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.648089 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.655033 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.661977 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.668921 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.675865 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.682809 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.689753 0 driver_pci::root_complex:139] vid FFFF, did FFFF
+[ 21.696697 0 driver_pci::root_complex:116] none!
+[ 21.702513 0 axdriver:190] number of usb host controller: 0
+[ 21.709282 0 axruntime:191] Initialize interrupt handlers...
+[ 21.716140 0 axruntime:201] Primary CPU 512 init OK.
 Available commands:
   exit
   help
@@ -101,8 +102,9 @@ Available commands:
   str
   iic
   pca
-arceos# pca
-[ 42.521039 0:2 driver_i2c::driver_iic::i2c_hw:135] i2c: mode 0, bus_clk 50000000, speed 100000, period 500 rise 15 fall 50 tlow 235 thigh 200 spk 5
-[ 42.532577 0:2 driver_i2c::driver_iic::i2c_hw:175] i2c: hcnt = 170 lcnt = 302 sda hold = 15
-[ 42.542126 0:2 driver_i2c::example:258] Set target slave_addr: 0x60 with mio-1
-[ 42.664694 0:2 driver_pca9685:450] start
+arceos# ii 
+ii: command not found
+arceos# iic
+[ 23.991704 0:2 driver_i2c::driver_iic::i2c_hw:135] i2c: mode 2, bus_clk 50000000, speed 1000000, period 50 rise 8 fall 3 tlow 23 thigh 20 spk 2
+[ 24.002895 0:2 driver_i2c::driver_iic::i2c_hw:175] i2c: hcnt = 11 lcnt = 21 sda hold = 15
+[ 24.012271 0:2 driver_i2c::example:251] Set target slave_addr: 0x3c with mio-1
