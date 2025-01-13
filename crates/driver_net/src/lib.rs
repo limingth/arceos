@@ -8,7 +8,10 @@
 #[cfg(feature = "ixgbe")]
 /// ixgbe NIC device driver.
 pub mod ixgbe;
+
 mod net_buf;
+#[cfg(feature = "phytium")]
+mod phytiym_ethernet_controller;
 
 use core::ptr::NonNull;
 

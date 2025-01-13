@@ -67,6 +67,7 @@ pub unsafe fn write_page_table_root(root_paddr: PhysAddr) {
     trace!("set page table root: {:#x} => {:#x}", old_root, root_paddr);
     if old_root != root_paddr {
         // kernel space page table use TTBR1 (0xffff_0000_0000_0000..0xffff_ffff_ffff_ffff)
+        TTBR0_EL1.set(root_paddr.as_usize() as _);
         TTBR1_EL1.set(root_paddr.as_usize() as _);
         flush_tlb(None);
     }

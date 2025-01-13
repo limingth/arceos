@@ -12,9 +12,12 @@ documentation = "https://rcore-os.github.io/arceos/driver_net/index.html"
 [features]
 default = []
 ixgbe = ["dep:ixgbe-driver"]
+phytium=[]
 
 [dependencies]
 spin = "0.9"
 log = "0.4"
 driver_common = { path = "../driver_common" }
 ixgbe-driver = {git = "https://github.com/KuangjuX/ixgbe-driver.git", rev = "8e5eb74", optional = true}
+tock-registers="0.8"
+bit_field = "0.10"

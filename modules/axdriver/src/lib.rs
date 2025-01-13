@@ -57,6 +57,7 @@
 #![no_std]
 #![feature(doc_auto_cfg)]
 #![feature(associated_type_defaults)]
+#![feature(cfg_match)]
 
 #[macro_use]
 extern crate log;
@@ -130,6 +131,7 @@ impl AllDevices {
             }
         });
 
+        #[cfg(bus = "pci")]
         self.probe_bus_devices();
     }
 

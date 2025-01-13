@@ -1,0 +1,14 @@
+[package]
+name = "ch341"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = []
+
+[dependencies]
+axstd = { path = "../../ulib/axstd" }
+driver_usb ={ path = "../../crates/driver_usb",features=["xhci"]}
+axalloc = { path = "../../modules/axalloc"}
+axfeat = {path = "../../api/axfeat", features = ["multitask","sched_rr","paging"]}
+axhal = {path="../../modules/axhal"}

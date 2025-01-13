@@ -26,6 +26,14 @@ macro_rules! register_display_driver {
     };
 }
 
+macro_rules! register_usb_host_driver {
+    ($driver_type:ty, $device_type:ty) => {
+        /// The unified type of the NIC devices.
+        #[cfg(not(feature = "dyn"))]
+        pub type AxUSBHostDevice = $device_type;
+    };
+}
+
 macro_rules! for_each_drivers {
     (type $drv_type:ident, $code:block) => {{
         #[allow(unused_imports)]

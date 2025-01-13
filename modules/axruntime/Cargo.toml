@@ -22,6 +22,8 @@ multitask = ["axtask/multitask"]
 fs = ["axdriver", "axfs"]
 net = ["axdriver", "axnet"]
 display = ["axdriver", "axdisplay"]
+usb = ["axdriver"]
+
 
 [dependencies]
 axhal = { path = "../axhal" }

@@ -1,5 +1,7 @@
 use std::io::{self};
 
+// use driver_usb::host::{xhci::MemoryMapper, USBHost, USBHostConfig, Xhci};
+
 #[cfg(all(not(feature = "axstd"), unix))]
 
 macro_rules! print_err {
@@ -18,8 +20,22 @@ const CMD_TABLE: &[(&str, CmdHandler)] = &[
     ("help", do_help),
     ("uname", do_uname),
     ("ldr", do_ldr),
-    ("str", do_str)
+    ("str", do_str),
+    // ("test_xhci", test_xhci),
 ];
+
+// fn test_xhci(_args: &str) {
+//     // driver_usb::try_init(0x31a08000 as usize);
+//     // unsafe { xhci::Registers::new(0xffff_0000_31a0_8000 as usize, MemoryMapper {}) };
+
+//     let phytium_cfg_id_0 = (0xffff_0000_31a0_8000, 48, 0);
+
+
+//     let config = USBHostConfig::new(
+//         phytium_cfg_id_0.0, phytium_cfg_id_0.1, phytium_cfg_id_0.2);
+//     let usb = USBHost::<Xhci>::new(config).unwrap();
+
+// }
 
 fn do_uname(_args: &str) {
     let arch = option_env!("AX_ARCH").unwrap_or("");
@@ -83,7 +99,6 @@ fn do_ldr(args: &str) {
     }
 }
 
-
 // use crate::mem::phys_to_virt;
 // use core::ptr::{read_volatile, write_volatile};
 
@@ -131,7 +146,6 @@ fn do_str(args: &str) {
             str_one(addr, val).unwrap(); // 调用 str_one 函数并传递 addr 和 val
         }
     }
-
 }
 
 pub fn run_cmd(line: &[u8]) {
@@ -153,3 +167,5 @@ fn split_whitespace(str: &str) -> (&str, &str) {
     str.find(char::is_whitespace)
         .map_or((str, ""), |n| (&str[..n], str[n + 1..].trim()))
 }
+
+fn test_net(str: &str) {}

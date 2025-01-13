@@ -1,4 +1,5 @@
 use aarch64_cpu::{asm, asm::barrier, registers::*};
+use core::ptr;
 use memory_addr::PhysAddr;
 use page_table_entry::aarch64::{MemAttr, A64PTE};
 use tock_registers::interfaces::{ReadWriteable, Readable, Writeable};
@@ -100,7 +101,6 @@ unsafe fn init_boot_page_table() {
     crate::platform::mem::init_boot_page_table(&mut BOOT_PT_L0, &mut BOOT_PT_L1);
 }
 
-/// The earliest entry point for the primary CPU.
 #[naked]
 #[no_mangle]
 #[link_section = ".text.boot"]
@@ -109,17 +109,23 @@ unsafe extern "C" fn _start() -> ! {
     // X0 = dtb
     core::arch::asm!("
         mrs     x19, mpidr_el1
+        bl      {debug}         // put debug a
         and     x19, x19, #0xffffff     // get current CPU id
         mov     x20, x0                 // save DTB pointer
 
         adrp    x8, {boot_stack}        // setup boot stack
         add     x8, x8, {boot_stack_size}
         mov     sp, x8
+        bl      {debug}
 
         bl      {switch_to_el1}         // switch to EL1
+        bl      {debug}
         bl      {init_boot_page_table}
+        bl      {debug}
         bl      {init_mmu}              // setup MMU
+        bl      {debug_paged}
         bl      {enable_fp}             // enable fp/neon
+        bl      {debug_paged}
 
         mov     x8, {phys_virt_offset}  // set SP to the high address
         add     sp, sp, x8
@@ -129,6 +135,9 @@ unsafe extern "C" fn _start() -> ! {
         ldr     x8, ={entry}
         blr     x8
         b      .",
+        // TODO consider add some light?
+        debug = sym put_debug,
+        debug_paged = sym put_debug_paged,
         switch_to_el1 = sym switch_to_el1,
         init_boot_page_table = sym init_boot_page_table,
         init_mmu = sym init_mmu,
@@ -139,6 +148,30 @@ unsafe extern "C" fn _start() -> ! {
         entry = sym crate::platform::rust_entry,
         options(noreturn),
     )
+}
+
+#[cfg(all(target_arch = "aarch64"))]
+#[no_mangle]
+unsafe extern "C" fn put_debug() {
+    #[cfg(platform_family = "aarch64-phytium-pi")]
+    {
+        let state = (0x2800D018 as usize) as *mut u8;
+        let put = (0x2800D000 as usize) as *mut u8;
+        while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
+        *put = b'a';
+    }
+}
+
+#[cfg(all(target_arch = "aarch64"))]
+#[no_mangle]
+unsafe extern "C" fn put_debug_paged() {
+    #[cfg(platform_family = "aarch64-phytium-pi")]
+    {
+        let state = (0xFFFF00002800D018 as usize) as *mut u8;
+        let put = (0xFFFF00002800D000 as usize) as *mut u8;
+        while (ptr::read_volatile(state) & (0x20 as u8)) != 0 {}
+        *put = b'a';
+    }
 }
 
 /// The earliest entry point for the secondary CPUs.

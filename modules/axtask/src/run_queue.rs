@@ -69,11 +69,11 @@ impl AxRunQueue {
         //  locking the run queue.
         let can_preempt = curr.can_preempt(1);
 
-        debug!(
-            "current task is to be preempted: {}, allow={}",
-            curr.id_name(),
-            can_preempt
-        );
+        // debug!(
+        //     "current task is to be preempted: {}, allow={}",
+        //     curr.id_name(),
+        //     can_preempt
+        // );
         if can_preempt {
             self.resched(true);
         } else {
